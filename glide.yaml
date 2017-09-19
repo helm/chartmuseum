@@ -1,0 +1,28 @@
+package: github.com/chartmuseum/chartmuseum
+
+import:
+- package: github.com/gin-gonic/gin
+  version: v1.2
+- package: github.com/kubernetes/helm
+  version: v2.6.1
+- package: github.com/urfave/cli
+  version: v1.20.0
+- package: github.com/aws/aws-sdk-go
+  version: v1.10.18
+- package: go.uber.org/zap
+  version: v1.5.0
+
+# these ones are srsly a pain in da butt...
+# all needed to get cloud.google.com/go/storage to work
+- package: cloud.google.com/go
+  version: v0.12.0
+- package: google.golang.org/grpc
+  version: v1.5.2
+- package: golang.org/x/net
+  version: 57efc9c3d9f91fb3277f8da1cff370539c4d3dc5
+- package: golang.org/x/text
+  version: ac87088df8ef557f1e32cd00ed0b6fbc3f7ddafb
+
+testImports:
+- package: github.com/stretchr/testify
+  version: v1.1.4
