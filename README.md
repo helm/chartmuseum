@@ -19,6 +19,25 @@ Powered by some great Go technology:
 - [cli](https://github.com/urfave/cli) - for command line option parsing
 - [zap](https://github.com/uber-go/zap) - for logging
 
+## Things that have been said in Helm land
+>"Finally!!" 
+
+>"ChartMuseum is awesome"
+
+>"This is awesome!"
+
+>"Oh yes!!!! I’ve been waiting for this for so long. Makes life much easier, especially for the index.yaml creation!"
+
+>"I was thinking about writing one of these up myself. This is perfect! thanks!"
+
+>"I am jumping for joy over ChartMuseum, a full-fledged Helm repository server with upload!"
+
+>"This is really cool ... We currently have a process that generates the index file and then uploads, so this is nice"
+
+>"Really a good idea ... really really great, thanks again. I can use nginx to hold the repos and the museum to add/delete the chart. That's a whole life cycle management of chart with the current helm"
+
+>"thanks for building the museum!"
+
 ## API
 ### Helm Chart Repository
 - `GET /index.yaml` - retrieved when you run `helm repo add chartmuseum http://localhost:8080/`
