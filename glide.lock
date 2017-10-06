@@ -1,5 +1,5 @@
-hash: 00a8ed3ef68ac39e1e33ce80b62a682c17ce8e89df46e99fac16a25b9be2b413
-updated: 2017-09-18T21:57:40.784833011-05:00
+hash: f2b875bc5d18e2e6baa69400b7578ef09b34e51174ed35f6d46ff2590988f72c
+updated: 2017-10-05T22:42:20.600064152-05:00
 imports:
 - name: cloud.google.com/go
   version: 0f0b8420cb699ac4ce059c63bac263f4301fe95b
@@ -79,7 +79,7 @@ imports:
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/kubernetes/helm
-  version: bbc1f71dc03afc5f00c6ac84b9308f8ecb4f39ac
+  version: be3ae4ea91b2960be98c07e8f73754e67e87963c
 - name: github.com/Masterminds/semver
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
 - name: github.com/mattn/go-isatty
