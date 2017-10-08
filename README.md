@@ -103,7 +103,7 @@ mv ./chartmuseum /usr/local/bin
 ```
 Using `latest` in URLs above will get the latest binary (built from master branch).
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.1.0`).
+Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.1.3`).
 
 Show all CLI options with `chartmuseum --help` and determine version with `chartmuseum --version`
 
@@ -136,7 +136,8 @@ chartmuseum --debug --port=8080 \
 
 #### Other CLI options
 - `--log-json` - output structured logs as json
-- `--chart-url` - absolute url for .tgzs in index.yaml
+- `--disable-api` - disable all routes prefixed with /api
+- `--chart-url=<url>` - absolute url for .tgzs in index.yaml
 
 ### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
