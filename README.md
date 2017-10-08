@@ -134,6 +134,10 @@ chartmuseum --debug --port=8080 \
   --storage-local-rootdir="./chartstorage"
 ```
 
+#### Other CLI options
+- `--log-json` - output structured logs as json
+- `--chart-url` - absolute url for .tgzs in index.yaml
+
 ### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
 
@@ -150,21 +154,16 @@ docker run --rm -it \
   --storage-amazon-region="us-east-1"
 ```
 
-If you're having access issues, you can validate your AWS credentials with something like
-```bash
-docker run --rm \
-  -v ~/.aws:/root/.aws:ro \
-  --entrypoint sh \
-  chartmuseum/chartmuseum:latest \
-  -c 'apk add --update py-pip &&
-      pip install awscli &&
-      aws s3 ls my-s3-bucket --region=us-east-1'
-```
-
 ### Helm Chart
 There is a [Helm chart for *ChartMuseum*](https://github.com/kubernetes/charts/tree/master/incubator/chartmuseum) itself which can be found in the official Kubernetes Charts repository.
 
 You can also view it on [KubeApps](https://kubeapps.com/charts/incubator/chartmuseum).
+
+To install:
+```bash
+helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
+helm install incubator/chartmuseum
+```
 
 Please note that for now, this **should only be used for testing purposes**. An [emptyDir volume](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) is currently being used for storage, which means your .tgzs will disappear when the pod is removed. If you can help get this to work with persistent storage or any of the cloud storage options, please submit a PR to kubernetes/charts. Thanks!
 
