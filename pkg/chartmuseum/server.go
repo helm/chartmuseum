@@ -40,6 +40,8 @@ type (
 		StorageBackend storage.Backend
 		LogJSON        bool
 		Debug          bool
+		EnableAPI      bool
+		ChartURL       string
 	}
 )
 
@@ -84,13 +86,13 @@ func NewServer(options ServerOptions) (*Server, error) {
 	server := &Server{
 		Logger:           logger,
 		Router:           router,
-		RepositoryIndex:  repo.NewIndex(),
+		RepositoryIndex:  repo.NewIndex(options.ChartURL),
 		StorageBackend:   options.StorageBackend,
 		StorageCache:     []storage.Object{},
 		StorageCacheLock: &sync.Mutex{},
 	}
 
-	server.setRoutes()
+	server.setRoutes(options.EnableAPI)
 
 	err = server.regenerateRepositoryIndex()
 	return server, err
@@ -176,7 +178,11 @@ func (server *Server) regenerateRepositoryIndex() error {
 		return err
 	}
 
-	index := &repo.Index{IndexFile: server.RepositoryIndex.IndexFile, Raw: server.RepositoryIndex.Raw}
+	index := &repo.Index{
+		IndexFile: server.RepositoryIndex.IndexFile,
+		Raw:       server.RepositoryIndex.Raw,
+		ChartURL:  server.RepositoryIndex.ChartURL,
+	}
 
 	for _, object := range diff.Removed {
 		err := server.removeIndexObject(index, object)

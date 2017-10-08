@@ -39,6 +39,8 @@ func cliHandler(c *cli.Context) {
 	options := chartmuseum.ServerOptions{
 		Debug:          c.Bool("debug"),
 		LogJSON:        c.Bool("log-json"),
+		EnableAPI:      !c.Bool("disable-api"),
+		ChartURL:       c.String("chart-url"),
 		StorageBackend: backend,
 	}
 
@@ -117,11 +119,21 @@ var cliFlags = []cli.Flag{
 		Usage:  "output structured logs as json",
 		EnvVar: "LOG_JSON",
 	},
+	cli.BoolFlag{
+		Name:   "disable-api",
+		Usage:  "disable all routes prefixed with /api",
+		EnvVar: "DISABLE_API",
+	},
 	cli.IntFlag{
 		Name:   "port",
 		Value:  8080,
 		Usage:  "port to listen on",
 		EnvVar: "PORT",
+	},
+	cli.StringFlag{
+		Name:   "chart-url",
+		Usage:  "absolute url for .tgzs in index.yaml",
+		EnvVar: "CHART_URL",
 	},
 	cli.StringFlag{
 		Name:   "storage",
