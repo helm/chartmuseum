@@ -33,6 +33,8 @@ type (
 		StorageBackend   storage.Backend
 		StorageCache     []storage.Object
 		StorageCacheLock *sync.Mutex
+		TlsCert          string
+		TlsKey           string
 	}
 
 	// ServerOptions are options for constructing a Server
@@ -42,6 +44,10 @@ type (
 		Debug          bool
 		EnableAPI      bool
 		ChartURL       string
+		TlsCert        string
+		TlsKey         string
+		Username       string
+		Password       string
 	}
 )
 
@@ -67,10 +73,16 @@ func NewLogger(json bool, debug bool) (*Logger, error) {
 }
 
 // NewRouter creates a new Router instance
-func NewRouter(logger *Logger) *Router {
+func NewRouter(logger *Logger, username string, password string) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
-	engine.Use(loggingMiddleware(logger), gin.Recovery())
+	if (username != "") && (password != "") {
+		users := make(map[string]string)
+		users[username] = password
+		engine.Use(loggingMiddleware(logger), gin.Recovery(), gin.BasicAuthForRealm(users, "Chart Museum"))
+	} else {
+		engine.Use(loggingMiddleware(logger), gin.Recovery())
+	}
 	return &Router{engine}
 }
 
@@ -81,7 +93,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		return new(Server), nil
 	}
 
-	router := NewRouter(logger)
+	router := NewRouter(logger, options.Username, options.Password)
 
 	server := &Server{
 		Logger:           logger,
@@ -90,6 +102,8 @@ func NewServer(options ServerOptions) (*Server, error) {
 		StorageBackend:   options.StorageBackend,
 		StorageCache:     []storage.Object{},
 		StorageCacheLock: &sync.Mutex{},
+		TlsCert:          options.TlsCert,
+		TlsKey:           options.TlsKey,
 	}
 
 	server.setRoutes(options.EnableAPI)
@@ -103,14 +117,11 @@ func (server *Server) Listen(port int) {
 	server.Logger.Infow("Starting ChartMuseum",
 		"port", port,
 	)
-	server.Logger.Fatal(server.Router.Run(fmt.Sprintf(":%d", port)))
-}
-
-func (server *Server) ListenTLS(port int, cert string, key string) {
-	server.Logger.Infow("Starting ChartMuseum TLS",
-		"port", port,
-	)
-	server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port), fmt.Sprintf("%s", cert), fmt.Sprintf("%s", key)))
+	if (server.TlsCert != "") && (server.TlsKey != "") {
+		server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port), fmt.Sprintf("%s", server.TlsCert), fmt.Sprintf("%s", server.TlsKey)))
+	} else {
+		server.Logger.Fatal(server.Router.Run(fmt.Sprintf(":%d", port)))
+	}
 }
 
 func loggingMiddleware(logger *Logger) gin.HandlerFunc {
