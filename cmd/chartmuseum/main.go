@@ -42,6 +42,10 @@ func cliHandler(c *cli.Context) {
 		EnableAPI:      !c.Bool("disable-api"),
 		ChartURL:       c.String("chart-url"),
 		StorageBackend: backend,
+		TlsCert:        c.String("tls-cert"),
+		TlsKey:         c.String("tls-key"),
+		Username:       c.String("basic-auth-user"),
+		Password:       c.String("basic-auth-pass"),
 	}
 
 	server, err := newServer(options)
@@ -49,11 +53,7 @@ func cliHandler(c *cli.Context) {
 		crash(err)
 	}
 
-	if (c.String("tls-cert") != "") && (c.String("tls-key") != "") {
-		server.ListenTLS(c.Int("port"), c.String("tls-cert"), c.String("tls-key"))
-	} else {
-		server.Listen(c.Int("port"))
-	}
+	server.Listen(c.Int("port"))
 }
 
 func backendFromContext(c *cli.Context) storage.Backend {
@@ -133,6 +133,16 @@ var cliFlags = []cli.Flag{
 		Value:  8080,
 		Usage:  "port to listen on",
 		EnvVar: "PORT",
+	},
+	cli.StringFlag{
+		Name:   "basic-auth-user",
+		Usage:  "username for basic http authentication",
+		EnvVar: "BASIC_AUTH_USER",
+	},
+	cli.StringFlag{
+		Name:   "basic-auth-pass",
+		Usage:  "password for basic http authentication",
+		EnvVar: "BASIC_AUTH_PASS",
 	},
 	cli.StringFlag{
 		Name:   "chart-url",
