@@ -49,7 +49,11 @@ func cliHandler(c *cli.Context) {
 		crash(err)
 	}
 
-	server.Listen(c.Int("port"))
+	if (c.String("tls-cert") != "") && (c.String("tls-key") != "") {
+		server.ListenTLS(c.Int("port"), c.String("tls-cert"), c.String("tls-key"))
+	} else {
+		server.Listen(c.Int("port"))
+	}
 }
 
 func backendFromContext(c *cli.Context) storage.Backend {
@@ -171,5 +175,17 @@ var cliFlags = []cli.Flag{
 		Value:  "",
 		Usage:  "prefix to store charts for --storage-google-bucket",
 		EnvVar: "STORAGE_GOOGLE_PREFIX",
+	},
+	cli.StringFlag{
+		Name:   "tls-cert",
+		Value:  "",
+		Usage:  "path to TLS / SSL certificate chain file",
+		EnvVar: "TLS_CERT",
+	},
+	cli.StringFlag{
+		Name:   "tls-key",
+		Value:  "",
+		Usage:  "path to TLS / SSL certificate key file",
+		EnvVar: "TLS_KEY",
 	},
 }
