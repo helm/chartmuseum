@@ -185,7 +185,7 @@ var cliFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "tls-key",
 		Value:  "",
-		Usage:  "path to TLS / SSL certificate key file",
+		Usage:  "path to TLS / SSL key file",
 		EnvVar: "TLS_KEY",
 	},
 }
