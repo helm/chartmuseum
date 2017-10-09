@@ -106,6 +106,13 @@ func (server *Server) Listen(port int) {
 	server.Logger.Fatal(server.Router.Run(fmt.Sprintf(":%d", port)))
 }
 
+func (server *Server) ListenTLS(port int, cert string, key string) {
+	server.Logger.Infow("Starting ChartMuseum TLS",
+		"port", port,
+	)
+	server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port), fmt.Sprintf("%s", cert), fmt.Sprintf("%s", key)))
+}
+
 func loggingMiddleware(logger *Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
