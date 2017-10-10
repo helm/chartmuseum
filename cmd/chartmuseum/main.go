@@ -13,7 +13,10 @@ import (
 )
 
 var (
-	crash     = log.Fatal
+	crash = log.Fatal
+	echo  = fmt.Print
+	exit  = os.Exit
+
 	newServer = chartmuseum.NewServer
 
 	// Version is the semantic version (added at compile time)
@@ -41,16 +44,21 @@ func cliHandler(c *cli.Context) {
 		LogJSON:        c.Bool("log-json"),
 		EnableAPI:      !c.Bool("disable-api"),
 		ChartURL:       c.String("chart-url"),
-		StorageBackend: backend,
 		TlsCert:        c.String("tls-cert"),
 		TlsKey:         c.String("tls-key"),
 		Username:       c.String("basic-auth-user"),
 		Password:       c.String("basic-auth-pass"),
+		StorageBackend: backend,
 	}
 
 	server, err := newServer(options)
 	if err != nil {
 		crash(err)
+	}
+
+	if c.Bool("gen-index") {
+		echo(string(server.RepositoryIndex.Raw[:]))
+		exit(0)
 	}
 
 	server.Listen(c.Int("port"))
@@ -114,6 +122,11 @@ func crashIfContextMissingFlags(c *cli.Context, flags []string) {
 
 var cliFlags = []cli.Flag{
 	cli.BoolFlag{
+		Name:   "gen-index",
+		Usage:  "generate index.yaml, print to stdout and exit",
+		EnvVar: "DEBUG",
+	},
+	cli.BoolFlag{
 		Name:   "debug",
 		Usage:  "show debug messages",
 		EnvVar: "DEBUG",
@@ -135,6 +148,11 @@ var cliFlags = []cli.Flag{
 		EnvVar: "PORT",
 	},
 	cli.StringFlag{
+		Name:   "chart-url",
+		Usage:  "absolute url for .tgzs in index.yaml",
+		EnvVar: "CHART_URL",
+	},
+	cli.StringFlag{
 		Name:   "basic-auth-user",
 		Usage:  "username for basic http authentication",
 		EnvVar: "BASIC_AUTH_USER",
@@ -145,9 +163,14 @@ var cliFlags = []cli.Flag{
 		EnvVar: "BASIC_AUTH_PASS",
 	},
 	cli.StringFlag{
-		Name:   "chart-url",
-		Usage:  "absolute url for .tgzs in index.yaml",
-		EnvVar: "CHART_URL",
+		Name:   "tls-cert",
+		Usage:  "path to tls certificate chain file",
+		EnvVar: "TLS_CERT",
+	},
+	cli.StringFlag{
+		Name:   "tls-key",
+		Usage:  "path to tls key file",
+		EnvVar: "TLS_KEY",
 	},
 	cli.StringFlag{
 		Name:   "storage",
@@ -166,7 +189,6 @@ var cliFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "storage-amazon-prefix",
-		Value:  "",
 		Usage:  "prefix to store charts for --storage-amazon-bucket",
 		EnvVar: "STORAGE_AMAZON_PREFIX",
 	},
@@ -182,20 +204,7 @@ var cliFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "storage-google-prefix",
-		Value:  "",
 		Usage:  "prefix to store charts for --storage-google-bucket",
 		EnvVar: "STORAGE_GOOGLE_PREFIX",
-	},
-	cli.StringFlag{
-		Name:   "tls-cert",
-		Value:  "",
-		Usage:  "path to TLS / SSL certificate chain file",
-		EnvVar: "TLS_CERT",
-	},
-	cli.StringFlag{
-		Name:   "tls-key",
-		Value:  "",
-		Usage:  "path to TLS / SSL key file",
-		EnvVar: "TLS_KEY",
 	},
 }

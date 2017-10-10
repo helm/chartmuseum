@@ -134,6 +134,21 @@ chartmuseum --debug --port=8080 \
   --storage-local-rootdir="./chartstorage"
 ```
 
+#### Basic Auth
+If both of the following options are provided, basic http authentication will protect all routes:
+- `--basic-auth-user=<user>` - username for basic http authentication
+- `--basic-auth-pass=<pass>` - password for basic http authentication
+
+#### HTTPS
+If both of the following options are provided, the server will listen and serve HTTPS:
+- `--tls-cert=<crt>` - path to tls certificate chain file
+- `--tls-key=<key>` - path to tls key file
+
+#### Just generating index.yaml
+You can specify the `--gen-index` option if you only wish to use _ChartMuseum_ to generate your index.yaml file.
+
+The contents of index.yaml will be printed to stdout and the program will exit. This is useful if you are satisfied with your current Helm CI/CD process and/or don't want to monitor another webservice.
+
 #### Other CLI options
 - `--log-json` - output structured logs as json
 - `--disable-api` - disable all routes prefixed with /api
@@ -176,6 +191,8 @@ The repository index (index.yaml) is dynamically generated based on packages fou
 If you manually add/remove a .tgz package from storage, it will be immediately reflected in `GET /index.yaml`.
 
 You are no longer required to maintain your own version of index.yaml using `helm repo index --merge`.
+
+The `--gen-index` CLI option (described above) can be used to generate and print index.yaml to stdout.
 
 ## Mirroring the official Kubernetes repositories
 Please see `scripts/mirror_k8s_repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).

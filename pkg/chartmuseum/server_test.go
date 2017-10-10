@@ -37,10 +37,10 @@ func (suite *ServerTestSuite) doRequest(broken bool, disabled bool, method strin
 	c.Request, _ = http.NewRequest(method, urlStr, body)
 	if broken {
 		suite.BrokenServer.Router.HandleContext(c)
-
 	} else if disabled {
 		suite.DisabledAPIServer.Router.HandleContext(c)
 	} else {
+		c.Request.SetBasicAuth("user", "pass")
 		suite.Server.Router.HandleContext(c)
 	}
 	return c.Writer
@@ -60,20 +60,20 @@ func (suite *ServerTestSuite) SetupSuite() {
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
 
-	server, err := NewServer(ServerOptions{backend, false, false, true, ""})
+	server, err := NewServer(ServerOptions{backend, false, false, true, "", "", "", "", ""})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new server, logJson=false, debug=false, disabled=false")
 
-	server, err = NewServer(ServerOptions{backend, true, true, true, ""})
+	server, err = NewServer(ServerOptions{backend, true, true, true, "", "", "", "", ""})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new server, logJson=true, debug=true, disabled=false")
 
-	server, err = NewServer(ServerOptions{backend, false, true, true, ""})
+	server, err = NewServer(ServerOptions{backend, false, true, true, "", "", "", "user", "pass"})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false")
 
 	suite.Server = server
 
-	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, ""})
+	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, "", "", "", "", ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=true")
 
 	suite.DisabledAPIServer = disabledAPIServer
@@ -104,7 +104,7 @@ func (suite *ServerTestSuite) SetupSuite() {
 	defer os.RemoveAll(suite.BrokenTempDirectory)
 
 	brokenBackend := storage.Backend(storage.NewLocalFilesystemBackend(suite.BrokenTempDirectory))
-	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, ""})
+	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, "", "", "", "", ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true")
 
 	suite.BrokenServer = brokenServer

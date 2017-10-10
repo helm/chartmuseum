@@ -76,12 +76,11 @@ func NewLogger(json bool, debug bool) (*Logger, error) {
 func NewRouter(logger *Logger, username string, password string) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
-	if (username != "") && (password != "") {
+	engine.Use(loggingMiddleware(logger), gin.Recovery())
+	if username != "" && password != "" {
 		users := make(map[string]string)
 		users[username] = password
-		engine.Use(loggingMiddleware(logger), gin.Recovery(), gin.BasicAuthForRealm(users, "Chart Museum"))
-	} else {
-		engine.Use(loggingMiddleware(logger), gin.Recovery())
+		engine.Use(gin.BasicAuthForRealm(users, "ChartMuseum"))
 	}
 	return &Router{engine}
 }
@@ -117,8 +116,9 @@ func (server *Server) Listen(port int) {
 	server.Logger.Infow("Starting ChartMuseum",
 		"port", port,
 	)
-	if (server.TlsCert != "") && (server.TlsKey != "") {
-		server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port), fmt.Sprintf("%s", server.TlsCert), fmt.Sprintf("%s", server.TlsKey)))
+	if server.TlsCert != "" && server.TlsKey != "" {
+		server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port),
+			fmt.Sprintf("%s", server.TlsCert), fmt.Sprintf("%s", server.TlsKey)))
 	} else {
 		server.Logger.Fatal(server.Router.Run(fmt.Sprintf(":%d", port)))
 	}
