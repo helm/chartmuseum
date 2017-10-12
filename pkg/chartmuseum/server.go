@@ -27,27 +27,31 @@ type (
 
 	// Server contains a Logger, Router, storage backend and object cache
 	Server struct {
-		Logger           *Logger
-		Router           *Router
-		RepositoryIndex  *repo.Index
-		StorageBackend   storage.Backend
-		StorageCache     []storage.Object
-		StorageCacheLock *sync.Mutex
-		TlsCert          string
-		TlsKey           string
+		Logger                 *Logger
+		Router                 *Router
+		RepositoryIndex        *repo.Index
+		StorageBackend         storage.Backend
+		StorageCache           []storage.Object
+		StorageCacheLock       *sync.Mutex
+		TlsCert                string
+		TlsKey                 string
+		ChartPostFormFieldName string
+		ProvPostFormFieldName  string
 	}
 
 	// ServerOptions are options for constructing a Server
 	ServerOptions struct {
-		StorageBackend storage.Backend
-		LogJSON        bool
-		Debug          bool
-		EnableAPI      bool
-		ChartURL       string
-		TlsCert        string
-		TlsKey         string
-		Username       string
-		Password       string
+		StorageBackend         storage.Backend
+		LogJSON                bool
+		Debug                  bool
+		EnableAPI              bool
+		ChartURL               string
+		TlsCert                string
+		TlsKey                 string
+		Username               string
+		Password               string
+		ChartPostFormFieldName string
+		ProvPostFormFieldName  string
 	}
 )
 
@@ -95,14 +99,16 @@ func NewServer(options ServerOptions) (*Server, error) {
 	router := NewRouter(logger, options.Username, options.Password)
 
 	server := &Server{
-		Logger:           logger,
-		Router:           router,
-		RepositoryIndex:  repo.NewIndex(options.ChartURL),
-		StorageBackend:   options.StorageBackend,
-		StorageCache:     []storage.Object{},
-		StorageCacheLock: &sync.Mutex{},
-		TlsCert:          options.TlsCert,
-		TlsKey:           options.TlsKey,
+		Logger:                 logger,
+		Router:                 router,
+		RepositoryIndex:        repo.NewIndex(options.ChartURL),
+		StorageBackend:         options.StorageBackend,
+		StorageCache:           []storage.Object{},
+		StorageCacheLock:       &sync.Mutex{},
+		TlsCert:                options.TlsCert,
+		TlsKey:                 options.TlsKey,
+		ChartPostFormFieldName: options.ChartPostFormFieldName,
+		ProvPostFormFieldName:  options.ProvPostFormFieldName,
 	}
 
 	server.setRoutes(options.EnableAPI)

@@ -8,7 +8,7 @@ func (server *Server) setRoutes(enableAPI bool) {
 	// Chart Manipulation
 	if enableAPI {
 		server.Router.GET("/api/charts", server.getAllChartsRequestHandler)
-		server.Router.POST("/api/charts", server.postPackageRequestHandler)
+		server.Router.POST("/api/charts", server.postRequestHandler)
 		server.Router.POST("/api/prov", server.postProvenanceFileRequestHandler)
 		server.Router.GET("/api/charts/:name", server.getChartRequestHandler)
 		server.Router.GET("/api/charts/:name/:version", server.getChartVersionRequestHandler)

@@ -1,7 +1,10 @@
 package chartmuseum
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 
 	"github.com/chartmuseum/chartmuseum/pkg/repo"
@@ -104,6 +107,91 @@ func (server *Server) getStorageObjectRequestHandler(c *gin.Context) {
 		return
 	}
 	c.Data(200, repo.ChartPackageContentType, object.Content)
+}
+
+type packageOrProvenanceFile struct {
+	filename string
+	content  []byte
+	field    string // file was extracted from this form field
+}
+
+type filenameFromContentFn func([]byte) (string, error)
+
+func (server *Server) extractAndValidateFormFile(req *http.Request, field string, fnFromContent filenameFromContentFn) (ppf *packageOrProvenanceFile, status int, err error) {
+	file, header, _ := req.FormFile(field)
+	if file == nil || header == nil {
+		return ppf, 200, nil // field is not present
+	}
+	buf := bytes.NewBuffer(nil)
+	_, err = io.Copy(buf, file)
+	if err != nil {
+		return ppf, 500, err // IO error
+	}
+	content := buf.Bytes()
+	filename, err := fnFromContent(content)
+	if err != nil {
+		return ppf, 400, err // validation error (bad request)
+	}
+	_, err = server.StorageBackend.GetObject(filename)
+	if err == nil {
+		return ppf, 409, fmt.Errorf("%s already exists", filename) // conflict
+	}
+	return &packageOrProvenanceFile{filename, content, field}, 200, nil
+}
+
+func (server *Server) postPackageAndProvenanceRequestHandler(c *gin.Context) {
+	var ppFiles []*packageOrProvenanceFile
+
+	type FieldFuncPair struct {
+		field string
+		fn    filenameFromContentFn
+	}
+
+	for _, ff := range []FieldFuncPair{{server.ChartPostFormFieldName, repo.ChartPackageFilenameFromContent}, {server.ProvPostFormFieldName, repo.ProvenanceFilenameFromContent}} {
+		ppf, status, err := server.extractAndValidateFormFile(c.Request, ff.field, ff.fn)
+		if err != nil {
+			c.JSON(status, errorResponse(err))
+			return
+		}
+		if ppf != nil {
+			ppFiles = append(ppFiles, ppf)
+		}
+	}
+
+	if len(ppFiles) == 0 {
+		c.JSON(400, errorResponse(fmt.Errorf("no package or provenance file found in form fields %s and %s", server.ChartPostFormFieldName, server.ProvPostFormFieldName)))
+		return
+	}
+
+	// At this point input is presumed valid, we now proceed to store it
+
+	var storedFiles []*packageOrProvenanceFile
+	for _, ppf := range ppFiles {
+		server.Logger.Debugw(fmt.Sprintf("Adding file %s (from form field %s) to storage", ppf.filename, ppf.field))
+		err := server.StorageBackend.PutObject(ppf.filename, ppf.content)
+		if err == nil {
+			storedFiles = append(storedFiles, ppf)
+		} else {
+			// Clean up what's already been saved
+			for _, ppf := range storedFiles {
+				server.StorageBackend.DeleteObject(ppf.filename)
+			}
+			c.JSON(500, errorResponse(fmt.Errorf("an error occurred while storing package (nothing was saved)")))
+		}
+	}
+	c.JSON(201, objectSavedResponse)
+}
+
+func (server *Server) postRequestHandler(c *gin.Context) {
+	switch c.ContentType() {
+	case "multipart/form-data":
+		server.postPackageAndProvenanceRequestHandler(c) // new route handling form-based chart and/or prov files
+	case "application/x-www-form-urlencoded":
+		server.postPackageRequestHandler(c) // classic binary data, chart package only route
+	default:
+		c.JSON(500, errorResponse(fmt.Errorf("cannot process Content-Type: %s", c.ContentType())))
+		return
+	}
 }
 
 func (server *Server) postPackageRequestHandler(c *gin.Context) {
