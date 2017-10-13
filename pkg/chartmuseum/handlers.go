@@ -183,14 +183,10 @@ func (server *Server) postPackageAndProvenanceRequestHandler(c *gin.Context) {
 }
 
 func (server *Server) postRequestHandler(c *gin.Context) {
-	switch c.ContentType() {
-	case "multipart/form-data":
+	if c.ContentType() == "multipart/form-data" {
 		server.postPackageAndProvenanceRequestHandler(c) // new route handling form-based chart and/or prov files
-	case "application/x-www-form-urlencoded":
+	} else {
 		server.postPackageRequestHandler(c) // classic binary data, chart package only route
-	default:
-		c.JSON(500, errorResponse(fmt.Errorf("cannot process Content-Type: %s", c.ContentType())))
-		return
 	}
 }
 
