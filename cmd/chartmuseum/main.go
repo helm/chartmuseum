@@ -40,15 +40,17 @@ func cliHandler(c *cli.Context) {
 	backend := backendFromContext(c)
 
 	options := chartmuseum.ServerOptions{
-		Debug:          c.Bool("debug"),
-		LogJSON:        c.Bool("log-json"),
-		EnableAPI:      !c.Bool("disable-api"),
-		ChartURL:       c.String("chart-url"),
-		TlsCert:        c.String("tls-cert"),
-		TlsKey:         c.String("tls-key"),
-		Username:       c.String("basic-auth-user"),
-		Password:       c.String("basic-auth-pass"),
-		StorageBackend: backend,
+		Debug:                  c.Bool("debug"),
+		LogJSON:                c.Bool("log-json"),
+		EnableAPI:              !c.Bool("disable-api"),
+		ChartURL:               c.String("chart-url"),
+		TlsCert:                c.String("tls-cert"),
+		TlsKey:                 c.String("tls-key"),
+		Username:               c.String("basic-auth-user"),
+		Password:               c.String("basic-auth-pass"),
+		StorageBackend:         backend,
+		ChartPostFormFieldName: c.String("chart-post-form-field-name"),
+		ProvPostFormFieldName:  c.String("prov-post-form-field-name"),
 	}
 
 	server, err := newServer(options)
@@ -206,5 +208,17 @@ var cliFlags = []cli.Flag{
 		Name:   "storage-google-prefix",
 		Usage:  "prefix to store charts for --storage-google-bucket",
 		EnvVar: "STORAGE_GOOGLE_PREFIX",
+	},
+	cli.StringFlag{
+		Name:   "chart-post-form-field-name",
+		Value:  "chart",
+		Usage:  "name of the POST form field which will be queried for the chart file content",
+		EnvVar: "CHART_POST_FORM_FIELD_NAME",
+	},
+	cli.StringFlag{
+		Name:   "prov-post-form-field-name",
+		Value:  "prov",
+		Usage:  "name of the POST form field which will be queried for the provenance file content",
+		EnvVar: "PROV_POST_FORM_FIELD_NAME",
 	},
 }

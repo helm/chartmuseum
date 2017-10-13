@@ -20,7 +20,7 @@ Powered by some great Go technology:
 - [zap](https://github.com/uber-go/zap) - for logging
 
 ## Things that have been said in Helm land
->"Finally!!" 
+>"Finally!!"
 
 >"ChartMuseum is awesome"
 
@@ -69,6 +69,12 @@ curl --data-binary "@mychart-0.1.0.tgz" http://localhost:8080/api/charts
 If you've signed your package and generated a [provenance file](https://github.com/kubernetes/helm/blob/master/docs/provenance.md), upload it with:
 ```bash
 curl --data-binary "@mychart-0.1.0.tgz.prov" http://localhost:8080/api/prov
+```
+
+Both files can also be uploaded at once (or one at a time) on the `api/charts` route using the `multipart/form-data` format:
+
+```bash
+curl -F "chart=@mychart-0.1.0.tgz" -F "prov=@mychart-0.1.0.tgz.prov" http://localhost:8080/api/charts
 ```
 
 ## Installing Charts into Kubernetes
