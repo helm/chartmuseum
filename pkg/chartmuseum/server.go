@@ -268,22 +268,23 @@ func (server *Server) updateIndexObject(index *repo.Index, object storage.Object
 func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.Object) error {
 	server.Logger.Debugw("Loading chart packages from storage (this could take awhile)")
 	var err error
-	var loaded []*helm_repo.ChartVersion
+	numObjects := len(objects)
+	loaded := make([]*helm_repo.ChartVersion, numObjects)
 
 	var wg sync.WaitGroup
-	wg.Add(len(objects))
-	for _, object := range objects {
-		go func(o storage.Object) {
+	wg.Add(numObjects)
+	for idx, object := range objects {
+		go func(i int, o storage.Object) {
 			defer wg.Done()
 			if err == nil {
 				chartVersion, err := server.getObjectChartVersion(o, true)
 				if err != nil {
 					err = server.checkInvalidChartPackageError(o, err, "added")
 				} else {
-					loaded = append(loaded, chartVersion)
+					loaded[i] = chartVersion
 				}
 			}
-		}(object)
+		}(idx, object)
 	}
 	wg.Wait()
 	if err != nil {
@@ -291,6 +292,9 @@ func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.
 	}
 
 	for _, chartVersion := range loaded {
+		if chartVersion == nil {
+			continue
+		}
 		server.Logger.Debugw("Adding chart to index",
 			"name", chartVersion.Name,
 			"version", chartVersion.Version,
