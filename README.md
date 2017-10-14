@@ -71,7 +71,7 @@ If you've signed your package and generated a [provenance file](https://github.c
 curl --data-binary "@mychart-0.1.0.tgz.prov" http://localhost:8080/api/prov
 ```
 
-Both files can also be uploaded at once (or one at a time) on the `api/charts` route using the `multipart/form-data` format:
+Both files can also be uploaded at once (or one at a time) on the `/api/charts` route using the `multipart/form-data` format:
 
 ```bash
 curl -F "chart=@mychart-0.1.0.tgz" -F "prov=@mychart-0.1.0.tgz.prov" http://localhost:8080/api/charts
@@ -159,6 +159,8 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--log-json` - output structured logs as json
 - `--disable-api` - disable all routes prefixed with /api
 - `--chart-url=<url>` - absolute url for .tgzs in index.yaml
+- `--chart-post-form-field-name=<field>` - form field which will be queried for the chart file content
+- `--prov-post-form-field-name=<field>` - form field which will be queried for the provenance file content
 
 ### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
@@ -192,7 +194,7 @@ Please note that for now, this **should only be used for testing purposes**. An 
 ## Notes on index.yaml
 The repository index (index.yaml) is dynamically generated based on packages found in storage. If you store your own version of index.yaml, it will be completely ignored.
 
-`GET /index.yaml` occurs when you run `helm repo add chartmuseum http://localhost:8080/` or `helm repo update`.
+`GET /index.yaml` occurs when you run `helm repo add chartmuseum http://localhost:8080` or `helm repo update`.
 
 If you manually add/remove a .tgz package from storage, it will be immediately reflected in `GET /index.yaml`.
 

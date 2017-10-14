@@ -212,13 +212,13 @@ var cliFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "chart-post-form-field-name",
 		Value:  "chart",
-		Usage:  "name of the POST form field which will be queried for the chart file content",
+		Usage:  "form field which will be queried for the chart file content",
 		EnvVar: "CHART_POST_FORM_FIELD_NAME",
 	},
 	cli.StringFlag{
 		Name:   "prov-post-form-field-name",
 		Value:  "prov",
-		Usage:  "name of the POST form field which will be queried for the provenance file content",
+		Usage:  "form field which will be queried for the provenance file content",
 		EnvVar: "PROV_POST_FORM_FIELD_NAME",
 	},
 }
