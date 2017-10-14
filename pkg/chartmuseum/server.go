@@ -223,19 +223,7 @@ func (server *Server) regenerateRepositoryIndex() error {
 	}
 
 	// Parallelize retrieval of added objects to improve startup speed
-	var wg sync.WaitGroup
-	wg.Add(len(diff.Added))
-	for _, object := range diff.Added {
-		go func(o storage.Object) {
-			defer wg.Done()
-			if err == nil {
-				if e := server.addIndexObject(index, o); e != nil {
-					err = e
-				}
-			}
-		}(object)
-	}
-	wg.Wait()
+	err = server.addIndexObjectsAsync(index, diff.Added)
 	if err != nil {
 		return err
 	}
@@ -277,16 +265,38 @@ func (server *Server) updateIndexObject(index *repo.Index, object storage.Object
 	return nil
 }
 
-func (server *Server) addIndexObject(index *repo.Index, object storage.Object) error {
-	chartVersion, err := server.getObjectChartVersion(object, true)
-	if err != nil {
-		return server.checkInvalidChartPackageError(object, err, "added")
+func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.Object) error {
+	server.Logger.Debugw("Loading chart packages from storage (this could take awhile)")
+	var err error
+	var loaded []*helm_repo.ChartVersion
+
+	var wg sync.WaitGroup
+	wg.Add(len(objects))
+	for _, object := range objects {
+		go func(o storage.Object) {
+			defer wg.Done()
+			if err == nil {
+				chartVersion, err := server.getObjectChartVersion(o, true)
+				if err != nil {
+					err = server.checkInvalidChartPackageError(o, err, "added")
+				} else {
+					loaded = append(loaded, chartVersion)
+				}
+			}
+		}(object)
 	}
-	server.Logger.Debugw("Adding chart to index",
-		"name", chartVersion.Name,
-		"version", chartVersion.Version,
-	)
-	index.AddEntry(chartVersion)
+	wg.Wait()
+	if err != nil {
+		return err
+	}
+
+	for _, chartVersion := range loaded {
+		server.Logger.Debugw("Adding chart to index",
+			"name", chartVersion.Name,
+			"version", chartVersion.Version,
+		)
+		index.AddEntry(chartVersion)
+	}
 	return nil
 }
 
