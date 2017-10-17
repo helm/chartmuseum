@@ -43,6 +43,7 @@ func cliHandler(c *cli.Context) {
 		Debug:                  c.Bool("debug"),
 		LogJSON:                c.Bool("log-json"),
 		EnableAPI:              !c.Bool("disable-api"),
+		AllowOverwrite:         c.Bool("allow-overwrite"),
 		ChartURL:               c.String("chart-url"),
 		TlsCert:                c.String("tls-cert"),
 		TlsKey:                 c.String("tls-key"),
@@ -142,6 +143,11 @@ var cliFlags = []cli.Flag{
 		Name:   "disable-api",
 		Usage:  "disable all routes prefixed with /api",
 		EnvVar: "DISABLE_API",
+	},
+	cli.BoolFlag{
+		Name:   "allow-overwrite",
+		Usage:  "allow chart versions to be re-uploaded",
+		EnvVar: "ALLOW_OVERWRITE",
 	},
 	cli.IntFlag{
 		Name:   "port",

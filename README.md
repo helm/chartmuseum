@@ -158,6 +158,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 #### Other CLI options
 - `--log-json` - output structured logs as json
 - `--disable-api` - disable all routes prefixed with /api
+- `--allow-overwrite` - allow chart versions to be re-uploaded
 - `--chart-url=<url>` - absolute url for .tgzs in index.yaml
 - `--chart-post-form-field-name=<field>` - form field which will be queried for the chart file content
 - `--prov-post-form-field-name=<field>` - form field which will be queried for the provenance file content

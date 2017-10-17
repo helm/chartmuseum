@@ -33,6 +33,7 @@ type (
 		StorageBackend         storage.Backend
 		StorageCache           []storage.Object
 		StorageCacheLock       *sync.Mutex
+		AllowOverwrite         bool
 		TlsCert                string
 		TlsKey                 string
 		ChartPostFormFieldName string
@@ -45,6 +46,7 @@ type (
 		LogJSON                bool
 		Debug                  bool
 		EnableAPI              bool
+		AllowOverwrite         bool
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
@@ -105,6 +107,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		StorageBackend:         options.StorageBackend,
 		StorageCache:           []storage.Object{},
 		StorageCacheLock:       &sync.Mutex{},
+		AllowOverwrite:         options.AllowOverwrite,
 		TlsCert:                options.TlsCert,
 		TlsKey:                 options.TlsKey,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
@@ -123,8 +126,7 @@ func (server *Server) Listen(port int) {
 		"port", port,
 	)
 	if server.TlsCert != "" && server.TlsKey != "" {
-		server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port),
-			fmt.Sprintf("%s", server.TlsCert), fmt.Sprintf("%s", server.TlsKey)))
+		server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port), server.TlsCert, server.TlsKey))
 	} else {
 		server.Logger.Fatal(server.Router.Run(fmt.Sprintf(":%d", port)))
 	}

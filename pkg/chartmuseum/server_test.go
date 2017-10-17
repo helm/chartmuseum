@@ -27,26 +27,32 @@ type ServerTestSuite struct {
 	Server               *Server
 	DisabledAPIServer    *Server
 	BrokenServer         *Server
+	OverwriteServer      *Server
 	TempDirectory        string
 	BrokenTempDirectory  string
 	TestTarballFilename  string
 	TestProvfileFilename string
 }
 
-func (suite *ServerTestSuite) doRequest(broken bool, disabled bool, method string, urlStr string, body io.Reader, contentType string) gin.ResponseWriter {
+func (suite *ServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string) gin.ResponseWriter {
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request, _ = http.NewRequest(method, urlStr, body)
 	if contentType != "" {
 		c.Request.Header.Set("Content-Type", contentType)
 	}
-	if broken {
-		suite.BrokenServer.Router.HandleContext(c)
-	} else if disabled {
-		suite.DisabledAPIServer.Router.HandleContext(c)
-	} else {
+
+	switch stype {
+	case "normal":
 		c.Request.SetBasicAuth("user", "pass")
 		suite.Server.Router.HandleContext(c)
+	case "broken":
+		suite.BrokenServer.Router.HandleContext(c)
+	case "disabled":
+		suite.DisabledAPIServer.Router.HandleContext(c)
+	case "overwrite":
+		suite.OverwriteServer.Router.HandleContext(c)
 	}
+
 	return c.Writer
 }
 
@@ -64,23 +70,28 @@ func (suite *ServerTestSuite) SetupSuite() {
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
 
-	server, err := NewServer(ServerOptions{backend, false, false, true, "", "", "", "", "", "", ""})
+	server, err := NewServer(ServerOptions{backend, false, false, true, false, "", "", "", "", "", "", ""})
 	suite.NotNil(server)
-	suite.Nil(err, "no error creating new server, logJson=false, debug=false, disabled=false")
+	suite.Nil(err, "no error creating new server, logJson=false, debug=false, disabled=false, overwrite=false")
 
-	server, err = NewServer(ServerOptions{backend, true, true, true, "", "", "", "", "", "", ""})
+	server, err = NewServer(ServerOptions{backend, true, true, true, false, "", "", "", "", "", "", ""})
 	suite.NotNil(server)
-	suite.Nil(err, "no error creating new server, logJson=true, debug=true, disabled=false")
+	suite.Nil(err, "no error creating new server, logJson=true, debug=true, disabled=false, overwrite=false")
 
-	server, err = NewServer(ServerOptions{backend, false, true, true, "", "", "", "user", "pass", "chart", "prov"})
-	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false")
+	server, err = NewServer(ServerOptions{backend, false, true, true, false, "", "", "", "user", "pass", "chart", "prov"})
+	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false")
 
 	suite.Server = server
 
-	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, "", "", "", "", "", "", ""})
-	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=true")
+	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, false, "", "", "", "", "", "", ""})
+	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=true, overwrite=false")
 
 	suite.DisabledAPIServer = disabledAPIServer
+
+	overwriteServer, err := NewServer(ServerOptions{backend, false, true, true, true, "", "", "", "", "", "chart", "prov"})
+	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=true")
+
+	suite.OverwriteServer = overwriteServer
 
 	suite.TestTarballFilename = pathutil.Join(suite.TempDirectory, "mychart-0.1.0.tgz")
 	destFileTarball, err := os.Create(suite.TestTarballFilename)
@@ -108,8 +119,8 @@ func (suite *ServerTestSuite) SetupSuite() {
 	defer os.RemoveAll(suite.BrokenTempDirectory)
 
 	brokenBackend := storage.Backend(storage.NewLocalFilesystemBackend(suite.BrokenTempDirectory))
-	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, "", "", "", "", "", "", ""})
-	suite.Nil(err, "no error creating new server, logJson=false, debug=true")
+	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, false, "", "", "", "", "", "", ""})
+	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false")
 
 	suite.BrokenServer = brokenServer
 }
@@ -152,76 +163,76 @@ func (suite *ServerTestSuite) TestRoutes() {
 	var res gin.ResponseWriter
 
 	// GET /charts/<filename>
-	res = suite.doRequest(false, false, "GET", "/charts/mychart-0.1.0.tgz", nil, "")
+	res = suite.doRequest("normal", "GET", "/charts/mychart-0.1.0.tgz", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /charts/mychart-0.1.0.tgz")
 
-	res = suite.doRequest(false, false, "GET", "/charts/mychart-0.1.0.tgz.prov", nil, "")
+	res = suite.doRequest("normal", "GET", "/charts/mychart-0.1.0.tgz.prov", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /charts/mychart-0.1.0.tgz.prov")
 
-	res = suite.doRequest(false, false, "GET", "/charts/fakechart-0.1.0.tgz", nil, "")
+	res = suite.doRequest("normal", "GET", "/charts/fakechart-0.1.0.tgz", nil, "")
 	suite.Equal(404, res.Status(), "404 GET /charts/fakechart-0.1.0.tgz")
 
-	res = suite.doRequest(false, false, "GET", "/charts/fakechart-0.1.0.tgz.prov", nil, "")
+	res = suite.doRequest("normal", "GET", "/charts/fakechart-0.1.0.tgz.prov", nil, "")
 	suite.Equal(404, res.Status(), "404 GET /charts/fakechart-0.1.0.tgz.prov")
 
-	res = suite.doRequest(false, false, "GET", "/charts/fakechart-0.1.0.bad", nil, "")
+	res = suite.doRequest("normal", "GET", "/charts/fakechart-0.1.0.bad", nil, "")
 	suite.Equal(500, res.Status(), "500 GET /charts/fakechart-0.1.0.bad")
 
 	// GET /api/charts
-	res = suite.doRequest(false, false, "GET", "/api/charts", nil, "")
+	res = suite.doRequest("normal", "GET", "/api/charts", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /api/charts")
 
-	res = suite.doRequest(true, false, "GET", "/api/charts", nil, "")
+	res = suite.doRequest("broken", "GET", "/api/charts", nil, "")
 	suite.Equal(500, res.Status(), "500 GET /api/charts")
 
 	// GET /api/charts/<chart>
-	res = suite.doRequest(false, false, "GET", "/api/charts/mychart", nil, "")
+	res = suite.doRequest("normal", "GET", "/api/charts/mychart", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart")
 
-	res = suite.doRequest(false, false, "GET", "/api/charts/fakechart", nil, "")
+	res = suite.doRequest("normal", "GET", "/api/charts/fakechart", nil, "")
 	suite.Equal(404, res.Status(), "404 GET /api/charts/fakechart")
 
-	res = suite.doRequest(true, false, "GET", "/api/charts/mychart", nil, "")
+	res = suite.doRequest("broken", "GET", "/api/charts/mychart", nil, "")
 	suite.Equal(500, res.Status(), "500 GET /api/charts/mychart")
 
 	// GET /api/charts/<chart>/<version>
-	res = suite.doRequest(false, false, "GET", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("normal", "GET", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart/0.1.0")
 
-	res = suite.doRequest(false, false, "GET", "/api/charts/mychart/latest", nil, "")
+	res = suite.doRequest("normal", "GET", "/api/charts/mychart/latest", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart/latest")
 
-	res = suite.doRequest(false, false, "GET", "/api/charts/mychart/0.0.0", nil, "")
+	res = suite.doRequest("normal", "GET", "/api/charts/mychart/0.0.0", nil, "")
 	suite.Equal(404, res.Status(), "404 GET /api/charts/mychart/0.0.0")
 
-	res = suite.doRequest(false, false, "GET", "/api/charts/fakechart/0.1.0", nil, "")
+	res = suite.doRequest("normal", "GET", "/api/charts/fakechart/0.1.0", nil, "")
 	suite.Equal(404, res.Status(), "404 GET /api/charts/fakechart/0.1.0")
 
-	res = suite.doRequest(true, false, "GET", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("broken", "GET", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(500, res.Status(), "500 GET /api/charts/mychart/0.1.0")
 
 	// DELETE /api/charts/<chart>/<version>
-	res = suite.doRequest(false, false, "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("normal", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(200, res.Status(), "200 DELETE /api/charts/mychart/0.1.0")
 
-	res = suite.doRequest(false, false, "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("normal", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 
 	// GET /index.yaml
-	res = suite.doRequest(false, false, "GET", "/index.yaml", nil, "")
+	res = suite.doRequest("normal", "GET", "/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /index.yaml")
 
-	res = suite.doRequest(true, false, "GET", "/index.yaml", nil, "")
+	res = suite.doRequest("broken", "GET", "/index.yaml", nil, "")
 	suite.Equal(500, res.Status(), "500 GET /index.yaml")
 
 	// POST /api/charts
 	body = bytes.NewBuffer([]byte{})
-	res = suite.doRequest(false, false, "POST", "/api/charts", body, "application/x-www-form-urlencoded")
+	res = suite.doRequest("normal", "POST", "/api/charts", body, "")
 	suite.Equal(500, res.Status(), "500 POST /api/charts")
 
 	// POST /api/prov
 	body = bytes.NewBuffer([]byte{})
-	res = suite.doRequest(false, false, "POST", "/api/prov", body, "")
+	res = suite.doRequest("normal", "POST", "/api/prov", body, "")
 	suite.Equal(500, res.Status(), "500 POST /api/prov")
 
 	// POST /api/charts
@@ -229,11 +240,11 @@ func (suite *ServerTestSuite) TestRoutes() {
 	suite.Nil(err, "no error opening test tarball")
 
 	body = bytes.NewBuffer(content)
-	res = suite.doRequest(false, false, "POST", "/api/charts", body, "application/x-www-form-urlencoded")
+	res = suite.doRequest("normal", "POST", "/api/charts", body, "")
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
 	body = bytes.NewBuffer(content)
-	res = suite.doRequest(false, false, "POST", "/api/charts", body, "application/x-www-form-urlencoded")
+	res = suite.doRequest("normal", "POST", "/api/charts", body, "")
 	suite.Equal(500, res.Status(), "500 POST /api/charts")
 
 	// POST /api/prov
@@ -241,86 +252,111 @@ func (suite *ServerTestSuite) TestRoutes() {
 	suite.Nil(err, "no error opening test provenance file")
 
 	body = bytes.NewBuffer(content)
-	res = suite.doRequest(false, false, "POST", "/api/prov", body, "")
+	res = suite.doRequest("normal", "POST", "/api/prov", body, "")
 	suite.Equal(201, res.Status(), "201 POST /api/prov")
 
 	body = bytes.NewBuffer(content)
-	res = suite.doRequest(false, false, "POST", "/api/prov", body, "")
+	res = suite.doRequest("normal", "POST", "/api/prov", body, "")
 	suite.Equal(500, res.Status(), "500 POST /api/prov")
 
 	// Test that all /api routes disabled if EnableAPI=false
-	res = suite.doRequest(false, true, "GET", "/api/charts", nil, "")
+	res = suite.doRequest("disabled", "GET", "/api/charts", nil, "")
 	suite.Equal(404, res.Status(), "404 GET /api/charts")
 
-	res = suite.doRequest(false, true, "GET", "/api/charts/mychart", nil, "")
+	res = suite.doRequest("disabled", "GET", "/api/charts/mychart", nil, "")
 	suite.Equal(404, res.Status(), "404 GET /api/charts")
 
-	res = suite.doRequest(false, true, "GET", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("disabled", "GET", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(404, res.Status(), "404 GET /api/charts")
 
 	body = bytes.NewBuffer([]byte{})
-	res = suite.doRequest(false, true, "POST", "/api/charts", body, "application/x-www-form-urlencoded")
+	res = suite.doRequest("disabled", "POST", "/api/charts", body, "")
 	suite.Equal(404, res.Status(), "404 POST /api/charts")
 
 	body = bytes.NewBuffer([]byte{})
-	res = suite.doRequest(false, true, "POST", "/api/prov", body, "")
+	res = suite.doRequest("disabled", "POST", "/api/prov", body, "")
 	suite.Equal(404, res.Status(), "404 POST /api/prov")
 
-	res = suite.doRequest(false, true, "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("disabled", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 
 	// Clear test repo to allow uploading again
-	res = suite.doRequest(false, false, "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("normal", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(200, res.Status(), "200 DELETE /api/charts/mychart/0.1.0")
 
 	// Create form file with chart=@mychart-0.1.0.tgz
 	buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{testTarballPath})
-	res = suite.doRequest(false, false, "POST", "/api/charts", buf, w.FormDataContentType())
+	res = suite.doRequest("normal", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
 	// Create form file with prov=@mychart-0.1.0.tgz.prov
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"prov"}, []string{testProvfilePath})
-	res = suite.doRequest(false, false, "POST", "/api/charts", buf, w.FormDataContentType())
+	res = suite.doRequest("normal", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
 	// Clear test repo to allow uploading again
-	res = suite.doRequest(false, false, "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("normal", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(200, res.Status(), "200 DELETE /api/charts/mychart/0.1.0")
 
 	// Create form file with chart=@mychart-0.1.0.tgz and prov=@mychart-0.1.0.tgz.prov
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
-	res = suite.doRequest(false, false, "POST", "/api/charts", buf, w.FormDataContentType())
+	res = suite.doRequest("normal", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
 	// Clear test repo to allow uploading again
-	res = suite.doRequest(false, false, "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	res = suite.doRequest("normal", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(200, res.Status(), "200 DELETE /api/charts/mychart/0.1.0")
 
 	// Create form file with unknown=@mychart-0.1.0.tgz, which should fail because the server doesn't know about the unknown field
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"unknown"}, []string{testTarballPath})
-	res = suite.doRequest(false, false, "POST", "/api/charts", buf, w.FormDataContentType())
+	res = suite.doRequest("normal", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(400, res.Status(), "400 POST /api/charts")
 
 	// Create form file with chart=@mychart-0.1.0.tgz
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{testTarballPath})
-	res = suite.doRequest(false, false, "POST", "/api/charts", buf, w.FormDataContentType())
+	res = suite.doRequest("normal", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
 	// Create form file with chart=@mychart-0.1.0.tgz, which should fail because it is already there
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{testTarballPath})
-	res = suite.doRequest(false, false, "POST", "/api/charts", buf, w.FormDataContentType())
+	res = suite.doRequest("normal", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(409, res.Status(), "409 POST /api/charts")
 
 	// Create form file with chart=@mychart-0.1.0.tgz.prov, which should fail because it is not a valid chart package
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{testProvfilePath})
-	res = suite.doRequest(false, false, "POST", "/api/charts", buf, w.FormDataContentType())
+	res = suite.doRequest("normal", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(400, res.Status(), "400 POST /api/charts")
 
 	// Create form file with prov=@mychart-0.1.0.tgz, which should fail because it is not a valid provenance file
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"prov"}, []string{testTarballPath})
-	res = suite.doRequest(false, false, "POST", "/api/charts", buf, w.FormDataContentType())
+	res = suite.doRequest("normal", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(400, res.Status(), "400 POST /api/charts")
 
+	// Check if files can be overwritten
+	content, err = ioutil.ReadFile(testTarballPath)
+	suite.Nil(err, "no error opening test tarball")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("overwrite", "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("overwrite", "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	content, err = ioutil.ReadFile(testProvfilePath)
+	suite.Nil(err, "no error opening test provenance file")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("overwrite", "POST", "/api/prov", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/prov")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("overwrite", "POST", "/api/prov", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/prov")
+
+	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
+	res = suite.doRequest("overwrite", "POST", "/api/charts", buf, w.FormDataContentType())
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
+	res = suite.doRequest("overwrite", "POST", "/api/charts", buf, w.FormDataContentType())
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
 }
 
 func (suite *ServerTestSuite) getBodyWithMultipartFormFiles(fields []string, filenames []string) (io.Reader, *multipart.Writer) {
