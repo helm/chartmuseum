@@ -268,9 +268,15 @@ func (server *Server) updateIndexObject(index *repo.Index, object storage.Object
 }
 
 func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.Object) error {
-	server.Logger.Debugw("Loading chart packages from storage (this could take awhile)")
-	var err error
 	numObjects := len(objects)
+	if numObjects == 0 {
+		return nil
+	}
+
+	server.Logger.Debugw("Loading charts packages from storage (this could take awhile)",
+		"total", numObjects,
+	)
+	var err error
 	loaded := make([]*helm_repo.ChartVersion, numObjects)
 
 	var wg sync.WaitGroup

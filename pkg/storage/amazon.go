@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	pathutil "path"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -21,9 +22,12 @@ type AmazonS3Backend struct {
 }
 
 // NewAmazonS3Backend creates a new instance of AmazonS3Backend
-func NewAmazonS3Backend(bucket string, prefix string, region string) *AmazonS3Backend {
+func NewAmazonS3Backend(bucket string, prefix string, region string, endpoint string) *AmazonS3Backend {
 	service := s3.New(session.New(), &aws.Config{
-		Region: aws.String(region),
+		Region:           aws.String(region),
+		Endpoint:         aws.String(endpoint),
+		DisableSSL:       aws.Bool(strings.HasPrefix(endpoint, "http://")),
+		S3ForcePathStyle: aws.Bool(endpoint != ""),
 	})
 	b := &AmazonS3Backend{
 		Bucket:     bucket,

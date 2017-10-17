@@ -30,7 +30,7 @@ func (suite *StorageTestSuite) setupStorageBackends() {
 		s3Bucket := os.Getenv("TEST_STORAGE_AMAZON_BUCKET")
 		s3Region := os.Getenv("TEST_STORAGE_AMAZON_REGION")
 		gcsBucket := os.Getenv("TEST_STORAGE_GOOGLE_BUCKET")
-		suite.StorageBackends["AmazonS3"] = Backend(NewAmazonS3Backend(s3Bucket, prefix, s3Region))
+		suite.StorageBackends["AmazonS3"] = Backend(NewAmazonS3Backend(s3Bucket, prefix, s3Region, ""))
 		suite.StorageBackends["GoogleCS"] = Backend(NewGoogleCSBackend(gcsBucket, prefix))
 	}
 }

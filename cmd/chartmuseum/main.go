@@ -95,11 +95,16 @@ func localBackendFromContext(c *cli.Context) storage.Backend {
 }
 
 func amazonBackendFromContext(c *cli.Context) storage.Backend {
+	// If using alternative s3 endpoint (e.g. Minio) default region to us-east-1
+	if c.String("storage-amazon-endpoint") != "" && c.String("storage-amazon-region") == "" {
+		c.Set("storage-amazon-region", "us-east-1")
+	}
 	crashIfContextMissingFlags(c, []string{"storage-amazon-bucket", "storage-amazon-region"})
 	return storage.Backend(storage.NewAmazonS3Backend(
 		c.String("storage-amazon-bucket"),
 		c.String("storage-amazon-prefix"),
 		c.String("storage-amazon-region"),
+		c.String("storage-amazon-endpoint"),
 	))
 }
 
@@ -204,6 +209,11 @@ var cliFlags = []cli.Flag{
 		Name:   "storage-amazon-region",
 		Usage:  "region of --storage-amazon-bucket",
 		EnvVar: "STORAGE_AMAZON_REGION",
+	},
+	cli.StringFlag{
+		Name:   "storage-amazon-endpoint",
+		Usage:  "alternative s3 endpoint",
+		EnvVar: "STORAGE_AMAZON_ENDPOINT",
 	},
 	cli.StringFlag{
 		Name:   "storage-google-bucket",
