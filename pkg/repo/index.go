@@ -39,6 +39,7 @@ func (index *Index) Regenerate() error {
 		return err
 	}
 	index.Raw = raw
+	index.updateMetrics()
 	return nil
 }
 
@@ -90,4 +91,14 @@ func (index *Index) setChartURL(chartVersion *helm_repo.ChartVersion) {
 	if index.ChartURL != "" {
 		chartVersion.URLs[0] = strings.Join([]string{index.ChartURL, chartVersion.URLs[0]}, "/")
 	}
+}
+
+// UpdateMetrics updates chart index-related Prometheus metrics
+func (index *Index) updateMetrics() {
+	nChartVersions := 0
+	for _, chartVersions := range index.Entries {
+		nChartVersions += len(chartVersions)
+	}
+	chartTotalGauge.Set(float64(len(index.Entries)))
+	chartVersionTotalGauge.Set(float64(nChartVersions))
 }

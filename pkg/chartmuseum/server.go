@@ -9,6 +9,7 @@ import (
 	"github.com/chartmuseum/chartmuseum/pkg/storage"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zsais/go-gin-prometheus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	helm_repo "k8s.io/helm/pkg/repo"
@@ -47,6 +48,7 @@ type (
 		Debug                  bool
 		EnableAPI              bool
 		AllowOverwrite         bool
+		EnableMetrics          bool
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
@@ -79,7 +81,7 @@ func NewLogger(json bool, debug bool) (*Logger, error) {
 }
 
 // NewRouter creates a new Router instance
-func NewRouter(logger *Logger, username string, password string) *Router {
+func NewRouter(logger *Logger, username string, password string, enableMetrics bool) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	engine.Use(loggingMiddleware(logger), gin.Recovery())
@@ -87,6 +89,9 @@ func NewRouter(logger *Logger, username string, password string) *Router {
 		users := make(map[string]string)
 		users[username] = password
 		engine.Use(gin.BasicAuthForRealm(users, "ChartMuseum"))
+	}
+	if enableMetrics {
+		ginprometheus.NewPrometheus("chartmuseum").Use(engine)
 	}
 	return &Router{engine}
 }
@@ -98,7 +103,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		return new(Server), nil
 	}
 
-	router := NewRouter(logger, options.Username, options.Password)
+	router := NewRouter(logger, options.Username, options.Password, options.EnableMetrics)
 
 	server := &Server{
 		Logger:                 logger,
