@@ -1,5 +1,5 @@
-hash: f2b875bc5d18e2e6baa69400b7578ef09b34e51174ed35f6d46ff2590988f72c
-updated: 2017-10-05T22:42:20.600064152-05:00
+hash: 450ee454d9e6eeb2189fbadac7fbdcdcdb5a9c37b5a61f14499c3cac6b2c8d2d
+updated: 2017-10-16T14:30:21.8593258-04:00
 imports:
 - name: cloud.google.com/go
   version: 0f0b8420cb699ac4ce059c63bac263f4301fe95b
@@ -40,6 +40,10 @@ imports:
   - service/s3/s3iface
   - service/s3/s3manager
   - service/sts
+- name: github.com/beorn7/perks
+  version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
+  subpackages:
+  - quantile
 - name: github.com/BurntSushi/toml
   version: b26d9c308763d68093482582cea63d69be07a0f0
 - name: github.com/facebookgo/atomicfile
@@ -84,6 +88,31 @@ imports:
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
+- name: github.com/matttproud/golang_protobuf_extensions
+  version: fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a
+  subpackages:
+  - pbutil
+- name: github.com/prometheus/client_golang
+  version: c5b7fccd204277076155f10851dad72b76a49317
+  subpackages:
+  - prometheus
+  - prometheus/promhttp
+- name: github.com/prometheus/client_model
+  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
+  subpackages:
+  - go
+- name: github.com/prometheus/common
+  version: 13ba4ddd0caa9c28ca7b7bffe1dfa9ed8d5ef207
+  subpackages:
+  - expfmt
+  - internal/bitbucket.org/ww/goautoneg
+  - model
+- name: github.com/prometheus/procfs
+  version: 65c1f6f8f0fc1e2185eb9863a3bc751496404259
+  subpackages:
+  - xfs
+- name: github.com/sirupsen/logrus
+  version: 89742aefa4b206dcf400792f3bd35b542998eb3b
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/ugorji/go
@@ -92,6 +121,8 @@ imports:
   - codec
 - name: github.com/urfave/cli
   version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
+- name: github.com/zsais/go-gin-prometheus
+  version: bdee3a883f1496d0b6c33008b85446dd04829953
 - name: go.uber.org/atomic
   version: 4e336646b2ef9fc6e47be8e21594178f98e5ebcf
 - name: go.uber.org/multierr
@@ -115,6 +146,7 @@ imports:
   - openpgp/errors
   - openpgp/packet
   - openpgp/s2k
+  - ssh/terminal
 - name: golang.org/x/net
   version: 57efc9c3d9f91fb3277f8da1cff370539c4d3dc5
   subpackages:
@@ -137,6 +169,7 @@ imports:
   version: 2d6f6f883a06fc0d5f4b14a81e4c28705ea64c15
   subpackages:
   - unix
+  - windows
 - name: golang.org/x/text
   version: ac87088df8ef557f1e32cd00ed0b6fbc3f7ddafb
   subpackages:

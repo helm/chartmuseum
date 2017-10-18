@@ -43,6 +43,7 @@ func cliHandler(c *cli.Context) {
 		Debug:                  c.Bool("debug"),
 		LogJSON:                c.Bool("log-json"),
 		EnableAPI:              !c.Bool("disable-api"),
+		EnableMetrics:          !c.Bool("disable-metrics"),
 		AllowOverwrite:         c.Bool("allow-overwrite"),
 		ChartURL:               c.String("chart-url"),
 		TlsCert:                c.String("tls-cert"),
@@ -143,6 +144,11 @@ var cliFlags = []cli.Flag{
 		Name:   "log-json",
 		Usage:  "output structured logs as json",
 		EnvVar: "LOG_JSON",
+	},
+	cli.BoolFlag{
+		Name:   "disable-metrics",
+		Usage:  "disable Prometheus metrics",
+		EnvVar: "DISABLE_METRICS",
 	},
 	cli.BoolFlag{
 		Name:   "disable-api",

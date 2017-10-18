@@ -11,6 +11,8 @@ import:
   version: v1.10.18
 - package: go.uber.org/zap
   version: v1.5.0
+- package: github.com/zsais/go-gin-prometheus
+  version: bdee3a883f1496d0b6c33008b85446dd04829953
 
 # these ones are srsly a pain in da butt...
 # all needed to get cloud.google.com/go/storage to work
