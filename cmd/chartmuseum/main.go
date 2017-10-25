@@ -133,7 +133,7 @@ var cliFlags = []cli.Flag{
 	cli.BoolFlag{
 		Name:   "gen-index",
 		Usage:  "generate index.yaml, print to stdout and exit",
-		EnvVar: "DEBUG",
+		EnvVar: "GEN_INDEX",
 	},
 	cli.BoolFlag{
 		Name:   "debug",
