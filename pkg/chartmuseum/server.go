@@ -2,6 +2,7 @@ package chartmuseum
 
 import (
 	"fmt"
+	"regexp"
 	"sync"
 	"time"
 
@@ -80,6 +81,15 @@ func NewLogger(json bool, debug bool) (*Logger, error) {
 	return &Logger{logger.Sugar()}, nil
 }
 
+func mapURLWithParamsBackToRouteTemplate(c *gin.Context) string {
+	url := c.Request.URL.String()
+	for _, p := range c.Params {
+		re := regexp.MustCompile(fmt.Sprintf(`(^.*?)/\b%s\b(.*$)`, regexp.QuoteMeta(p.Value)))
+		url = re.ReplaceAllString(url, fmt.Sprintf(`$1/:%s$2`, p.Key))
+	}
+	return url
+}
+
 // NewRouter creates a new Router instance
 func NewRouter(logger *Logger, username string, password string, enableMetrics bool) *Router {
 	gin.SetMode(gin.ReleaseMode)
@@ -91,7 +101,12 @@ func NewRouter(logger *Logger, username string, password string, enableMetrics b
 		engine.Use(gin.BasicAuthForRealm(users, "ChartMuseum"))
 	}
 	if enableMetrics {
-		ginprometheus.NewPrometheus("chartmuseum").Use(engine)
+		p := ginprometheus.NewPrometheus("chartmuseum")
+		// For every route containing parameters (e.g. `/charts/:filename`, `/api/charts/:name/:version`, etc)
+		// the actual parameter values will be replaced by their name, to minimize the cardinality of the
+		// `chartmuseum_requests_total{url=..}` Prometheus counter.
+		p.ReqCntURLLabelMappingFn = mapURLWithParamsBackToRouteTemplate
+		p.Use(engine)
 	}
 	return &Router{engine}
 }

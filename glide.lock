@@ -1,5 +1,5 @@
-hash: 43ffa53a3671201d1632271e22efa7b82b21febf1c93e3ab8c9ea91086df55ec
-updated: 2017-10-26T08:23:40.672037942-05:00
+hash: 141a7d6afe632c03c92ba5776d0a4870d8cfc9f1c2cf3feed6ad534f4a17810d
+updated: 2017-10-30T09:57:57.75674-04:00
 imports:
 - name: cloud.google.com/go
   version: 0f0b8420cb699ac4ce059c63bac263f4301fe95b
@@ -122,7 +122,7 @@ imports:
 - name: github.com/urfave/cli
   version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
 - name: github.com/zsais/go-gin-prometheus
-  version: bdee3a883f1496d0b6c33008b85446dd04829953
+  version: e26effb6cde37935f313bb3d5e5a1207f44cff69
 - name: go.uber.org/atomic
   version: 4e336646b2ef9fc6e47be8e21594178f98e5ebcf
 - name: go.uber.org/multierr
