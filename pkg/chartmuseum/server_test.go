@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	pathutil "path"
 	"testing"
@@ -377,4 +378,41 @@ func (suite *ServerTestSuite) getBodyWithMultipartFormFiles(fields []string, fil
 
 func TestServerTestSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))
+}
+
+func TestMapURLWithParamsBackToRouteTemplate(t *testing.T) {
+	tests := []struct {
+		ctx    *gin.Context
+		expect string
+	}{
+		{&gin.Context{
+			Request: &http.Request{URL: &url.URL{Path: "/index.yaml"}},
+		}, "/index.yaml"},
+		{&gin.Context{
+			Request: &http.Request{URL: &url.URL{Path: "/charts/foo-1.2.3.tgz"}},
+			Params:  gin.Params{gin.Param{"filename", "foo-1.2.3.tgz"}},
+		}, "/charts/:filename"},
+		{&gin.Context{
+			Request: &http.Request{URL: &url.URL{Path: "/api/charts/foo/1.2.3"}},
+			Params:  gin.Params{gin.Param{"name", "foo"}, gin.Param{"version", "1.2.3"}},
+		}, "/api/charts/:name/:version"},
+		{&gin.Context{
+			Request: &http.Request{URL: &url.URL{Path: "/api/charts/charts-repo/1.2.3+api"}},
+			Params:  gin.Params{gin.Param{"name", "charts-repo"}, gin.Param{"version", "1.2.3+api"}},
+		}, "/api/charts/:name/:version"},
+		{&gin.Context{
+			Request: &http.Request{URL: &url.URL{Path: "/api/charts/chart/1.2.3"}},
+			Params:  gin.Params{gin.Param{"name", "chart"}, gin.Param{"version", "1.2.3"}},
+		}, "/api/charts/:name/:version"},
+		{&gin.Context{
+			Request: &http.Request{URL: &url.URL{Path: "/api/charts/chart"}},
+			Params:  gin.Params{gin.Param{"name", "chart"}},
+		}, "/api/charts/:name"},
+	}
+	for _, tt := range tests {
+		got := mapURLWithParamsBackToRouteTemplate(tt.ctx)
+		if got != tt.expect {
+			t.Errorf("expected %s, got %s", tt.expect, got)
+		}
+	}
 }
