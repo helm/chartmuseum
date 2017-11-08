@@ -1,6 +1,7 @@
 package chartmuseum
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"sync"
@@ -296,39 +297,51 @@ func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.
 	server.Logger.Debugw("Loading charts packages from storage (this could take awhile)",
 		"total", numObjects,
 	)
-	var err error
-	loaded := make([]*helm_repo.ChartVersion, numObjects)
 
-	var wg sync.WaitGroup
-	wg.Add(numObjects)
-	for idx, object := range objects {
-		go func(i int, o storage.Object) {
-			defer wg.Done()
-			if err == nil {
+	type cvResult struct {
+		cv  *helm_repo.ChartVersion
+		err error
+	}
+
+	cvChan := make(chan cvResult)
+
+	// Provide a mechanism to short-circuit object downloads in case of error
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	for _, object := range objects {
+		go func(o storage.Object) {
+			select {
+			case <-ctx.Done():
+				return
+			default:
 				chartVersion, err := server.getObjectChartVersion(o, true)
 				if err != nil {
 					err = server.checkInvalidChartPackageError(o, err, "added")
-				} else {
-					loaded[i] = chartVersion
 				}
+				if err != nil {
+					cancel()
+				}
+				cvChan <- cvResult{chartVersion, err}
 			}
-		}(idx, object)
-	}
-	wg.Wait()
-	if err != nil {
-		return err
+		}(object)
 	}
 
-	for _, chartVersion := range loaded {
-		if chartVersion == nil {
+	for validCount := 0; validCount < numObjects; validCount++ {
+		cvRes := <-cvChan
+		if cvRes.err != nil {
+			return cvRes.err
+		}
+		if cvRes.cv == nil {
 			continue
 		}
 		server.Logger.Debugw("Adding chart to index",
-			"name", chartVersion.Name,
-			"version", chartVersion.Version,
+			"name", cvRes.cv.Name,
+			"version", cvRes.cv.Version,
 		)
-		index.AddEntry(chartVersion)
+		index.AddEntry(cvRes.cv)
 	}
+
 	return nil
 }
 
@@ -337,14 +350,13 @@ func (server *Server) getObjectChartVersion(object storage.Object, load bool) (*
 		var err error
 		object, err = server.StorageBackend.GetObject(object.Path)
 		if err != nil {
-			return new(helm_repo.ChartVersion), err
+			return nil, err
 		}
 		if len(object.Content) == 0 {
-			return new(helm_repo.ChartVersion), repo.ErrorInvalidChartPackage
+			return nil, repo.ErrorInvalidChartPackage
 		}
 	}
-	chartVersion, err := repo.ChartVersionFromStorageObject(object)
-	return chartVersion, err
+	return repo.ChartVersionFromStorageObject(object)
 }
 
 func (server *Server) checkInvalidChartPackageError(object storage.Object, err error, action string) error {

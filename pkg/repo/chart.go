@@ -47,17 +47,17 @@ func ChartVersionFromStorageObject(object storage.Object) (*helm_repo.ChartVersi
 	if len(object.Content) == 0 {
 		chartVersion := emptyChartVersionFromPackageFilename(object.Path)
 		if chartVersion.Name == "" || chartVersion.Version == "" {
-			return chartVersion, ErrorInvalidChartPackage
+			return nil, ErrorInvalidChartPackage
 		}
 		return chartVersion, nil
 	}
 	chart, err := chartFromContent(object.Content)
 	if err != nil {
-		return new(helm_repo.ChartVersion), ErrorInvalidChartPackage
+		return nil, ErrorInvalidChartPackage
 	}
 	digest, err := provenanceDigestFromContent(object.Content)
 	if err != nil {
-		return new(helm_repo.ChartVersion), err
+		return nil, err
 	}
 	chartVersion := &helm_repo.ChartVersion{
 		URLs:     []string{fmt.Sprintf("charts/%s", object.Path)},
