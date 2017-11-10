@@ -3,15 +3,10 @@ import tarfile
 import io
 
 patch_version = 1
+chart_post_field_name = 'chart'
 
 def index(l):
     l.client.get("/index.yaml")
-
-def metrics(l):
-    l.client.get("/metrics")
-
-def not_found(l):
-    l.client.get("/toto")
 
 def post_new_chart(l):
     global patch_version
@@ -31,11 +26,11 @@ def post_new_chart(l):
     t.close()
     tgz_buf.seek(0)
 
-    l.client.post('/api/charts', files={'chartfile': (chart_fn, tgz_buf)})
+    l.client.post('/api/charts', files={chart_post_field_name: (chart_fn, tgz_buf)})
 
 
 class UserBehavior(TaskSet):
-    tasks = {index: 15, metrics: 1, post_new_chart: 1}
+    tasks = {index: 10, post_new_chart: 1}
 
 
 class WebsiteUser(HttpLocust):

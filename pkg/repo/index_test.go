@@ -65,10 +65,13 @@ func (suite *IndexTestSuite) TestRemove() {
 		for i := 5; i < 10; i++ {
 			chartVersion := getChartVersion(name, i, now)
 			suite.Index.RemoveEntry(chartVersion)
+			suite.Empty(suite.Index.HasEntry(chartVersion))
 		}
 	}
 	chartVersion := getChartVersion("d", 0, now)
 	suite.Index.RemoveEntry(chartVersion)
+
+	suite.Empty(suite.Index.HasEntry(chartVersion))
 }
 
 func (suite *IndexTestSuite) TestChartURLs() {

@@ -14,7 +14,9 @@ export PATH="$PWD/testbin:$PATH"
 export HELM_HOME="$PWD/.helm"
 
 main() {
-    check_env_vars
+    if [[ $TEST_CLOUD_STORAGE == 1 ]]; then
+        check_env_vars
+    fi
     install_helm
     package_test_charts
 }

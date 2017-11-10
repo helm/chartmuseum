@@ -17,12 +17,23 @@ endif
 	@glide install --strip-vendor
 
 .PHONY: build
-build: export GOARCH=amd64
-build: export CGO_ENABLED=0
-build:
-	@GOOS=linux  go build -v -i --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+build: build_linux build_mac build_windows
+
+build_windows: export GOARCH=amd64
+build_windows:
+	@GOOS=windows go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+	    -o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
+
+build_linux: export GOARCH=amd64
+build_linux: export CGO_ENABLED=0
+build_linux:
+	@GOOS=linux go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 	    -o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
-	@GOOS=darwin go build -v -i --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+
+build_mac: export GOARCH=amd64
+build_mac: export CGO_ENABLED=0
+build_mac:
+	@GOOS=darwin go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 	    -o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
 
 .PHONY: clean

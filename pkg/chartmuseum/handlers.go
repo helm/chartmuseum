@@ -30,31 +30,31 @@ type (
 )
 
 func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
-	err := server.syncRepositoryIndex()
+	index, err := server.syncRepositoryIndex(c.MustGet("RequestID").(string))
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
 	}
-	c.Data(200, repo.IndexFileContentType, server.RepositoryIndex.Raw)
+	c.Data(200, repo.IndexFileContentType, index.Raw)
 }
 
 func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
-	err := server.syncRepositoryIndex()
+	index, err := server.syncRepositoryIndex(c.MustGet("RequestID").(string))
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
 	}
-	c.JSON(200, server.RepositoryIndex.Entries)
+	c.JSON(200, index.Entries)
 }
 
 func (server *Server) getChartRequestHandler(c *gin.Context) {
 	name := c.Param("name")
-	err := server.syncRepositoryIndex()
+	index, err := server.syncRepositoryIndex(c.MustGet("RequestID").(string))
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
 	}
-	chart := server.RepositoryIndex.Entries[name]
+	chart := index.Entries[name]
 	if chart == nil {
 		c.JSON(404, notFoundErrorResponse)
 		return
@@ -68,12 +68,12 @@ func (server *Server) getChartVersionRequestHandler(c *gin.Context) {
 	if version == "latest" {
 		version = ""
 	}
-	err := server.syncRepositoryIndex()
+	index, err := server.syncRepositoryIndex(c.MustGet("RequestID").(string))
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
 	}
-	chartVersion, err := server.RepositoryIndex.Get(name, version)
+	chartVersion, err := index.Get(name, version)
 	if err != nil {
 		c.JSON(404, notFoundErrorResponse)
 		return
