@@ -1,4 +1,4 @@
-package: github.com/chartmuseum/chartmuseum
+package: github.com/kubernetes-helm/chartmuseum
 
 import:
 - package: github.com/gin-gonic/gin

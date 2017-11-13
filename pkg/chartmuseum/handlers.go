@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/chartmuseum/chartmuseum/pkg/repo"
+	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 
 	"github.com/gin-gonic/gin"
 )

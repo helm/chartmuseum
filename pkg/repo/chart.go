@@ -7,7 +7,7 @@ import (
 	pathutil "path"
 	"strings"
 
-	"github.com/chartmuseum/chartmuseum/pkg/storage"
+	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"k8s.io/helm/pkg/chartutil"
 	helm_chart "k8s.io/helm/pkg/proto/hapi/chart"

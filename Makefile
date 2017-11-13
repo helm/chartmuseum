@@ -74,7 +74,7 @@ endif
 ifndef HAS_DOT
 	@sudo apt-get update && sudo apt-get install -y graphviz
 endif
-	@goviz -i github.com/chartmuseum/chartmuseum/cmd/chartmuseum -l | dot -Tpng -o goviz.png
+	@goviz -i github.com/kubernetes-helm/chartmuseum/cmd/chartmuseum -l | dot -Tpng -o goviz.png
 
 .PHONY: release
 release:

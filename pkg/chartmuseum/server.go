@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chartmuseum/chartmuseum/pkg/repo"
-	"github.com/chartmuseum/chartmuseum/pkg/storage"
+	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
+	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"

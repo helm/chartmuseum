@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/chartmuseum/chartmuseum/pkg/chartmuseum"
-	"github.com/chartmuseum/chartmuseum/pkg/repo"
+	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
+	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 
 	"github.com/stretchr/testify/suite"
 )
