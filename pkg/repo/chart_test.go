@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chartmuseum/chartmuseum/pkg/storage"
+	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"github.com/stretchr/testify/suite"
 )

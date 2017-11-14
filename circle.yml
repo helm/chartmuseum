@@ -8,7 +8,7 @@ jobs:
       - image: circleci/golang:1.8
         environment:
           GOOGLE_APPLICATION_CREDENTIALS: /home/circleci/gcp-key.json
-    working_directory: /go/src/github.com/chartmuseum/chartmuseum
+    working_directory: /go/src/github.com/kubernetes-helm/chartmuseum
     steps:
       # Setup build environment
       - checkout

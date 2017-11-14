@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/chartmuseum/chartmuseum/pkg/chartmuseum"
-	"github.com/chartmuseum/chartmuseum/pkg/storage"
+	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
+	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"github.com/urfave/cli"
 )

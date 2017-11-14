@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chartmuseum/chartmuseum/pkg/storage"
+	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
