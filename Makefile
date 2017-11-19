@@ -4,6 +4,7 @@ REVISION := $(shell git rev-parse --short HEAD;)
 
 HAS_GLIDE := $(shell command -v glide;)
 HAS_PIP := $(shell command -v pip;)
+HAS_PIPENV := $(shell command -v pipenv;)
 HAS_VENV := $(shell command -v virtualenv;)
 HAS_GOVIZ := $(shell command -v goviz;)
 HAS_DOT := $(shell command -v dot;)
@@ -57,6 +58,14 @@ test: setup-test-environment
 .PHONY: testcloud
 testcloud: export TEST_CLOUD_STORAGE=1
 testcloud: test
+
+.PHONY: startloadtest
+startloadtest:
+ifndef HAS_PIPENV
+	@sudo pip install pipenv
+endif
+	@cd loadtesting && pipenv install
+	@cd loadtesting && pipenv run locust --host http://localhost:8080
 
 .PHONY: covhtml
 covhtml:

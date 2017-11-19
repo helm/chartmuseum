@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 HELM_VERSION="2.7.0"
-REQUIRED_TEST_ENV_VARS=(
+REQUIRED_TEST_STORAGE_ENV_VARS=(
     "TEST_STORAGE_AMAZON_BUCKET"
     "TEST_STORAGE_AMAZON_REGION"
     "TEST_STORAGE_GOOGLE_BUCKET"
@@ -15,16 +15,16 @@ export HELM_HOME="$PWD/.helm"
 
 main() {
     if [[ $TEST_CLOUD_STORAGE == 1 ]]; then
-        check_env_vars
+        check_storage_env_vars
     fi
     install_helm
     package_test_charts
 }
 
-check_env_vars() {
+check_storage_env_vars() {
     set +x
     ALL_ENV_VARS_PRESENT="1"
-    for VAR in ${REQUIRED_TEST_ENV_VARS[@]}; do
+    for VAR in ${REQUIRED_TEST_STORAGE_ENV_VARS[@]}; do
            if [ "${!VAR}" == "" ]; then
             echo "missing required test env var: $VAR"
             ALL_ENV_VARS_PRESENT="0"

@@ -29,14 +29,6 @@ type (
 	Router struct {
 		*gin.Engine
 	}
-	fetchedObjects struct {
-		objects []storage.Object
-		err     error
-	}
-	indexRegeneration struct {
-		index *repo.Index
-		err   error
-	}
 	// Server contains a Logger, Router, storage backend and object cache
 	Server struct {
 		Logger                  *Logger
@@ -44,15 +36,15 @@ type (
 		RepositoryIndex         *repo.Index
 		StorageBackend          storage.Backend
 		StorageCache            []storage.Object
-		regenerationLock        *sync.Mutex
-		fetchedObjectsLock      *sync.Mutex
-		fetchedObjectsChans     []chan fetchedObjects
-		regeneratedIndexesChans []chan indexRegeneration
 		AllowOverwrite          bool
 		TlsCert                 string
 		TlsKey                  string
 		ChartPostFormFieldName  string
 		ProvPostFormFieldName   string
+		regenerationLock        *sync.Mutex
+		fetchedObjectsLock      *sync.Mutex
+		fetchedObjectsChans     []chan fetchedObjects
+		regeneratedIndexesChans []chan indexRegeneration
 	}
 
 	// ServerOptions are options for constructing a Server
@@ -70,6 +62,15 @@ type (
 		Password               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
+	}
+
+	fetchedObjects struct {
+		objects []storage.Object
+		err     error
+	}
+	indexRegeneration struct {
+		index *repo.Index
+		err   error
 	}
 )
 
@@ -139,13 +140,13 @@ func NewServer(options ServerOptions) (*Server, error) {
 		RepositoryIndex:        repo.NewIndex(options.ChartURL),
 		StorageBackend:         options.StorageBackend,
 		StorageCache:           []storage.Object{},
-		regenerationLock:		&sync.Mutex{},
-		fetchedObjectsLock:     &sync.Mutex{},
 		AllowOverwrite:         options.AllowOverwrite,
 		TlsCert:                options.TlsCert,
 		TlsKey:                 options.TlsKey,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
+		regenerationLock:       &sync.Mutex{},
+		fetchedObjectsLock:     &sync.Mutex{},
 	}
 
 	server.setRoutes(options.EnableAPI)
@@ -199,8 +200,7 @@ func loggingMiddleware(logger *Logger) gin.HandlerFunc {
 	}
 }
 
-// getChartList fetches from the server and accumulates concurrent requests to be fulfilled
-// all at once.
+// getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
 func (server *Server) getChartList(reqID string) <-chan fetchedObjects {
 	c := make(chan fetchedObjects, 1)
 
@@ -247,9 +247,11 @@ func (server *Server) regenerateRepositoryIndex(diff storage.ObjectSliceDiff, st
 	return c
 }
 
-// syncRepositoryIndex is the workhorse of maintaining a coherent index cache. It is optimized for multiple requests
-// comming in a short period. When two requests for the backing store arrive, only the first is served, and other consumers receive the
-// result of this request. This allows very fast updates in constant time. See getChartList() and regenerateRepositoryIndex().
+/*
+syncRepositoryIndex is the workhorse of maintaining a coherent index cache. It is optimized for multiple requests
+comming in a short period. When two requests for the backing store arrive, only the first is served, and other consumers receive the
+result of this request. This allows very fast updates in constant time. See getChartList() and regenerateRepositoryIndex().
+*/
 func (server *Server) syncRepositoryIndex(reqID string) (*repo.Index, error) {
 	fo := <-server.getChartList(reqID)
 
@@ -270,7 +272,7 @@ func (server *Server) syncRepositoryIndex(reqID string) (*repo.Index, error) {
 }
 
 func (server *Server) fetchChartsInStorage(reqID string) ([]storage.Object, error) {
-    server.Logger.Debugf("(%s) Fetching chart list from storage", reqID)
+	server.Logger.Debugf("(%s) Fetching chart list from storage", reqID)
 	allObjects, err := server.StorageBackend.ListObjects()
 	if err != nil {
 		return []storage.Object{}, err
@@ -289,11 +291,11 @@ func (server *Server) fetchChartsInStorage(reqID string) ([]storage.Object, erro
 
 func (server *Server) regenerateRepositoryIndexWorker(diff storage.ObjectSliceDiff, storageObjects []storage.Object, reqID string) (*repo.Index, error) {
 	server.Logger.Debugf("(%s) Regenerating index.yaml", reqID)
-    index := &repo.Index{
-        IndexFile: server.RepositoryIndex.IndexFile,
-        Raw:       server.RepositoryIndex.Raw,
-        ChartURL:  server.RepositoryIndex.ChartURL,
-    }
+	index := &repo.Index{
+		IndexFile: server.RepositoryIndex.IndexFile,
+		Raw:       server.RepositoryIndex.Raw,
+		ChartURL:  server.RepositoryIndex.ChartURL,
+	}
 
 	for _, object := range diff.Removed {
 		err := server.removeIndexObject(index, object, reqID)

@@ -104,6 +104,9 @@ curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/linux/amd64/cha
 # on macOS
 curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/darwin/amd64/chartmuseum
 
+# on Windows
+curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/windows/amd64/chartmuseum
+
 chmod +x ./chartmuseum
 mv ./chartmuseum /usr/local/bin
 ```
