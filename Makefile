@@ -10,6 +10,8 @@ HAS_GOVIZ := $(shell command -v goviz;)
 HAS_DOT := $(shell command -v dot;)
 HAS_AWS := $(shell command -v aws;)
 
+CM_LOADTESTING_HOST ?= http://localhost:8080
+
 .PHONY: bootstrap
 bootstrap:
 ifndef HAS_GLIDE
@@ -65,7 +67,7 @@ ifndef HAS_PIPENV
 	@sudo pip install pipenv
 endif
 	@cd loadtesting && pipenv install
-	@cd loadtesting && pipenv run locust --host http://localhost:8080
+	@cd loadtesting && pipenv run locust --host $(CM_LOADTESTING_HOST)
 
 .PHONY: covhtml
 covhtml:
