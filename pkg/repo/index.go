@@ -27,6 +27,7 @@ func NewIndex(chartURL string) *Index {
 	index := Index{&helm_repo.IndexFile{}, []byte{}, chartURL}
 	index.Entries = map[string]helm_repo.ChartVersions{}
 	index.APIVersion = helm_repo.APIVersionV1
+	index.Regenerate()
 	return &index
 }
 
