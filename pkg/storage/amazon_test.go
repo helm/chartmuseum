@@ -52,7 +52,9 @@ func (suite *AmazonTestSuite) TestPutObject() {
 }
 
 func TestAmazonStorageTestSuite(t *testing.T) {
-	if os.Getenv("TEST_CLOUD_STORAGE") == "1" {
+	if os.Getenv("TEST_CLOUD_STORAGE") == "1" &&
+		os.Getenv("TEST_STORAGE_AMAZON_BUCKET") != "" &&
+		os.Getenv("TEST_STORAGE_AMAZON_REGION") != "" {
 		suite.Run(t, new(AmazonTestSuite))
 	}
 }

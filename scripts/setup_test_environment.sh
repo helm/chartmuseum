@@ -23,14 +23,15 @@ main() {
 
 check_storage_env_vars() {
     set +x
-    ALL_ENV_VARS_PRESENT="1"
+    SOME_ENV_VARS_PRESENT="0"
     for VAR in ${REQUIRED_TEST_STORAGE_ENV_VARS[@]}; do
-           if [ "${!VAR}" == "" ]; then
-            echo "missing required test env var: $VAR"
-            ALL_ENV_VARS_PRESENT="0"
+        if [ "${!VAR}" != "" ]; then
+            echo "Detected one required test env var: $VAR"
+            SOME_ENV_VARS_PRESENT="1"
         fi
     done
-    if [ "$ALL_ENV_VARS_PRESENT" == "0" ]; then
+    if [ "$SOME_ENV_VARS_PRESENT" == "0" ]; then
+        echo "At least one or all of ${REQUIRED_TEST_STORAGE_ENV_VARS[@]} should be present"
         exit 1
     fi
     set -x
