@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
@@ -27,20 +29,22 @@ type (
 	Router struct {
 		*gin.Engine
 	}
-
 	// Server contains a Logger, Router, storage backend and object cache
 	Server struct {
-		Logger                 *Logger
-		Router                 *Router
-		RepositoryIndex        *repo.Index
-		StorageBackend         storage.Backend
-		StorageCache           []storage.Object
-		StorageCacheLock       *sync.Mutex
-		AllowOverwrite         bool
-		TlsCert                string
-		TlsKey                 string
-		ChartPostFormFieldName string
-		ProvPostFormFieldName  string
+		Logger                  *Logger
+		Router                  *Router
+		RepositoryIndex         *repo.Index
+		StorageBackend          storage.Backend
+		StorageCache            []storage.Object
+		AllowOverwrite          bool
+		TlsCert                 string
+		TlsKey                  string
+		ChartPostFormFieldName  string
+		ProvPostFormFieldName   string
+		regenerationLock        *sync.Mutex
+		fetchedObjectsLock      *sync.Mutex
+		fetchedObjectsChans     []chan fetchedObjects
+		regeneratedIndexesChans []chan indexRegeneration
 	}
 
 	// ServerOptions are options for constructing a Server
@@ -58,6 +62,15 @@ type (
 		Password               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
+	}
+
+	fetchedObjects struct {
+		objects []storage.Object
+		err     error
+	}
+	indexRegeneration struct {
+		index *repo.Index
+		err   error
 	}
 )
 
@@ -127,17 +140,19 @@ func NewServer(options ServerOptions) (*Server, error) {
 		RepositoryIndex:        repo.NewIndex(options.ChartURL),
 		StorageBackend:         options.StorageBackend,
 		StorageCache:           []storage.Object{},
-		StorageCacheLock:       &sync.Mutex{},
 		AllowOverwrite:         options.AllowOverwrite,
 		TlsCert:                options.TlsCert,
 		TlsKey:                 options.TlsKey,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
+		regenerationLock:       &sync.Mutex{},
+		fetchedObjectsLock:     &sync.Mutex{},
 	}
 
 	server.setRoutes(options.EnableAPI)
 
-	err = server.regenerateRepositoryIndex()
+	// prime the cache
+	_, err = server.syncRepositoryIndex("bootstrap")
 	return server, err
 }
 
@@ -154,11 +169,15 @@ func (server *Server) Listen(port int) {
 }
 
 func loggingMiddleware(logger *Logger) gin.HandlerFunc {
+	var requestID int64
 	return func(c *gin.Context) {
+		reqID := strconv.FormatInt(atomic.AddInt64(&requestID, 1), 10)
+		c.Set("RequestID", reqID)
+		logger.Debugf("(%s) Incoming request: %s", reqID, c.Request.URL.Path)
 		start := time.Now()
 		c.Next()
 
-		msg := "Request served"
+		msg := fmt.Sprintf("(%s) Request served", reqID)
 		status := c.Writer.Status()
 
 		meta := []interface{}{
@@ -181,22 +200,82 @@ func loggingMiddleware(logger *Logger) gin.HandlerFunc {
 	}
 }
 
-func (server *Server) syncRepositoryIndex() error {
-	_, diff, err := server.listObjectsGetDiff()
-	if err != nil {
-		return err
+// getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
+func (server *Server) getChartList(reqID string) <-chan fetchedObjects {
+	c := make(chan fetchedObjects, 1)
+
+	server.fetchedObjectsLock.Lock()
+	server.fetchedObjectsChans = append(server.fetchedObjectsChans, c)
+
+	if len(server.fetchedObjectsChans) == 1 {
+		// this unlock is wanted, while fetching the list, allow other channeled requests to be added
+		server.fetchedObjectsLock.Unlock()
+
+		objects, err := server.fetchChartsInStorage(reqID)
+
+		server.fetchedObjectsLock.Lock()
+		// flush every other consumer that also wanted the index
+		for _, foCh := range server.fetchedObjectsChans {
+			foCh <- fetchedObjects{objects, err}
+		}
+		server.fetchedObjectsChans = nil
 	}
-	if !diff.Change {
-		return nil
-	}
-	err = server.regenerateRepositoryIndex()
-	return err
+	server.fetchedObjectsLock.Unlock()
+
+	return c
 }
 
-func (server *Server) listObjectsGetDiff() ([]storage.Object, storage.ObjectSliceDiff, error) {
+func (server *Server) regenerateRepositoryIndex(diff storage.ObjectSliceDiff, storageObjects []storage.Object, reqID string) <-chan indexRegeneration {
+	c := make(chan indexRegeneration, 1)
+
+	server.regenerationLock.Lock()
+	server.regeneratedIndexesChans = append(server.regeneratedIndexesChans, c)
+
+	if len(server.regeneratedIndexesChans) == 1 {
+		server.regenerationLock.Unlock()
+
+		index, err := server.regenerateRepositoryIndexWorker(diff, storageObjects, reqID)
+
+		server.regenerationLock.Lock()
+		for _, riCh := range server.regeneratedIndexesChans {
+			riCh <- indexRegeneration{index, err}
+		}
+		server.regeneratedIndexesChans = nil
+	}
+	server.regenerationLock.Unlock()
+
+	return c
+}
+
+/*
+syncRepositoryIndex is the workhorse of maintaining a coherent index cache. It is optimized for multiple requests
+comming in a short period. When two requests for the backing store arrive, only the first is served, and other consumers receive the
+result of this request. This allows very fast updates in constant time. See getChartList() and regenerateRepositoryIndex().
+*/
+func (server *Server) syncRepositoryIndex(reqID string) (*repo.Index, error) {
+	fo := <-server.getChartList(reqID)
+
+	if fo.err != nil {
+		return nil, fo.err
+	}
+
+	diff := storage.GetObjectSliceDiff(server.StorageCache, fo.objects)
+
+	// return fast if no changes
+	if !diff.Change {
+		return server.RepositoryIndex, nil
+	}
+
+	ir := <-server.regenerateRepositoryIndex(diff, fo.objects, reqID)
+
+	return ir.index, ir.err
+}
+
+func (server *Server) fetchChartsInStorage(reqID string) ([]storage.Object, error) {
+	server.Logger.Debugf("(%s) Fetching chart list from storage", reqID)
 	allObjects, err := server.StorageBackend.ListObjects()
 	if err != nil {
-		return []storage.Object{}, storage.ObjectSliceDiff{}, err
+		return []storage.Object{}, err
 	}
 
 	// filter out storage objects that dont have extension used for chart packages (.tgz)
@@ -207,24 +286,11 @@ func (server *Server) listObjectsGetDiff() ([]storage.Object, storage.ObjectSlic
 		}
 	}
 
-	diff := storage.GetObjectSliceDiff(server.StorageCache, filteredObjects)
-	return filteredObjects, diff, nil
+	return filteredObjects, nil
 }
 
-func (server *Server) regenerateRepositoryIndex() error {
-	server.Logger.Debugw("Acquiring storage cache lock")
-	server.StorageCacheLock.Lock()
-	server.Logger.Debugw("Storage cache lock acquired")
-	defer func() {
-		server.Logger.Debugw("Releasing storage cache lock")
-		server.StorageCacheLock.Unlock()
-	}()
-
-	objects, diff, err := server.listObjectsGetDiff()
-	if err != nil {
-		return err
-	}
-
+func (server *Server) regenerateRepositoryIndexWorker(diff storage.ObjectSliceDiff, storageObjects []storage.Object, reqID string) (*repo.Index, error) {
+	server.Logger.Debugf("(%s) Regenerating index.yaml", reqID)
 	index := &repo.Index{
 		IndexFile: server.RepositoryIndex.IndexFile,
 		Raw:       server.RepositoryIndex.Raw,
@@ -232,42 +298,45 @@ func (server *Server) regenerateRepositoryIndex() error {
 	}
 
 	for _, object := range diff.Removed {
-		err := server.removeIndexObject(index, object)
+		err := server.removeIndexObject(index, object, reqID)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	for _, object := range diff.Updated {
-		err := server.updateIndexObject(index, object)
+		err := server.updateIndexObject(index, object, reqID)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	// Parallelize retrieval of added objects to improve startup speed
-	err = server.addIndexObjectsAsync(index, diff.Added)
+	// Parallelize retrieval of added objects to improve speed
+	err := server.addIndexObjectsAsync(index, diff.Added, reqID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	server.Logger.Debug("Regenerating index.yaml")
 	err = index.Regenerate()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	// It is very important that these two stay in sync as they reflect the same reality. StorageCache serves
+	// as object modification time cache, and RepositoryIndex is the canonical cached index.
 	server.RepositoryIndex = index
-	server.StorageCache = objects
-	return nil
+	server.StorageCache = storageObjects
+
+	server.Logger.Debugf("(%s) index.yaml regenerated", reqID)
+	return index, nil
 }
 
-func (server *Server) removeIndexObject(index *repo.Index, object storage.Object) error {
+func (server *Server) removeIndexObject(index *repo.Index, object storage.Object, reqID string) error {
 	chartVersion, err := server.getObjectChartVersion(object, false)
 	if err != nil {
 		return server.checkInvalidChartPackageError(object, err, "removed")
 	}
-	server.Logger.Debugw("Removing chart from index",
+	server.Logger.Debugw(fmt.Sprintf("(%s) Removing chart from index", reqID),
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
@@ -275,12 +344,12 @@ func (server *Server) removeIndexObject(index *repo.Index, object storage.Object
 	return nil
 }
 
-func (server *Server) updateIndexObject(index *repo.Index, object storage.Object) error {
+func (server *Server) updateIndexObject(index *repo.Index, object storage.Object, reqID string) error {
 	chartVersion, err := server.getObjectChartVersion(object, true)
 	if err != nil {
 		return server.checkInvalidChartPackageError(object, err, "updated")
 	}
-	server.Logger.Debugw("Updating chart in index",
+	server.Logger.Debugw(fmt.Sprintf("(%s) Updating chart in index", reqID),
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
@@ -288,13 +357,13 @@ func (server *Server) updateIndexObject(index *repo.Index, object storage.Object
 	return nil
 }
 
-func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.Object) error {
+func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.Object, reqID string) error {
 	numObjects := len(objects)
 	if numObjects == 0 {
 		return nil
 	}
 
-	server.Logger.Debugw("Loading charts packages from storage (this could take awhile)",
+	server.Logger.Debugw(fmt.Sprintf("(%s) Loading charts packages from storage (this could take awhile)", reqID),
 		"total", numObjects,
 	)
 
@@ -335,7 +404,7 @@ func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.
 		if cvRes.cv == nil {
 			continue
 		}
-		server.Logger.Debugw("Adding chart to index",
+		server.Logger.Debugw(fmt.Sprintf("(%s) Adding chart to index", reqID),
 			"name", cvRes.cv.Name,
 			"version", cvRes.cv.Version,
 		)

@@ -45,19 +45,16 @@ func (index *Index) Regenerate() error {
 
 // RemoveEntry removes a chart version from index
 func (index *Index) RemoveEntry(chartVersion *helm_repo.ChartVersion) {
-	for k := range index.Entries {
-		if k == chartVersion.Name {
-			for i, cv := range index.Entries[chartVersion.Name] {
-				if cv.Version == chartVersion.Version {
-					index.Entries[chartVersion.Name] = append(index.Entries[chartVersion.Name][:i],
-						index.Entries[chartVersion.Name][i+1:]...)
-					if len(index.Entries[chartVersion.Name]) == 0 {
-						delete(index.Entries, chartVersion.Name)
-					}
-					break
+	if entries, ok := index.Entries[chartVersion.Name]; ok {
+		for i, cv := range entries {
+			if cv.Version == chartVersion.Version {
+				index.Entries[chartVersion.Name] = append(entries[:i],
+					entries[i+1:]...)
+				if len(index.Entries[chartVersion.Name]) == 0 {
+					delete(index.Entries, chartVersion.Name)
 				}
+				break
 			}
-			break
 		}
 	}
 }
@@ -71,18 +68,27 @@ func (index *Index) AddEntry(chartVersion *helm_repo.ChartVersion) {
 	index.Entries[chartVersion.Name] = append(index.Entries[chartVersion.Name], chartVersion)
 }
 
+// HasEntry checks if index has already an entry
+func (index *Index) HasEntry(chartVersion *helm_repo.ChartVersion) bool {
+	if entries, ok := index.Entries[chartVersion.Name]; ok {
+		for _, cv := range entries {
+			if cv.Version == chartVersion.Version {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // UpdateEntry updates a chart version in index
 func (index *Index) UpdateEntry(chartVersion *helm_repo.ChartVersion) {
-	for k := range index.Entries {
-		if k == chartVersion.Name {
-			for i, cv := range index.Entries[chartVersion.Name] {
-				if cv.Version == chartVersion.Version {
-					index.setChartURL(chartVersion)
-					index.Entries[chartVersion.Name][i] = chartVersion
-					break
-				}
+	if entries, ok := index.Entries[chartVersion.Name]; ok {
+		for i, cv := range entries {
+			if cv.Version == chartVersion.Version {
+				index.setChartURL(chartVersion)
+				entries[i] = chartVersion
+				break
 			}
-			break
 		}
 	}
 }

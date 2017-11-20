@@ -4,10 +4,13 @@ REVISION := $(shell git rev-parse --short HEAD;)
 
 HAS_GLIDE := $(shell command -v glide;)
 HAS_PIP := $(shell command -v pip;)
+HAS_PIPENV := $(shell command -v pipenv;)
 HAS_VENV := $(shell command -v virtualenv;)
 HAS_GOVIZ := $(shell command -v goviz;)
 HAS_DOT := $(shell command -v dot;)
 HAS_AWS := $(shell command -v aws;)
+
+CM_LOADTESTING_HOST ?= http://localhost:8080
 
 .PHONY: bootstrap
 bootstrap:
@@ -17,12 +20,23 @@ endif
 	@glide install --strip-vendor
 
 .PHONY: build
-build: export GOARCH=amd64
-build: export CGO_ENABLED=0
-build:
-	@GOOS=linux  go build -v -i --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+build: build_linux build_mac build_windows
+
+build_windows: export GOARCH=amd64
+build_windows:
+	@GOOS=windows go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+	    -o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
+
+build_linux: export GOARCH=amd64
+build_linux: export CGO_ENABLED=0
+build_linux:
+	@GOOS=linux go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 	    -o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
-	@GOOS=darwin go build -v -i --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+
+build_mac: export GOARCH=amd64
+build_mac: export CGO_ENABLED=0
+build_mac:
+	@GOOS=darwin go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 	    -o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
 
 .PHONY: clean
@@ -46,6 +60,14 @@ test: setup-test-environment
 .PHONY: testcloud
 testcloud: export TEST_CLOUD_STORAGE=1
 testcloud: test
+
+.PHONY: startloadtest
+startloadtest:
+ifndef HAS_PIPENV
+	@sudo pip install pipenv
+endif
+	@cd loadtesting && pipenv install
+	@cd loadtesting && pipenv run locust --host $(CM_LOADTESTING_HOST)
 
 .PHONY: covhtml
 covhtml:
