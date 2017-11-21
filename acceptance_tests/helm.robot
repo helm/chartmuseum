@@ -2,6 +2,7 @@
 Documentation     Tests to verify that ChartMuseum is able to work with
 ...               Helm CLI and act as a valid Helm Chart Repository using
 ...               all supported storage backends (local, s3, gcs).
+Library           String
 Library           OperatingSystem
 Library           lib/ChartMuseum.py
 Library           lib/Helm.py
@@ -21,6 +22,12 @@ ChartMuseum works with Helm using Google cloud storage
 *** Keyword ***
 Test Helm integration
     [Arguments]    ${storage}
+
+    # return fast if we cannot find a bucket in an environment variable.
+    ${USTORAGE}=  Convert To Uppercase  ${storage}
+    ${ENV_STORAGE_SET}=  Get Environment variable  TEST_STORAGE_${USTORAGE}_BUCKET  ${EMPTY}
+    Return from Keyword if  '${ENV_STORAGE_SET}'=='${EMPTY}' and '${storage}'!='local'
+
     Start ChartMuseum server with storage backend  ${storage}
     Able to add ChartMuseum as Helm chart repo
     Helm search does not return test charts
