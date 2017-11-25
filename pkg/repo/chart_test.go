@@ -55,6 +55,47 @@ func (suite *ChartTestSuite) TestChartVersionFromStorageObject() {
 	}
 	_, err = ChartVersionFromStorageObject(brokenObject)
 	suite.Equal(err, ErrorInvalidChartPackage, "error creating ChartVersion from storage.Object with bad content")
+
+	// Issue #22
+	snapshotObject := storage.Object{
+		Path:         "mychart-1.0.4-SNAPSHOT.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(snapshotObject)
+	suite.Nil(err)
+	suite.Equal("mychart", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.0.4-SNAPSHOT", chartVersion.Version, "chart version as expected")
+
+	multiHyphenObject := storage.Object{
+		Path:         "my-long-hyphenated-chart-name-1.0.4.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(multiHyphenObject)
+	suite.Nil(err)
+	suite.Equal("my-long-hyphenated-chart-name", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.0.4", chartVersion.Version, "chart version as expected")
+
+	multiHyphenSnapshotObject := storage.Object{
+		Path:         "my-long-hyphenated-chart-name-1.0.4-SNAPSHOT.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(multiHyphenSnapshotObject)
+	suite.Nil(err)
+	suite.Equal("my-long-hyphenated-chart-name", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.0.4-SNAPSHOT", chartVersion.Version, "chart version as expected")
+
+	crapVersionObject := storage.Object{
+		Path:         "my-long-hyphenated-chart-name-crapversion.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(crapVersionObject)
+	suite.Nil(err)
+	suite.Equal("my-long-hyphenated-chart-name", chartVersion.Name, "chart name as expected")
+	suite.Equal("crapversion", chartVersion.Version, "chart version as expected")
 }
 
 func (suite *ChartTestSuite) TestChartPackageFilenameFromContent() {

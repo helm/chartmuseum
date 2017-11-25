@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	pathutil "path"
+	"strconv"
 	"strings"
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -75,10 +76,21 @@ func chartFromContent(content []byte) (*helm_chart.Chart, error) {
 
 func emptyChartVersionFromPackageFilename(filename string) *helm_repo.ChartVersion {
 	noExt := strings.TrimSuffix(pathutil.Base(filename), fmt.Sprintf(".%s", ChartPackageFileExtension))
-	tmp := strings.Split(noExt, "-")
-	lastIndex := len(tmp) - 1
-	name := strings.Join(tmp[:lastIndex], "-")
-	version := tmp[lastIndex]
+	parts := strings.Split(noExt, "-")
+	name := parts[0]
+	version := ""
+	for idx, part := range parts[1:] {
+		if _, err := strconv.Atoi(string(part[0])); err == nil { // see if this part looks like a version (starts w int)
+			version = strings.Join(parts[idx+1:], "-")
+			break
+		}
+		name = fmt.Sprintf("%s-%s", name, part)
+	}
+	if version == "" { // no parts looked like a real version, just take everything after last hyphen
+		lastIndex := len(parts) - 1
+		name = strings.Join(parts[:lastIndex], "-")
+		version = parts[lastIndex]
+	}
 	metadata := &helm_chart.Metadata{Name: name, Version: version}
 	return &helm_repo.ChartVersion{Metadata: metadata}
 }
