@@ -1,5 +1,5 @@
-hash: 141a7d6afe632c03c92ba5776d0a4870d8cfc9f1c2cf3feed6ad534f4a17810d
-updated: 2017-10-30T09:57:57.75674-04:00
+hash: 0fcbe5a7dd041e19510c745059a0134f11db16a14ae7f5bbfcf35070a5ed6422
+updated: 2017-11-24T23:52:10.792983635-06:00
 imports:
 - name: cloud.google.com/go
   version: 0f0b8420cb699ac4ce059c63bac263f4301fe95b
@@ -83,7 +83,7 @@ imports:
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/kubernetes/helm
-  version: 08c1144f5eb3e3b636d9775617287cc26e53dba4
+  version: 8478fb4fc723885b155c924d1c8c410b7a9444e6
 - name: github.com/Masterminds/semver
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
 - name: github.com/mattn/go-isatty
@@ -124,7 +124,7 @@ imports:
 - name: github.com/zsais/go-gin-prometheus
   version: e26effb6cde37935f313bb3d5e5a1207f44cff69
 - name: go.uber.org/atomic
-  version: 4e336646b2ef9fc6e47be8e21594178f98e5ebcf
+  version: 8474b86a5a6f79c443ce4b2992817ff32cf208b8
 - name: go.uber.org/multierr
   version: 3c4937480c32f4c13a875a1829af76c98ca3d40a
 - name: go.uber.org/zap
