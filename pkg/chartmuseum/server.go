@@ -53,15 +53,6 @@ type (
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 	}
-
-	fetchedObjects struct {
-		objects []storage.Object
-		err     error
-	}
-	indexRegeneration struct {
-		index *repo.Index
-		err   error
-	}
 )
 
 // NewRouter creates a new Router instance

@@ -26,6 +26,17 @@ import (
 	helm_repo "k8s.io/helm/pkg/repo"
 )
 
+type (
+	fetchedObjects struct {
+		objects []storage.Object
+		err     error
+	}
+	indexRegeneration struct {
+		index *repo.Index
+		err   error
+	}
+)
+
 // getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
 func (server *Server) getChartList(c *gin.Context) <-chan fetchedObjects {
 	ch := make(chan fetchedObjects, 1)
