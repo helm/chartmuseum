@@ -169,15 +169,15 @@ func (server *Server) Listen(port int) {
 }
 
 func loggingMiddleware(logger *Logger) gin.HandlerFunc {
-	var requestID int64
+	var requestCount int64
 	return func(c *gin.Context) {
-		reqID := strconv.FormatInt(atomic.AddInt64(&requestID, 1), 10)
-		c.Set("RequestID", reqID)
-		logger.Debugf("(%s) Incoming request: %s", reqID, c.Request.URL.Path)
+		reqCount := strconv.FormatInt(atomic.AddInt64(&requestCount, 1), 10)
+		c.Set("RequestCount", reqCount)
+		logger.Debugf("[%s] Incoming request: %s", reqCount, c.Request.URL.Path)
 		start := time.Now()
 		c.Next()
 
-		msg := fmt.Sprintf("(%s) Request served", reqID)
+		msg := fmt.Sprintf("[%s] Request served", reqCount)
 		status := c.Writer.Status()
 
 		meta := []interface{}{
@@ -201,7 +201,7 @@ func loggingMiddleware(logger *Logger) gin.HandlerFunc {
 }
 
 // getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
-func (server *Server) getChartList(reqID string) <-chan fetchedObjects {
+func (server *Server) getChartList(reqCount string) <-chan fetchedObjects {
 	c := make(chan fetchedObjects, 1)
 
 	server.fetchedObjectsLock.Lock()
@@ -211,7 +211,7 @@ func (server *Server) getChartList(reqID string) <-chan fetchedObjects {
 		// this unlock is wanted, while fetching the list, allow other channeled requests to be added
 		server.fetchedObjectsLock.Unlock()
 
-		objects, err := server.fetchChartsInStorage(reqID)
+		objects, err := server.fetchChartsInStorage(reqCount)
 
 		server.fetchedObjectsLock.Lock()
 		// flush every other consumer that also wanted the index
@@ -225,7 +225,7 @@ func (server *Server) getChartList(reqID string) <-chan fetchedObjects {
 	return c
 }
 
-func (server *Server) regenerateRepositoryIndex(diff storage.ObjectSliceDiff, storageObjects []storage.Object, reqID string) <-chan indexRegeneration {
+func (server *Server) regenerateRepositoryIndex(diff storage.ObjectSliceDiff, storageObjects []storage.Object, reqCount string) <-chan indexRegeneration {
 	c := make(chan indexRegeneration, 1)
 
 	server.regenerationLock.Lock()
@@ -234,7 +234,7 @@ func (server *Server) regenerateRepositoryIndex(diff storage.ObjectSliceDiff, st
 	if len(server.regeneratedIndexesChans) == 1 {
 		server.regenerationLock.Unlock()
 
-		index, err := server.regenerateRepositoryIndexWorker(diff, storageObjects, reqID)
+		index, err := server.regenerateRepositoryIndexWorker(diff, storageObjects, reqCount)
 
 		server.regenerationLock.Lock()
 		for _, riCh := range server.regeneratedIndexesChans {
@@ -252,8 +252,8 @@ syncRepositoryIndex is the workhorse of maintaining a coherent index cache. It i
 comming in a short period. When two requests for the backing store arrive, only the first is served, and other consumers receive the
 result of this request. This allows very fast updates in constant time. See getChartList() and regenerateRepositoryIndex().
 */
-func (server *Server) syncRepositoryIndex(reqID string) (*repo.Index, error) {
-	fo := <-server.getChartList(reqID)
+func (server *Server) syncRepositoryIndex(reqCount string) (*repo.Index, error) {
+	fo := <-server.getChartList(reqCount)
 
 	if fo.err != nil {
 		return nil, fo.err
@@ -266,13 +266,13 @@ func (server *Server) syncRepositoryIndex(reqID string) (*repo.Index, error) {
 		return server.RepositoryIndex, nil
 	}
 
-	ir := <-server.regenerateRepositoryIndex(diff, fo.objects, reqID)
+	ir := <-server.regenerateRepositoryIndex(diff, fo.objects, reqCount)
 
 	return ir.index, ir.err
 }
 
-func (server *Server) fetchChartsInStorage(reqID string) ([]storage.Object, error) {
-	server.Logger.Debugf("(%s) Fetching chart list from storage", reqID)
+func (server *Server) fetchChartsInStorage(reqCount string) ([]storage.Object, error) {
+	server.Logger.Debugf("[%s] Fetching chart list from storage", reqCount)
 	allObjects, err := server.StorageBackend.ListObjects()
 	if err != nil {
 		return []storage.Object{}, err
@@ -289,8 +289,8 @@ func (server *Server) fetchChartsInStorage(reqID string) ([]storage.Object, erro
 	return filteredObjects, nil
 }
 
-func (server *Server) regenerateRepositoryIndexWorker(diff storage.ObjectSliceDiff, storageObjects []storage.Object, reqID string) (*repo.Index, error) {
-	server.Logger.Debugf("(%s) Regenerating index.yaml", reqID)
+func (server *Server) regenerateRepositoryIndexWorker(diff storage.ObjectSliceDiff, storageObjects []storage.Object, reqCount string) (*repo.Index, error) {
+	server.Logger.Debugf("[%s] Regenerating index.yaml", reqCount)
 	index := &repo.Index{
 		IndexFile: server.RepositoryIndex.IndexFile,
 		Raw:       server.RepositoryIndex.Raw,
@@ -298,21 +298,21 @@ func (server *Server) regenerateRepositoryIndexWorker(diff storage.ObjectSliceDi
 	}
 
 	for _, object := range diff.Removed {
-		err := server.removeIndexObject(index, object, reqID)
+		err := server.removeIndexObject(index, object, reqCount)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for _, object := range diff.Updated {
-		err := server.updateIndexObject(index, object, reqID)
+		err := server.updateIndexObject(index, object, reqCount)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Parallelize retrieval of added objects to improve speed
-	err := server.addIndexObjectsAsync(index, diff.Added, reqID)
+	err := server.addIndexObjectsAsync(index, diff.Added, reqCount)
 	if err != nil {
 		return nil, err
 	}
@@ -327,16 +327,16 @@ func (server *Server) regenerateRepositoryIndexWorker(diff storage.ObjectSliceDi
 	server.RepositoryIndex = index
 	server.StorageCache = storageObjects
 
-	server.Logger.Debugf("(%s) index.yaml regenerated", reqID)
+	server.Logger.Debugf("[%s] index.yaml regenerated", reqCount)
 	return index, nil
 }
 
-func (server *Server) removeIndexObject(index *repo.Index, object storage.Object, reqID string) error {
+func (server *Server) removeIndexObject(index *repo.Index, object storage.Object, reqCount string) error {
 	chartVersion, err := server.getObjectChartVersion(object, false)
 	if err != nil {
 		return server.checkInvalidChartPackageError(object, err, "removed")
 	}
-	server.Logger.Debugw(fmt.Sprintf("(%s) Removing chart from index", reqID),
+	server.Logger.Debugw(fmt.Sprintf("[%s] Removing chart from index", reqCount),
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
@@ -344,12 +344,12 @@ func (server *Server) removeIndexObject(index *repo.Index, object storage.Object
 	return nil
 }
 
-func (server *Server) updateIndexObject(index *repo.Index, object storage.Object, reqID string) error {
+func (server *Server) updateIndexObject(index *repo.Index, object storage.Object, reqCount string) error {
 	chartVersion, err := server.getObjectChartVersion(object, true)
 	if err != nil {
 		return server.checkInvalidChartPackageError(object, err, "updated")
 	}
-	server.Logger.Debugw(fmt.Sprintf("(%s) Updating chart in index", reqID),
+	server.Logger.Debugw(fmt.Sprintf("[%s] Updating chart in index", reqCount),
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
@@ -357,13 +357,13 @@ func (server *Server) updateIndexObject(index *repo.Index, object storage.Object
 	return nil
 }
 
-func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.Object, reqID string) error {
+func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.Object, reqCount string) error {
 	numObjects := len(objects)
 	if numObjects == 0 {
 		return nil
 	}
 
-	server.Logger.Debugw(fmt.Sprintf("(%s) Loading charts packages from storage (this could take awhile)", reqID),
+	server.Logger.Debugw(fmt.Sprintf("[%s] Loading charts packages from storage (this could take awhile)", reqCount),
 		"total", numObjects,
 	)
 
@@ -404,7 +404,7 @@ func (server *Server) addIndexObjectsAsync(index *repo.Index, objects []storage.
 		if cvRes.cv == nil {
 			continue
 		}
-		server.Logger.Debugw(fmt.Sprintf("(%s) Adding chart to index", reqID),
+		server.Logger.Debugw(fmt.Sprintf("[%s] Adding chart to index", reqCount),
 			"name", cvRes.cv.Name,
 			"version", cvRes.cv.Version,
 		)
