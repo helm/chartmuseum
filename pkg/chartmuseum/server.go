@@ -12,6 +12,7 @@ import (
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
+	"github.com/atarantini/ginrequestid"
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"
 	"go.uber.org/zap"
@@ -108,7 +109,7 @@ func mapURLWithParamsBackToRouteTemplate(c *gin.Context) string {
 func NewRouter(logger *Logger, username string, password string, enableMetrics bool) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
-	engine.Use(loggingMiddleware(logger), gin.Recovery())
+	engine.Use(ginrequestid.RequestId(), loggingMiddleware(logger), gin.Recovery())
 	if username != "" && password != "" {
 		users := make(map[string]string)
 		users[username] = password
@@ -187,6 +188,7 @@ func loggingMiddleware(logger *Logger) gin.HandlerFunc {
 			"clientIP", c.ClientIP(),
 			"method", c.Request.Method,
 			"statusCode", status,
+			"reqID", c.MustGet("RequestId"),
 		}
 
 		switch {

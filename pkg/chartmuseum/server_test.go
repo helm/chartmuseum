@@ -178,6 +178,10 @@ func (suite *ServerTestSuite) TestRoutes() {
 	res = suite.doRequest("normal", "GET", "/charts/mychart-0.1.0.tgz", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /charts/mychart-0.1.0.tgz")
 
+	// Issue #21
+	suite.NotEqual("", res.Header().Get("X-Request-Id"), "X-Request-Id header is present")
+	suite.Equal("", res.Header().Get("X-Blah-Blah-Blah"), "X-Blah-Blah-Blah header is not present")
+
 	res = suite.doRequest("normal", "GET", "/charts/mychart-0.1.0.tgz.prov", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /charts/mychart-0.1.0.tgz.prov")
 
