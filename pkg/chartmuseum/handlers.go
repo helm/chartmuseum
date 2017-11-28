@@ -30,7 +30,8 @@ type (
 )
 
 func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
-	index, err := server.syncRepositoryIndex(c)
+	log := server.contextLoggingFn(c)
+	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
@@ -39,7 +40,8 @@ func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
 }
 
 func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
-	index, err := server.syncRepositoryIndex(c)
+	log := server.contextLoggingFn(c)
+	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
@@ -49,7 +51,8 @@ func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
 
 func (server *Server) getChartRequestHandler(c *gin.Context) {
 	name := c.Param("name")
-	index, err := server.syncRepositoryIndex(c)
+	log := server.contextLoggingFn(c)
+	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
@@ -68,7 +71,8 @@ func (server *Server) getChartVersionRequestHandler(c *gin.Context) {
 	if version == "latest" {
 		version = ""
 	}
-	index, err := server.syncRepositoryIndex(c)
+	log := server.contextLoggingFn(c)
+	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return

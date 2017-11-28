@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -16,6 +17,17 @@ type (
 	Logger struct {
 		*zap.SugaredLogger
 	}
+
+	logLevel string
+
+	loggingFn func(level logLevel, msg string, keysAndValues ...interface{})
+)
+
+const (
+	debugLevel logLevel = "DEBUG"
+	infoLevel  logLevel = "INFO"
+	warnLevel  logLevel = "WARN"
+	errorLevel logLevel = "ERROR"
 )
 
 // NewLogger creates a new Logger instance
@@ -23,6 +35,7 @@ func NewLogger(json bool, debug bool) (*Logger, error) {
 	config := zap.NewDevelopmentConfig()
 	config.DisableStacktrace = true
 	config.Development = false
+	config.DisableCaller = true
 	if json {
 		config.Encoding = "json"
 	} else {
@@ -104,4 +117,27 @@ func loggingMiddleware(logger *Logger) gin.HandlerFunc {
 			logger.Errorc(c, msg, meta...)
 		}
 	}
+}
+
+/*
+contextLoggingFn creates a loggingFn to be used in
+places that do not necessarily need access to the gin context
+*/
+func (server *Server) contextLoggingFn(c *gin.Context) loggingFn {
+	return func(level logLevel, msg string, keysAndValues ...interface{}) {
+		switch level {
+		case debugLevel:
+			server.Logger.Debugc(c, msg, keysAndValues...)
+		case infoLevel:
+			server.Logger.Infoc(c, msg, keysAndValues...)
+		case warnLevel:
+			server.Logger.Warnc(c, msg, keysAndValues...)
+		case errorLevel:
+			server.Logger.Errorc(c, msg, keysAndValues...)
+		}
+	}
+}
+
+func init() {
+	logrus.SetLevel(logrus.WarnLevel) // silence logs from zsais/go-gin-prometheus
 }

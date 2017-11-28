@@ -100,7 +100,8 @@ func NewServer(options ServerOptions) (*Server, error) {
 	server.setRoutes(options.EnableAPI)
 
 	// prime the cache
-	_, err = server.syncRepositoryIndex(&gin.Context{})
+	log := server.contextLoggingFn(&gin.Context{})
+	_, err = server.syncRepositoryIndex(log)
 	return server, err
 }
 
