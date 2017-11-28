@@ -1,5 +1,5 @@
-hash: 0fcbe5a7dd041e19510c745059a0134f11db16a14ae7f5bbfcf35070a5ed6422
-updated: 2017-11-24T23:52:10.792983635-06:00
+hash: faa3c5ff3d6dd6e6b6a809b36fbf562fdd4ee35e417022d82ce116d279adbaa4
+updated: 2017-11-26T21:32:22.856349424-06:00
 imports:
 - name: cloud.google.com/go
   version: 0f0b8420cb699ac4ce059c63bac263f4301fe95b
@@ -10,6 +10,8 @@ imports:
   - internal/optional
   - internal/version
   - storage
+- name: github.com/atarantini/ginrequestid
+  version: a432ade0ce478903613da1372cb5a62914cfe532
 - name: github.com/aws/aws-sdk-go
   version: 5e436e55ac5eddc739f26a2a209b3f4248ee8e0e
   subpackages:
@@ -111,6 +113,8 @@ imports:
   version: 65c1f6f8f0fc1e2185eb9863a3bc751496404259
   subpackages:
   - xfs
+- name: github.com/satori/go.uuid
+  version: 5bf94b69c6b68ee1b541973bb8e1144db23a194b
 - name: github.com/sirupsen/logrus
   version: 89742aefa4b206dcf400792f3bd35b542998eb3b
 - name: github.com/spf13/pflag

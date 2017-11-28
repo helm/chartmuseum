@@ -132,41 +132,43 @@ func (suite *ServerTestSuite) TearDownSuite() {
 }
 
 func (suite *ServerTestSuite) TestRegenerateRepositoryIndex() {
-	objects, err := suite.Server.fetchChartsInStorage("test")
+	log := suite.Server.contextLoggingFn(&gin.Context{})
+
+	objects, err := suite.Server.fetchChartsInStorage(log)
 	diff := storage.GetObjectSliceDiff(suite.Server.StorageCache, objects)
-	_, err = suite.Server.regenerateRepositoryIndexWorker(diff, objects, "test")
+	_, err = suite.Server.regenerateRepositoryIndexWorker(log, diff, objects)
 	suite.Nil(err, "no error regenerating repo index")
 
 	newtime := time.Now().Add(1 * time.Hour)
 	err = os.Chtimes(suite.TestTarballFilename, newtime, newtime)
 	suite.Nil(err, "no error changing modtime on temp file")
 
-	objects, err = suite.Server.fetchChartsInStorage("test")
+	objects, err = suite.Server.fetchChartsInStorage(log)
 	diff = storage.GetObjectSliceDiff(suite.Server.StorageCache, objects)
-	_, err = suite.Server.regenerateRepositoryIndexWorker(diff, objects, "test")
+	_, err = suite.Server.regenerateRepositoryIndexWorker(log, diff, objects)
 	suite.Nil(err, "no error regenerating repo index with tarball updated")
 
 	brokenTarballFilename := pathutil.Join(suite.TempDirectory, "brokenchart.tgz")
 	destFile, err := os.Create(brokenTarballFilename)
 	suite.Nil(err, "no error creating new broken tarball in temp dir")
 	defer destFile.Close()
-	objects, err = suite.Server.fetchChartsInStorage("test")
+	objects, err = suite.Server.fetchChartsInStorage(log)
 	diff = storage.GetObjectSliceDiff(suite.Server.StorageCache, objects)
-	_, err = suite.Server.regenerateRepositoryIndexWorker(diff, objects, "test")
+	_, err = suite.Server.regenerateRepositoryIndexWorker(log, diff, objects)
 	suite.Nil(err, "error not returned with broken tarball added")
 
 	err = os.Chtimes(brokenTarballFilename, newtime, newtime)
 	suite.Nil(err, "no error changing modtime on broken tarball")
-	objects, err = suite.Server.fetchChartsInStorage("test")
+	objects, err = suite.Server.fetchChartsInStorage(log)
 	diff = storage.GetObjectSliceDiff(suite.Server.StorageCache, objects)
-	_, err = suite.Server.regenerateRepositoryIndexWorker(diff, objects, "test")
+	_, err = suite.Server.regenerateRepositoryIndexWorker(log, diff, objects)
 	suite.Nil(err, "error not returned with broken tarball updated")
 
 	err = os.Remove(brokenTarballFilename)
 	suite.Nil(err, "no error removing broken tarball")
-	objects, err = suite.Server.fetchChartsInStorage("test")
+	objects, err = suite.Server.fetchChartsInStorage(log)
 	diff = storage.GetObjectSliceDiff(suite.Server.StorageCache, objects)
-	_, err = suite.Server.regenerateRepositoryIndexWorker(diff, objects, "test")
+	_, err = suite.Server.regenerateRepositoryIndexWorker(log, diff, objects)
 	suite.Nil(err, "error not returned with broken tarball removed")
 }
 
@@ -177,6 +179,10 @@ func (suite *ServerTestSuite) TestRoutes() {
 	// GET /charts/<filename>
 	res = suite.doRequest("normal", "GET", "/charts/mychart-0.1.0.tgz", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /charts/mychart-0.1.0.tgz")
+
+	// Issue #21
+	suite.NotEqual("", res.Header().Get("X-Request-Id"), "X-Request-Id header is present")
+	suite.Equal("", res.Header().Get("X-Blah-Blah-Blah"), "X-Blah-Blah-Blah header is not present")
 
 	res = suite.doRequest("normal", "GET", "/charts/mychart-0.1.0.tgz.prov", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /charts/mychart-0.1.0.tgz.prov")

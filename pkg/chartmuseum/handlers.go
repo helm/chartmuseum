@@ -30,7 +30,8 @@ type (
 )
 
 func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
-	index, err := server.syncRepositoryIndex(c.MustGet("RequestID").(string))
+	log := server.contextLoggingFn(c)
+	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
@@ -39,7 +40,8 @@ func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
 }
 
 func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
-	index, err := server.syncRepositoryIndex(c.MustGet("RequestID").(string))
+	log := server.contextLoggingFn(c)
+	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
@@ -49,7 +51,8 @@ func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
 
 func (server *Server) getChartRequestHandler(c *gin.Context) {
 	name := c.Param("name")
-	index, err := server.syncRepositoryIndex(c.MustGet("RequestID").(string))
+	log := server.contextLoggingFn(c)
+	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
@@ -68,7 +71,8 @@ func (server *Server) getChartVersionRequestHandler(c *gin.Context) {
 	if version == "latest" {
 		version = ""
 	}
-	index, err := server.syncRepositoryIndex(c.MustGet("RequestID").(string))
+	log := server.contextLoggingFn(c)
+	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
 		return
@@ -85,7 +89,7 @@ func (server *Server) deleteChartVersionRequestHandler(c *gin.Context) {
 	name := c.Param("name")
 	version := c.Param("version")
 	filename := repo.ChartPackageFilenameFromNameVersion(name, version)
-	server.Logger.Debugw("Deleting package from storage",
+	server.Logger.Debugc(c,"Deleting package from storage",
 		"package", filename,
 	)
 	err := server.StorageBackend.DeleteObject(filename)
@@ -177,7 +181,7 @@ func (server *Server) postPackageAndProvenanceRequestHandler(c *gin.Context) {
 	// At this point input is presumed valid, we now proceed to store it
 	var storedFiles []*packageOrProvenanceFile
 	for _, ppf := range ppFiles {
-		server.Logger.Debugw("Adding file to storage (form field)",
+		server.Logger.Debugc(c,"Adding file to storage (form field)",
 			"filename", ppf.filename,
 			"field", ppf.field,
 		)
@@ -221,7 +225,7 @@ func (server *Server) postPackageRequestHandler(c *gin.Context) {
 			return
 		}
 	}
-	server.Logger.Debugw("Adding package to storage",
+	server.Logger.Debugc(c,"Adding package to storage",
 		"package", filename,
 	)
 	err = server.StorageBackend.PutObject(filename, content)
@@ -250,7 +254,7 @@ func (server *Server) postProvenanceFileRequestHandler(c *gin.Context) {
 			return
 		}
 	}
-	server.Logger.Debugw("Adding provenance file to storage",
+	server.Logger.Debugc(c,"Adding provenance file to storage",
 		"provenance_file", filename,
 	)
 	err = server.StorageBackend.PutObject(filename, content)
