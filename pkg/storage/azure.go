@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/storage"
 )
 
-// AzureBlobBackend is a storage backend for Amazon S3
+// AzureBlobBackend is a storage backend for Azure Blob Storage
 type AzureBlobBackend struct {
 	Container  *storage.Container
 }
@@ -31,7 +31,7 @@ func NewAzureBlobBackend(accountName string, accountKey string, containerName st
 	return b
 }
 
-// ListObjects lists all objects in Amazon S3 bucket, at prefix
+// ListObjects lists all objects in Azure Blob Storage container
 func (b AzureBlobBackend) ListObjects() ([]Object, error) {
 	
 	var objects []Object
@@ -61,7 +61,7 @@ func (b AzureBlobBackend) ListObjects() ([]Object, error) {
 	return objects, nil
 }
 
-// GetObject retrieves an object from Amazon S3 bucket, at prefix
+// GetObject retrieves an object from Azure Blob Storage, at path
 func (b AzureBlobBackend) GetObject(path string) (Object, error) {
 	var object Object
 	object.Path = path
@@ -101,7 +101,7 @@ func (b AzureBlobBackend) GetObject(path string) (Object, error) {
 	return object, nil
 }
 
-// PutObject uploads an object to Amazon S3 bucket, at prefix
+// PutObject uploads an object to Azure Blob Storage container, at path
 func (b AzureBlobBackend) PutObject(path string, content []byte) error {
 	if (b.Container == nil) {
 		return errors.New("Unable to obtain a container reference.")
@@ -118,7 +118,7 @@ func (b AzureBlobBackend) PutObject(path string, content []byte) error {
 	return err
 }
 
-// DeleteObject removes an object from Amazon S3 bucket, at prefix
+// DeleteObject removes an object from Azure Blob Storage container, at path
 func (b AzureBlobBackend) DeleteObject(path string) error {
 	blobReference := b.Container.GetBlobReference(path)
 

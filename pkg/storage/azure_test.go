@@ -27,12 +27,12 @@ func (suite *AzureTestSuite) SetupSuite() {
 	data := []byte("some object")
 	path := "deleteme.txt"
 	err := suite.NoPrefixAzureBlobBackend.PutObject(path, data)
-	suite.Nil(err, "no error putting deleteme.txt using AmazonS3 backend")
+	suite.Nil(err, "no error putting deleteme.txt using Azure backend")
 }
 
 func (suite *AzureTestSuite) TearDownSuite() {
 	err := suite.NoPrefixAzureBlobBackend.DeleteObject("deleteme.txt")
-	suite.Nil(err, "no error deleting deleteme.txt using AmazonS3 backend")
+	suite.Nil(err, "no error deleting deleteme.txt using Azure backend")
 }
 
 func (suite *AzureTestSuite) TestListObjects() {
