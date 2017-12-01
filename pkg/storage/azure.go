@@ -88,8 +88,6 @@ func (b AzureBlobBackend) GetObject(path string) (Object, error) {
 		return object, err
 	}
 	
-	// defer readCloser.Close()
-
 	content, err = ioutil.ReadAll(readCloser)
 
 	if err != nil {
