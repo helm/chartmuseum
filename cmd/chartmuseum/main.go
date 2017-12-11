@@ -255,7 +255,7 @@ var cliFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "storage-azure-container",
 		Usage:  "container to store charts for --storage-azure-container",
-		EnvVar: "STORAGE_AZURE_KEY",
+		EnvVar: "STORAGE_AZURE_CONTAINER",
 	},
 	cli.StringFlag{
 		Name:   "chart-post-form-field-name",
