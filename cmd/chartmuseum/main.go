@@ -81,6 +81,8 @@ func backendFromContext(c *cli.Context) storage.Backend {
 		backend = amazonBackendFromContext(c)
 	case "google":
 		backend = googleBackendFromContext(c)
+	case "azure":
+		backend = azureBackendFromContext(c)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -114,6 +116,15 @@ func googleBackendFromContext(c *cli.Context) storage.Backend {
 	return storage.Backend(storage.NewGoogleCSBackend(
 		c.String("storage-google-bucket"),
 		c.String("storage-google-prefix"),
+	))
+}
+
+func azureBackendFromContext(c *cli.Context) storage.Backend {
+	crashIfContextMissingFlags(c, []string{"storage-azure-name", "storage-azure-key", "storage-azure-container"})
+	return storage.Backend(storage.NewAzureBlobBackend(
+		c.String("storage-azure-name"),
+		c.String("storage-azure-key"),
+		c.String("storage-azure-container"),
 	))
 }
 
@@ -230,6 +241,21 @@ var cliFlags = []cli.Flag{
 		Name:   "storage-google-prefix",
 		Usage:  "prefix to store charts for --storage-google-bucket",
 		EnvVar: "STORAGE_GOOGLE_PREFIX",
+	},
+	cli.StringFlag{
+		Name:   "storage-azure-name",
+		Usage:  "name to store charts for --storage-azure-name",
+		EnvVar: "STORAGE_AZURE_NAME",
+	},
+	cli.StringFlag{
+		Name:   "storage-azure-key",
+		Usage:  "key to store charts for --storage-azure-key",
+		EnvVar: "STORAGE_AZURE_KEY",
+	},
+	cli.StringFlag{
+		Name:   "storage-azure-container",
+		Usage:  "container to store charts for --storage-azure-container",
+		EnvVar: "STORAGE_AZURE_CONTAINER",
 	},
 	cli.StringFlag{
 		Name:   "chart-post-form-field-name",
