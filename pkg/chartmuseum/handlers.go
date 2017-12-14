@@ -29,6 +29,16 @@ type (
 	filenameFromContentFn func([]byte) (string, error)
 )
 
+func (server *Server) getHealthCheck(c *gin.Context) {
+	log := server.contextLoggingFn(c)
+	_, err := server.syncRepositoryIndex(log)
+	if err != nil {
+		c.JSON(500, errorResponse(err))
+		return
+	}
+	c.Data(200, "application/x-yaml", nil)
+}
+
 func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
 	log := server.contextLoggingFn(c)
 	index, err := server.syncRepositoryIndex(log)

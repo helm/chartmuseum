@@ -236,6 +236,13 @@ func (suite *ServerTestSuite) TestRoutes() {
 	res = suite.doRequest("normal", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 
+	// GET /
+	res = suite.doRequest("normal", "GET", "/", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /")
+
+	res = suite.doRequest("broken", "GET", "/", nil, "")
+	suite.Equal(500, res.Status(), "500 GET /")
+
 	// GET /index.yaml
 	res = suite.doRequest("normal", "GET", "/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /index.yaml")
