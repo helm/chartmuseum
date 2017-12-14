@@ -1,6 +1,8 @@
 package chartmuseum
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func (server *Server) setRoutes(username string, password string, enableAPI bool) {
 	// Routes that never use basic HTTP Auth can be applied directly to the default Router

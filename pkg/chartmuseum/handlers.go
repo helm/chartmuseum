@@ -18,6 +18,7 @@ var (
 	notFoundErrorResponse      = gin.H{"error": "not found"}
 	badExtensionErrorResponse  = gin.H{"error": "unsupported file extension"}
 	alreadyExistsErrorResponse = gin.H{"error": "file already exists"}
+	healthCheckResponse        = gin.H{"healthy": true}
 )
 
 type (
@@ -30,13 +31,7 @@ type (
 )
 
 func (server *Server) getHealthCheck(c *gin.Context) {
-	log := server.contextLoggingFn(c)
-	_, err := server.syncRepositoryIndex(log)
-	if err != nil {
-		c.JSON(500, errorResponse(err))
-		return
-	}
-	c.Data(200, "application/x-yaml", nil)
+	c.JSON(200, healthCheckResponse)
 }
 
 func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
