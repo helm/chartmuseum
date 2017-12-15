@@ -56,15 +56,10 @@ type (
 )
 
 // NewRouter creates a new Router instance
-func NewRouter(logger *Logger, username string, password string, enableMetrics bool) *Router {
+func NewRouter(logger *Logger, enableMetrics bool) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	engine.Use(ginrequestid.RequestId(), loggingMiddleware(logger), gin.Recovery())
-	if username != "" && password != "" {
-		users := make(map[string]string)
-		users[username] = password
-		engine.Use(gin.BasicAuthForRealm(users, "ChartMuseum"))
-	}
 	if enableMetrics {
 		p := ginprometheus.NewPrometheus("chartmuseum")
 		p.ReqCntURLLabelMappingFn = mapURLWithParamsBackToRouteTemplate
@@ -80,7 +75,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		return new(Server), nil
 	}
 
-	router := NewRouter(logger, options.Username, options.Password, options.EnableMetrics)
+	router := NewRouter(logger, options.EnableMetrics)
 
 	server := &Server{
 		Logger:                 logger,
@@ -97,7 +92,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		fetchedObjectsLock:     &sync.Mutex{},
 	}
 
-	server.setRoutes(options.EnableAPI)
+	server.setRoutes(options.Username, options.Password, options.EnableAPI)
 
 	// prime the cache
 	log := server.contextLoggingFn(&gin.Context{})
