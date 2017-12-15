@@ -237,8 +237,8 @@ func (suite *ServerTestSuite) TestRoutes() {
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 
 	// GET /
-	res = suite.doRequest("normal", "GET", "/", nil, "")
-	suite.Equal(200, res.Status(), "200 GET /")
+	res = suite.doRequest("normal", "GET", "/health", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /health")
 
 	// GET /index.yaml
 	res = suite.doRequest("normal", "GET", "/index.yaml", nil, "")

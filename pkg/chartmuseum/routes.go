@@ -6,7 +6,7 @@ import (
 
 func (server *Server) setRoutes(username string, password string, enableAPI bool) {
 	// Routes that never use basic HTTP Auth can be applied directly to the default Router
-	server.Router.GET("/", server.getHealthCheck)
+	server.Router.GET("/health", server.getHealthCheck)
 
 	// Routes that can use basic HTTP Auth must be applied to the basicAuthGroup Router Group
 	basicAuthGroup := server.Router.Group("")
