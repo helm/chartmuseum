@@ -197,7 +197,7 @@ docker run --rm -it \
 ### Helm Chart
 There is a [Helm chart for *ChartMuseum*](https://github.com/kubernetes/charts/tree/master/incubator/chartmuseum) itself which can be found in the official Kubernetes Charts repository.
 
-You can also view it on [KubeApps](https://kubeapps.com/charts/incubator/chartmuseum).
+You can also view it on [Kubeapps Hub](https://hub.kubeapps.com/charts/incubator/chartmuseum).
 
 To install:
 ```bash
@@ -205,7 +205,7 @@ helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.c
 helm install incubator/chartmuseum
 ```
 
-Please note that for now, this **should only be used for testing purposes**. An [emptyDir volume](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) is currently being used for storage, which means your .tgzs will disappear when the pod is removed. If you can help get this to work with persistent storage or any of the cloud storage options, please submit a PR to kubernetes/charts. Thanks!
+If interested in making changes, please submit a PR to kubernetes/charts. Before doing any work, please check for any [currently open pull requests](https://github.com/kubernetes/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
 
 ## Notes on index.yaml
 The repository index (index.yaml) is dynamically generated based on packages found in storage. If you store your own version of index.yaml, it will be completely ignored.
