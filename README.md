@@ -52,6 +52,9 @@ Powered by some great Go technology:
 - `GET /api/charts/<name>` - list all versions of a chart
 - `GET /api/charts/<name>/<version>` - describe a chart version
 
+### Server Info
+- `GET /health` - returns 200 OK
+
 ## Uploading a Chart Package
 <sub>*Follow **"How to Run"** section below to get ChartMuseum up and running at ht<span>tp:/</span>/localhost:8080*<sub>
 
@@ -114,7 +117,14 @@ Using `latest` in URLs above will get the latest binary (built from master branc
 
 Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.2.6`).
 
-Show all CLI options with `chartmuseum --help` and determine version with `chartmuseum --version`
+Determine your version with `chartmuseum --version`.
+
+#### Configuration
+Show all CLI options with `chartmuseum --help`. Common configurations can be seen below.
+
+All command-line options can be specified as environment variables, which are defined by the command-line option, capitalized, with all `-`'s replaced with `_`'s.
+
+For example, the env var `STORAGE_AMAZON_BUCKET` can be used in place of `--storage-amazon-bucket`.
 
 #### Using with Amazon S3
 Make sure your environment is properly setup to access `my-s3-bucket`
@@ -174,13 +184,14 @@ Example usage (S3):
 ```bash
 docker run --rm -it \
   -p 8080:8080 \
+  -e PORT=8080 \
+  -e DEBUG=1 \
+  -e STORAGE="amazon" \
+  -e STORAGE_AMAZON_BUCKET="my-s3-bucket" \
+  -e STORAGE_AMAZON_PREFIX="" \
+  -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/root/.aws:ro \
-  chartmuseum/chartmuseum:latest \
-  --debug --port=8080 \
-  --storage="amazon" \
-  --storage-amazon-bucket="my-s3-bucket" \
-  --storage-amazon-prefix="" \
-  --storage-amazon-region="us-east-1"
+  chartmuseum/chartmuseum:latest
 ```
 
 ### Helm Chart
@@ -215,3 +226,6 @@ You can then use *ChartMuseum* to serve up an internal mirror:
 scripts/mirror_k8s_repos.sh
 chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mirror"
  ```
+
+## Community
+You can reach the *ChartMuseum* community and developers in the [Kubernetes Slack](https://slack.k8s.io) **#chartmuseum** channel.
