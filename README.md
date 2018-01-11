@@ -135,6 +135,32 @@ chartmuseum --debug --port=8080 \
   --storage-amazon-prefix="" \
   --storage-amazon-region="us-east-1"
 ```
+You need at least the following permissions inside your IAM Policy
+```yaml
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowListObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowObjectsCRUD",
+      "Effect": "Allow",
+      "Action": [
+        "s3:DeleteObject",
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::my-s3-bucket/*"
+    }
+  ]
+}
+```
 
 #### Using with Google Cloud Storage
 Make sure your environment is properly setup to access `my-gcs-bucket`
