@@ -27,6 +27,7 @@ type (
 		StorageBackend          storage.Backend
 		StorageCache            []storage.Object
 		AllowOverwrite          bool
+		AnonymousGet            bool
 		TlsCert                 string
 		TlsKey                  string
 		ChartPostFormFieldName  string
@@ -45,6 +46,7 @@ type (
 		EnableAPI              bool
 		AllowOverwrite         bool
 		EnableMetrics          bool
+		AnonymousGet           bool
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
@@ -84,6 +86,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		StorageBackend:         options.StorageBackend,
 		StorageCache:           []storage.Object{},
 		AllowOverwrite:         options.AllowOverwrite,
+		AnonymousGet:           options.AnonymousGet,
 		TlsCert:                options.TlsCert,
 		TlsKey:                 options.TlsKey,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,

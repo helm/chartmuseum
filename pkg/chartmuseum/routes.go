@@ -17,16 +17,33 @@ func (server *Server) setRoutes(username string, password string, enableAPI bool
 	}
 
 	// Helm Chart Repository
-	basicAuthGroup.GET("/index.yaml", server.getIndexFileRequestHandler)
-	basicAuthGroup.GET("/charts/:filename", server.getStorageObjectRequestHandler)
+	if server.AnonymousGet {
+		// Allow all GET operations
+		server.Logger.Debug("Anonymous GET enabled")
+		server.Router.GET("/index.yaml", server.getIndexFileRequestHandler)
+		server.Router.GET("/charts/:filename", server.getStorageObjectRequestHandler)
 
-	// Chart Manipulation
+		if enableAPI {
+			server.Router.GET("/api/charts", server.getAllChartsRequestHandler)
+			server.Router.GET("/api/charts/:name", server.getChartRequestHandler)
+			server.Router.GET("/api/charts/:name/:version", server.getChartVersionRequestHandler)
+		}
+
+	} else {
+		basicAuthGroup.GET("/index.yaml", server.getIndexFileRequestHandler)
+		basicAuthGroup.GET("/charts/:filename", server.getStorageObjectRequestHandler)
+
+		// Chart Manipulation
+		if enableAPI {
+			basicAuthGroup.GET("/api/charts", server.getAllChartsRequestHandler)
+			basicAuthGroup.GET("/api/charts/:name", server.getChartRequestHandler)
+			basicAuthGroup.GET("/api/charts/:name/:version", server.getChartVersionRequestHandler)
+		}
+	}
+
 	if enableAPI {
-		basicAuthGroup.GET("/api/charts", server.getAllChartsRequestHandler)
 		basicAuthGroup.POST("/api/charts", server.postRequestHandler)
 		basicAuthGroup.POST("/api/prov", server.postProvenanceFileRequestHandler)
-		basicAuthGroup.GET("/api/charts/:name", server.getChartRequestHandler)
-		basicAuthGroup.GET("/api/charts/:name/:version", server.getChartVersionRequestHandler)
 		basicAuthGroup.DELETE("/api/charts/:name/:version", server.deleteChartVersionRequestHandler)
 	}
 }
