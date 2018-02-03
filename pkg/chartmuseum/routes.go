@@ -5,45 +5,38 @@ import (
 )
 
 func (server *Server) setRoutes(username string, password string, enableAPI bool) {
-	// Routes that never use basic HTTP Auth can be applied directly to the default Router
-	server.Router.GET("/health", server.getHealthCheck)
+	sysInfoGroup := &server.Router.RouterGroup
+	readAccessGroup := &server.Router.RouterGroup
+	writeAccessGroup := &server.Router.RouterGroup
 
-	// Routes that can use basic HTTP Auth must be applied to the basicAuthGroup Router Group
-	basicAuthGroup := server.Router.Group("")
+	// Reconfigure read-access, write-access groups if basic auth is enabled
 	if username != "" && password != "" {
+		basicAuthGroup := server.Router.Group("")
 		users := make(map[string]string)
 		users[username] = password
 		basicAuthGroup.Use(gin.BasicAuthForRealm(users, "ChartMuseum"))
+		writeAccessGroup = basicAuthGroup
+		if server.AnonymousGet {
+			server.Logger.Debug("Anonymous GET enabled")
+		} else {
+			readAccessGroup = basicAuthGroup
+		}
 	}
+
+	// Server Info
+	sysInfoGroup.GET("/health", server.getHealthCheck)
 
 	// Helm Chart Repository
-	if server.AnonymousGet {
-		// Allow all GET operations
-		server.Logger.Debug("Anonymous GET enabled")
-		server.Router.GET("/index.yaml", server.getIndexFileRequestHandler)
-		server.Router.GET("/charts/:filename", server.getStorageObjectRequestHandler)
+	readAccessGroup.GET("/index.yaml", server.getIndexFileRequestHandler)
+	readAccessGroup.GET("/charts/:filename", server.getStorageObjectRequestHandler)
 
-		if enableAPI {
-			server.Router.GET("/api/charts", server.getAllChartsRequestHandler)
-			server.Router.GET("/api/charts/:name", server.getChartRequestHandler)
-			server.Router.GET("/api/charts/:name/:version", server.getChartVersionRequestHandler)
-		}
-
-	} else {
-		basicAuthGroup.GET("/index.yaml", server.getIndexFileRequestHandler)
-		basicAuthGroup.GET("/charts/:filename", server.getStorageObjectRequestHandler)
-
-		// Chart Manipulation
-		if enableAPI {
-			basicAuthGroup.GET("/api/charts", server.getAllChartsRequestHandler)
-			basicAuthGroup.GET("/api/charts/:name", server.getChartRequestHandler)
-			basicAuthGroup.GET("/api/charts/:name/:version", server.getChartVersionRequestHandler)
-		}
-	}
-
+	// Chart Manipulation
 	if enableAPI {
-		basicAuthGroup.POST("/api/charts", server.postRequestHandler)
-		basicAuthGroup.POST("/api/prov", server.postProvenanceFileRequestHandler)
-		basicAuthGroup.DELETE("/api/charts/:name/:version", server.deleteChartVersionRequestHandler)
+		readAccessGroup.GET("/api/charts", server.getAllChartsRequestHandler)
+		readAccessGroup.GET("/api/charts/:name", server.getChartRequestHandler)
+		readAccessGroup.GET("/api/charts/:name/:version", server.getChartVersionRequestHandler)
+		writeAccessGroup.POST("/api/charts", server.postRequestHandler)
+		writeAccessGroup.POST("/api/prov", server.postProvenanceFileRequestHandler)
+		writeAccessGroup.DELETE("/api/charts/:name/:version", server.deleteChartVersionRequestHandler)
 	}
 }

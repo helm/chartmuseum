@@ -182,6 +182,11 @@ var cliFlags = []cli.Flag{
 		Usage:  "password for basic http authentication",
 		EnvVar: "BASIC_AUTH_PASS",
 	},
+	cli.BoolFlag{
+		Name:   "auth-anonymous-get",
+		Usage:  "allow anonymous GET operations when auth is used",
+		EnvVar: "AUTH_ANONYMOUS_GET",
+	},
 	cli.StringFlag{
 		Name:   "tls-cert",
 		Usage:  "path to tls certificate chain file",
@@ -243,10 +248,5 @@ var cliFlags = []cli.Flag{
 		Value:  "prov",
 		Usage:  "form field which will be queried for the provenance file content",
 		EnvVar: "PROV_POST_FORM_FIELD_NAME",
-	},
-	cli.BoolFlag{
-		Name:   "auth-anonymous-get",
-		Usage:  "allow anonymous GET operations when auth is used",
-		EnvVar: "AUTH_ANONYMOUS_GET",
 	},
 }

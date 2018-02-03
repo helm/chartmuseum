@@ -186,7 +186,7 @@ If both of the following options are provided, basic http authentication will pr
 
 You may want basic auth to only be applied to operations that can change Charts, i.e. PUT, POST and DELETE.  So to avoid basic auth on GET operations use
 
-- `--auth-anonymous-get=true` - allow anonymous GET operations
+- `--auth-anonymous-get` - allow anonymous GET operations
 
 #### HTTPS
 If both of the following options are provided, the server will listen and serve HTTPS:
