@@ -223,9 +223,9 @@ func (server *Server) addIndexObjectsAsync(log loggingFn, index *repo.Index, obj
 				chartVersion, err := server.getObjectChartVersion(o, true)
 				if err != nil {
 					err = server.checkInvalidChartPackageError(log, o, err, "added")
-				}
-				if err != nil {
-					cancel()
+					if err != nil {
+						cancel()
+					}
 				}
 				cvChan <- cvResult{chartVersion, err}
 			}
