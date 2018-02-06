@@ -3,7 +3,7 @@ package: github.com/kubernetes-helm/chartmuseum
 import:
 - package: github.com/gin-gonic/gin
   version: v1.2
-- package: github.com/kubernetes/helm
+- package: k8s.io/helm
   version: v2.8.0
 - package: github.com/urfave/cli
   version: v1.20.0
