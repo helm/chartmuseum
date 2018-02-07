@@ -146,7 +146,7 @@ You need at least the following permissions inside your IAM Policy
       "Action": [
         "s3:ListBucket"
       ],
-      "Resource": "*"
+      "Resource": "arn:aws:s3:::my-s3-bucket"
     },
     {
       "Sid": "AllowObjectsCRUD",
