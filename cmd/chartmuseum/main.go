@@ -107,6 +107,7 @@ func amazonBackendFromContext(c *cli.Context) storage.Backend {
 		c.String("storage-amazon-prefix"),
 		c.String("storage-amazon-region"),
 		c.String("storage-amazon-endpoint"),
+		c.String("storage-amazon-sse"),
 	))
 }
 
@@ -226,6 +227,11 @@ var cliFlags = []cli.Flag{
 		Name:   "storage-amazon-endpoint",
 		Usage:  "alternative s3 endpoint",
 		EnvVar: "STORAGE_AMAZON_ENDPOINT",
+	},
+	cli.StringFlag{
+		Name:   "storage-amazon-sse",
+		Usage:  "server side encryption algorithm",
+		EnvVar: "STORAGE_AMAZON_SSE",
 	},
 	cli.StringFlag{
 		Name:   "storage-google-bucket",
