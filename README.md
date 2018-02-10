@@ -204,6 +204,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--allow-overwrite` - allow chart versions to be re-uploaded
 - `--chart-url=<url>` - absolute url for .tgzs in index.yaml
 - `--storage-amazon-endpoint=<endpoint>` - alternative s3 endpoint
+- `--storage-amazon-sse=<algorithm>` - s3 server side encryption algorithm
 - `--chart-post-form-field-name=<field>` - form field which will be queried for the chart file content
 - `--prov-post-form-field-name=<field>` - form field which will be queried for the provenance file content
 
