@@ -226,7 +226,7 @@ func (server *Server) postPackageRequestHandler(c *gin.Context) {
 	if !server.AllowOverwrite {
 		_, err = server.StorageBackend.GetObject(filename)
 		if err == nil {
-			c.JSON(500, alreadyExistsErrorResponse)
+			c.JSON(409, alreadyExistsErrorResponse)
 			return
 		}
 	}
@@ -255,7 +255,7 @@ func (server *Server) postProvenanceFileRequestHandler(c *gin.Context) {
 	if !server.AllowOverwrite {
 		_, err = server.StorageBackend.GetObject(filename)
 		if err == nil {
-			c.JSON(500, alreadyExistsErrorResponse)
+			c.JSON(409, alreadyExistsErrorResponse)
 			return
 		}
 	}

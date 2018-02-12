@@ -269,7 +269,7 @@ func (suite *ServerTestSuite) TestRoutes() {
 
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("basicauth", "POST", "/api/charts", body, "")
-	suite.Equal(500, res.Status(), "500 POST /api/charts")
+	suite.Equal(409, res.Status(), "500 POST /api/charts")
 
 	// POST /api/prov
 	content, err = ioutil.ReadFile(testProvfilePath)
@@ -281,7 +281,7 @@ func (suite *ServerTestSuite) TestRoutes() {
 
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("basicauth", "POST", "/api/prov", body, "")
-	suite.Equal(500, res.Status(), "500 POST /api/prov")
+	suite.Equal(409, res.Status(), "500 POST /api/prov")
 
 	// Test that all /api routes disabled if EnableAPI=false
 	res = suite.doRequest("disabled", "GET", "/api/charts", nil, "")
