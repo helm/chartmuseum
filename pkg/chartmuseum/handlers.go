@@ -18,6 +18,7 @@ var (
 	notFoundErrorResponse      = gin.H{"error": "not found"}
 	badExtensionErrorResponse  = gin.H{"error": "unsupported file extension"}
 	alreadyExistsErrorResponse = gin.H{"error": "file already exists"}
+	healthCheckResponse        = gin.H{"healthy": true}
 )
 
 type (
@@ -28,6 +29,10 @@ type (
 	}
 	filenameFromContentFn func([]byte) (string, error)
 )
+
+func (server *Server) getHealthCheck(c *gin.Context) {
+	c.JSON(200, healthCheckResponse)
+}
 
 func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
 	log := server.contextLoggingFn(c)
@@ -221,7 +226,7 @@ func (server *Server) postPackageRequestHandler(c *gin.Context) {
 	if !server.AllowOverwrite {
 		_, err = server.StorageBackend.GetObject(filename)
 		if err == nil {
-			c.JSON(500, alreadyExistsErrorResponse)
+			c.JSON(409, alreadyExistsErrorResponse)
 			return
 		}
 	}
@@ -250,7 +255,7 @@ func (server *Server) postProvenanceFileRequestHandler(c *gin.Context) {
 	if !server.AllowOverwrite {
 		_, err = server.StorageBackend.GetObject(filename)
 		if err == nil {
-			c.JSON(500, alreadyExistsErrorResponse)
+			c.JSON(409, alreadyExistsErrorResponse)
 			return
 		}
 	}

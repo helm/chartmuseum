@@ -3,8 +3,8 @@ package: github.com/kubernetes-helm/chartmuseum
 import:
 - package: github.com/gin-gonic/gin
   version: v1.2
-- package: github.com/kubernetes/helm
-  version: v2.7.2
+- package: k8s.io/helm
+  version: v2.8.0
 - package: github.com/urfave/cli
   version: v1.20.0
 - package: github.com/aws/aws-sdk-go
@@ -28,14 +28,10 @@ import:
 
 # these ones are srsly a pain in da butt...
 # all needed to get cloud.google.com/go/storage to work
-- package: cloud.google.com/go
-  version: v0.12.0
-- package: google.golang.org/grpc
-  version: v1.5.2
-- package: golang.org/x/net
-  version: 57efc9c3d9f91fb3277f8da1cff370539c4d3dc5
-- package: golang.org/x/text
-  version: ac87088df8ef557f1e32cd00ed0b6fbc3f7ddafb
+- package: github.com/golang/protobuf
+  version: v1.0.0
+- package: golang.org/x/oauth2
+  version: 9a379c6b3e95a790ffc43293c2a78dee0d7b6e20
 
 testImports:
 - package: github.com/stretchr/testify

@@ -53,6 +53,7 @@ func cliHandler(c *cli.Context) {
 		StorageBackend:         backend,
 		ChartPostFormFieldName: c.String("chart-post-form-field-name"),
 		ProvPostFormFieldName:  c.String("prov-post-form-field-name"),
+		AnonymousGet:           c.Bool("auth-anonymous-get"),
 	}
 
 	server, err := newServer(options)
@@ -108,6 +109,7 @@ func amazonBackendFromContext(c *cli.Context) storage.Backend {
 		c.String("storage-amazon-prefix"),
 		c.String("storage-amazon-region"),
 		c.String("storage-amazon-endpoint"),
+		c.String("storage-amazon-sse"),
 	))
 }
 
@@ -192,6 +194,11 @@ var cliFlags = []cli.Flag{
 		Usage:  "password for basic http authentication",
 		EnvVar: "BASIC_AUTH_PASS",
 	},
+	cli.BoolFlag{
+		Name:   "auth-anonymous-get",
+		Usage:  "allow anonymous GET operations when auth is used",
+		EnvVar: "AUTH_ANONYMOUS_GET",
+	},
 	cli.StringFlag{
 		Name:   "tls-cert",
 		Usage:  "path to tls certificate chain file",
@@ -231,6 +238,11 @@ var cliFlags = []cli.Flag{
 		Name:   "storage-amazon-endpoint",
 		Usage:  "alternative s3 endpoint",
 		EnvVar: "STORAGE_AMAZON_ENDPOINT",
+	},
+	cli.StringFlag{
+		Name:   "storage-amazon-sse",
+		Usage:  "server side encryption algorithm",
+		EnvVar: "STORAGE_AMAZON_SSE",
 	},
 	cli.StringFlag{
 		Name:   "storage-google-bucket",

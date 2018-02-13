@@ -19,10 +19,11 @@ type AmazonS3Backend struct {
 	Downloader *s3manager.Downloader
 	Prefix     string
 	Uploader   *s3manager.Uploader
+	SSE        string
 }
 
 // NewAmazonS3Backend creates a new instance of AmazonS3Backend
-func NewAmazonS3Backend(bucket string, prefix string, region string, endpoint string) *AmazonS3Backend {
+func NewAmazonS3Backend(bucket string, prefix string, region string, endpoint string, sse string) *AmazonS3Backend {
 	service := s3.New(session.New(), &aws.Config{
 		Region:           aws.String(region),
 		Endpoint:         aws.String(endpoint),
@@ -35,6 +36,7 @@ func NewAmazonS3Backend(bucket string, prefix string, region string, endpoint st
 		Downloader: s3manager.NewDownloaderWithClient(service),
 		Prefix:     cleanPrefix(prefix),
 		Uploader:   s3manager.NewUploaderWithClient(service),
+		SSE:        sse,
 	}
 	return b
 }
@@ -100,6 +102,11 @@ func (b AmazonS3Backend) PutObject(path string, content []byte) error {
 		Key:    aws.String(pathutil.Join(b.Prefix, path)),
 		Body:   bytes.NewBuffer(content),
 	}
+
+	if b.SSE != "" {
+		s3Input.ServerSideEncryption = aws.String(b.SSE)
+	}
+
 	_, err := b.Uploader.Upload(s3Input)
 	return err
 }

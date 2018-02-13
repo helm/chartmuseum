@@ -1,9 +1,11 @@
-hash: faa3c5ff3d6dd6e6b6a809b36fbf562fdd4ee35e417022d82ce116d279adbaa4
-updated: 2017-11-26T21:32:22.856349424-06:00
+hash: 71e41ce9ed31cd3679a3f0674c55379782959ec21a40e6138a88db301cf8a75e
+updated: 2018-02-08T14:25:41.542372301-08:00
 imports:
 - name: cloud.google.com/go
-  version: 0f0b8420cb699ac4ce059c63bac263f4301fe95b
+  version: 3137f1def9552929c7beb11f2ac7d2dd998e4040
+  repo: https://github.com/GoogleCloudPlatform/google-cloud-go.git
   subpackages:
+  - compute
   - compute/metadata
   - iam
   - internal
@@ -48,10 +50,6 @@ imports:
   - quantile
 - name: github.com/BurntSushi/toml
   version: b26d9c308763d68093482582cea63d69be07a0f0
-- name: github.com/facebookgo/atomicfile
-  version: 2de1f203e7d5e386a6833233882782932729f27e
-- name: github.com/facebookgo/symwalk
-  version: 42004b9f322246749dd73ad71008b1f3160c0052
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/gin-contrib/sse
@@ -64,7 +62,7 @@ imports:
 - name: github.com/go-ini/ini
   version: c787282c39ac1fc618827141a1f762240def08a3
 - name: github.com/gobwas/glob
-  version: bea32b9cd2d6f55753d94a28e959b13f0244797a
+  version: 5ccd90ef52e1e632236f7326478d4faa74f99438
   subpackages:
   - compiler
   - match
@@ -74,18 +72,18 @@ imports:
   - util/runes
   - util/strings
 - name: github.com/golang/protobuf
-  version: 2bba0603135d7d7f5cb73b2125beeda19c09f4ef
+  version: 925541529c1fa6821df4e44ce2723319eb2be768
   subpackages:
   - proto
   - protoc-gen-go/descriptor
+  - ptypes
   - ptypes/any
+  - ptypes/duration
   - ptypes/timestamp
 - name: github.com/googleapis/gax-go
   version: 2cadd475a3e966ec9b77a21afc530dbacec6d613
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
-- name: github.com/kubernetes/helm
-  version: 8478fb4fc723885b155c924d1c8c410b7a9444e6
 - name: github.com/Masterminds/semver
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
 - name: github.com/mattn/go-isatty
@@ -114,13 +112,13 @@ imports:
   subpackages:
   - xfs
 - name: github.com/satori/go.uuid
-  version: 5bf94b69c6b68ee1b541973bb8e1144db23a194b
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/sirupsen/logrus
   version: 89742aefa4b206dcf400792f3bd35b542998eb3b
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/ugorji/go
-  version: 8c0409fcbb70099c748d71f714529204975f6c3f
+  version: ded73eae5db7e7a0ef6f55aace87a2873c5d2b74
   subpackages:
   - codec
 - name: github.com/urfave/cli
@@ -152,7 +150,7 @@ imports:
   - openpgp/s2k
   - ssh/terminal
 - name: golang.org/x/net
-  version: 57efc9c3d9f91fb3277f8da1cff370539c4d3dc5
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
   - context
   - context/ctxhttp
@@ -170,17 +168,24 @@ imports:
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 2d6f6f883a06fc0d5f4b14a81e4c28705ea64c15
+  version: 43eea11bc92608addb41b8a406b0407495c106f6
   subpackages:
   - unix
   - windows
 - name: golang.org/x/text
-  version: ac87088df8ef557f1e32cd00ed0b6fbc3f7ddafb
+  version: b19bf474d317b857955b12035d2c5acb57ce8b01
   subpackages:
+  - cases
+  - internal
+  - internal/tag
+  - language
+  - runes
   - secure/bidirule
+  - secure/precis
   - transform
   - unicode/bidi
   - unicode/norm
+  - width
 - name: google.golang.org/api
   version: fe98bfd2e89a9285ca13df4260a3ea2e66589bea
   subpackages:
@@ -194,7 +199,7 @@ imports:
   - storage/v1
   - transport/http
 - name: google.golang.org/appengine
-  version: d9a072cfa7b9736e44311ef77b3e09d804bfa599
+  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
   subpackages:
   - internal
   - internal/app_identity
@@ -206,24 +211,26 @@ imports:
   - internal/urlfetch
   - urlfetch
 - name: google.golang.org/genproto
-  version: ee236bd376b077c7a89f260c026c4735b195e459
+  version: 09f6ed296fc66555a25fe4ce95173148778dfa85
   subpackages:
   - googleapis/api/annotations
   - googleapis/iam/v1
   - googleapis/rpc/status
 - name: google.golang.org/grpc
-  version: b3ddf786825de56a4178401b7e174ee332173b66
+  version: 5ffe3083946d5603a0578721101dc8165b1d5b5f
   subpackages:
+  - balancer
   - codes
   - connectivity
   - credentials
-  - grpclb/grpc_lb_v1
+  - grpclb/grpc_lb_v1/messages
   - grpclog
   - internal
   - keepalive
   - metadata
   - naming
   - peer
+  - resolver
   - stats
   - status
   - tap
@@ -231,13 +238,17 @@ imports:
 - name: gopkg.in/go-playground/validator.v8
   version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
 - name: gopkg.in/yaml.v2
-  version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
+  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/apimachinery
-  version: dc1f89aff9a7509782bde3b68824c8043a3e58cc
+  version: 3b05bbfa0a45413bfa184edbf9af617e277962fb
   subpackages:
   - pkg/version
+- name: k8s.io/client-go
+  version: 82aa063804cf055e16e8911250f888bc216e8b61
+  subpackages:
+  - util/homedir
 - name: k8s.io/helm
-  version: 1dbbace83192680134c96861742cedda243fcd7e
+  version: 14af25f1de6832228539259b821949d20069a222
   subpackages:
   - pkg/chartutil
   - pkg/getter
@@ -249,8 +260,10 @@ imports:
   - pkg/proto/hapi/version
   - pkg/provenance
   - pkg/repo
+  - pkg/sympath
   - pkg/tlsutil
   - pkg/urlutil
+  - pkg/version
 testImports:
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8

@@ -52,6 +52,9 @@ Powered by some great Go technology:
 - `GET /api/charts/<name>` - list all versions of a chart
 - `GET /api/charts/<name>/<version>` - describe a chart version
 
+### Server Info
+- `GET /health` - returns 200 OK
+
 ## Uploading a Chart Package
 <sub>*Follow **"How to Run"** section below to get ChartMuseum up and running at ht<span>tp:/</span>/localhost:8080*<sub>
 
@@ -112,9 +115,16 @@ mv ./chartmuseum /usr/local/bin
 ```
 Using `latest` in URLs above will get the latest binary (built from master branch).
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.2.6`).
+Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.2.8`).
 
-Show all CLI options with `chartmuseum --help` and determine version with `chartmuseum --version`
+Determine your version with `chartmuseum --version`.
+
+#### Configuration
+Show all CLI options with `chartmuseum --help`. Common configurations can be seen below.
+
+All command-line options can be specified as environment variables, which are defined by the command-line option, capitalized, with all `-`'s replaced with `_`'s.
+
+For example, the env var `STORAGE_AMAZON_BUCKET` can be used in place of `--storage-amazon-bucket`.
 
 #### Using with Amazon S3
 Make sure your environment is properly setup to access `my-s3-bucket`
@@ -124,6 +134,32 @@ chartmuseum --debug --port=8080 \
   --storage-amazon-bucket="my-s3-bucket" \
   --storage-amazon-prefix="" \
   --storage-amazon-region="us-east-1"
+```
+You need at least the following permissions inside your IAM Policy
+```yaml
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowListObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::my-s3-bucket"
+    },
+    {
+      "Sid": "AllowObjectsCRUD",
+      "Effect": "Allow",
+      "Action": [
+        "s3:DeleteObject",
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::my-s3-bucket/*"
+    }
+  ]
+}
 ```
 
 #### Using with Google Cloud Storage
@@ -160,6 +196,10 @@ If both of the following options are provided, basic http authentication will pr
 - `--basic-auth-user=<user>` - username for basic http authentication
 - `--basic-auth-pass=<pass>` - password for basic http authentication
 
+You may want basic auth to only be applied to operations that can change Charts, i.e. PUT, POST and DELETE.  So to avoid basic auth on GET operations use
+
+- `--auth-anonymous-get` - allow anonymous GET operations
+
 #### HTTPS
 If both of the following options are provided, the server will listen and serve HTTPS:
 - `--tls-cert=<crt>` - path to tls certificate chain file
@@ -176,6 +216,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--allow-overwrite` - allow chart versions to be re-uploaded
 - `--chart-url=<url>` - absolute url for .tgzs in index.yaml
 - `--storage-amazon-endpoint=<endpoint>` - alternative s3 endpoint
+- `--storage-amazon-sse=<algorithm>` - s3 server side encryption algorithm
 - `--chart-post-form-field-name=<field>` - form field which will be queried for the chart file content
 - `--prov-post-form-field-name=<field>` - form field which will be queried for the provenance file content
 
@@ -186,19 +227,20 @@ Example usage (S3):
 ```bash
 docker run --rm -it \
   -p 8080:8080 \
+  -e PORT=8080 \
+  -e DEBUG=1 \
+  -e STORAGE="amazon" \
+  -e STORAGE_AMAZON_BUCKET="my-s3-bucket" \
+  -e STORAGE_AMAZON_PREFIX="" \
+  -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/root/.aws:ro \
-  chartmuseum/chartmuseum:latest \
-  --debug --port=8080 \
-  --storage="amazon" \
-  --storage-amazon-bucket="my-s3-bucket" \
-  --storage-amazon-prefix="" \
-  --storage-amazon-region="us-east-1"
+  chartmuseum/chartmuseum:latest
 ```
 
 ### Helm Chart
 There is a [Helm chart for *ChartMuseum*](https://github.com/kubernetes/charts/tree/master/incubator/chartmuseum) itself which can be found in the official Kubernetes Charts repository.
 
-You can also view it on [KubeApps](https://kubeapps.com/charts/incubator/chartmuseum).
+You can also view it on [Kubeapps Hub](https://hub.kubeapps.com/charts/incubator/chartmuseum).
 
 To install:
 ```bash
@@ -206,7 +248,7 @@ helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.c
 helm install incubator/chartmuseum
 ```
 
-Please note that for now, this **should only be used for testing purposes**. An [emptyDir volume](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) is currently being used for storage, which means your .tgzs will disappear when the pod is removed. If you can help get this to work with persistent storage or any of the cloud storage options, please submit a PR to kubernetes/charts. Thanks!
+If interested in making changes, please submit a PR to kubernetes/charts. Before doing any work, please check for any [currently open pull requests](https://github.com/kubernetes/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
 
 ## Notes on index.yaml
 The repository index (index.yaml) is dynamically generated based on packages found in storage. If you store your own version of index.yaml, it will be completely ignored.
@@ -227,3 +269,6 @@ You can then use *ChartMuseum* to serve up an internal mirror:
 scripts/mirror_k8s_repos.sh
 chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mirror"
  ```
+
+## Community
+You can reach the *ChartMuseum* community and developers in the [Kubernetes Slack](https://slack.k8s.io) **#chartmuseum** channel.
