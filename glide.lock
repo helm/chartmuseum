@@ -1,5 +1,5 @@
-hash: 672d101b43f4de4dd3122ca9e492d31db6b0087cf3cabbda7ab545134d2aa3bc
-updated: 2018-02-13T11:03:26.68753-06:00
+hash: 18422b04371f3b35164e2b4ee878c7047a328b37fc89e4a02839f8d659e54aa2
+updated: 2018-02-14T15:21:39.920654822-06:00
 imports:
 - name: cloud.google.com/go
   version: 3137f1def9552929c7beb11f2ac7d2dd998e4040
@@ -264,7 +264,7 @@ imports:
   subpackages:
   - util/homedir
 - name: k8s.io/helm
-  version: 14af25f1de6832228539259b821949d20069a222
+  version: 6af75a8fd72e2aa18a2b278cfe5c7a1c5feca7f2
   subpackages:
   - pkg/chartutil
   - pkg/getter
