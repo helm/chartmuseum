@@ -16,13 +16,9 @@ import:
 - package: github.com/atarantini/ginrequestid
   version: a432ade0ce478903613da1372cb5a62914cfe532
 
-# Used by Azure Blob storage backend
-- package: github.com/Azure/go-autorest
-  version: v9.4.1
-- package: github.com/satori/uuid
-  version: v1.1.0
+# Used by Microsoft Azure Blob storage backend
 - package: github.com/Azure/azure-sdk-for-go
-  version: v11.2.2-beta
+  version: v14.0.0
   subpackages:
   - storage
 

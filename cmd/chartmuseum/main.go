@@ -82,8 +82,8 @@ func backendFromContext(c *cli.Context) storage.Backend {
 		backend = amazonBackendFromContext(c)
 	case "google":
 		backend = googleBackendFromContext(c)
-	case "azure":
-		backend = azureBackendFromContext(c)
+	case "microsoft":
+		backend = microsoftBackendFromContext(c)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -121,12 +121,11 @@ func googleBackendFromContext(c *cli.Context) storage.Backend {
 	))
 }
 
-func azureBackendFromContext(c *cli.Context) storage.Backend {
-	crashIfContextMissingFlags(c, []string{"storage-azure-name", "storage-azure-key", "storage-azure-container"})
-	return storage.Backend(storage.NewAzureBlobBackend(
-		c.String("storage-azure-name"),
-		c.String("storage-azure-key"),
-		c.String("storage-azure-container"),
+func microsoftBackendFromContext(c *cli.Context) storage.Backend {
+	crashIfContextMissingFlags(c, []string{"storage-microsoft-container"})
+	return storage.Backend(storage.NewMicrosoftBlobBackend(
+		c.String("storage-microsoft-container"),
+		c.String("storage-microsoft-prefix"),
 	))
 }
 
@@ -255,19 +254,14 @@ var cliFlags = []cli.Flag{
 		EnvVar: "STORAGE_GOOGLE_PREFIX",
 	},
 	cli.StringFlag{
-		Name:   "storage-azure-name",
-		Usage:  "name to store charts for --storage-azure-name",
-		EnvVar: "STORAGE_AZURE_NAME",
+		Name:   "storage-microsoft-container",
+		Usage:  "container to store charts for microsoft storage backend",
+		EnvVar: "STORAGE_MICROSOFT_CONTAINER",
 	},
 	cli.StringFlag{
-		Name:   "storage-azure-key",
-		Usage:  "key to store charts for --storage-azure-key",
-		EnvVar: "STORAGE_AZURE_KEY",
-	},
-	cli.StringFlag{
-		Name:   "storage-azure-container",
-		Usage:  "container to store charts for --storage-azure-container",
-		EnvVar: "STORAGE_AZURE_CONTAINER",
+		Name:   "storage-microsoft-prefix",
+		Usage:  "prefix to store charts for --storage-microsoft-prefix",
+		EnvVar: "STORAGE_MICROSOFT_PREFIX",
 	},
 	cli.StringFlag{
 		Name:   "chart-post-form-field-name",

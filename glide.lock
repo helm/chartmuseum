@@ -1,5 +1,5 @@
-hash: 71e41ce9ed31cd3679a3f0674c55379782959ec21a40e6138a88db301cf8a75e
-updated: 2018-02-08T14:25:41.542372301-08:00
+hash: 672d101b43f4de4dd3122ca9e492d31db6b0087cf3cabbda7ab545134d2aa3bc
+updated: 2018-02-13T11:03:26.68753-06:00
 imports:
 - name: cloud.google.com/go
   version: 3137f1def9552929c7beb11f2ac7d2dd998e4040
@@ -44,12 +44,26 @@ imports:
   - service/s3/s3iface
   - service/s3/s3manager
   - service/sts
+- name: github.com/Azure/azure-sdk-for-go
+  version: 5bf28521f7a6f72f2dde3e5a5fb0d27d7a8aeee9
+  subpackages:
+  - storage
+  - version
+- name: github.com/Azure/go-autorest
+  version: c67b24a8e30d876542a85022ebbdecf0e5a935e8
+  subpackages:
+  - autorest
+  - autorest/adal
+  - autorest/azure
+  - autorest/date
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
   - quantile
 - name: github.com/BurntSushi/toml
   version: b26d9c308763d68093482582cea63d69be07a0f0
+- name: github.com/dgrijalva/jwt-go
+  version: dbeaa9332f19a944acb5736b4456cfcc02140e29
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/gin-contrib/sse
@@ -84,6 +98,8 @@ imports:
   version: 2cadd475a3e966ec9b77a21afc530dbacec6d613
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
+- name: github.com/marstr/guid
+  version: 8bdf7d1a087ccc975cf37dd6507da50698fd19ca
 - name: github.com/Masterminds/semver
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
 - name: github.com/mattn/go-isatty
