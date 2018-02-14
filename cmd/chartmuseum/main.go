@@ -82,6 +82,8 @@ func backendFromContext(c *cli.Context) storage.Backend {
 		backend = amazonBackendFromContext(c)
 	case "google":
 		backend = googleBackendFromContext(c)
+	case "microsoft":
+		backend = microsoftBackendFromContext(c)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -116,6 +118,14 @@ func googleBackendFromContext(c *cli.Context) storage.Backend {
 	return storage.Backend(storage.NewGoogleCSBackend(
 		c.String("storage-google-bucket"),
 		c.String("storage-google-prefix"),
+	))
+}
+
+func microsoftBackendFromContext(c *cli.Context) storage.Backend {
+	crashIfContextMissingFlags(c, []string{"storage-microsoft-container"})
+	return storage.Backend(storage.NewMicrosoftBlobBackend(
+		c.String("storage-microsoft-container"),
+		c.String("storage-microsoft-prefix"),
 	))
 }
 
@@ -242,6 +252,16 @@ var cliFlags = []cli.Flag{
 		Name:   "storage-google-prefix",
 		Usage:  "prefix to store charts for --storage-google-bucket",
 		EnvVar: "STORAGE_GOOGLE_PREFIX",
+	},
+	cli.StringFlag{
+		Name:   "storage-microsoft-container",
+		Usage:  "container to store charts for microsoft storage backend",
+		EnvVar: "STORAGE_MICROSOFT_CONTAINER",
+	},
+	cli.StringFlag{
+		Name:   "storage-microsoft-prefix",
+		Usage:  "prefix to store charts for --storage-microsoft-prefix",
+		EnvVar: "STORAGE_MICROSOFT_PREFIX",
 	},
 	cli.StringFlag{
 		Name:   "chart-post-form-field-name",

@@ -16,6 +16,12 @@ import:
 - package: github.com/atarantini/ginrequestid
   version: a432ade0ce478903613da1372cb5a62914cfe532
 
+# Used by Microsoft Azure Blob storage backend
+- package: github.com/Azure/azure-sdk-for-go
+  version: v14.0.0
+  subpackages:
+  - storage
+
 # these ones are srsly a pain in da butt...
 # all needed to get cloud.google.com/go/storage to work
 - package: github.com/golang/protobuf
