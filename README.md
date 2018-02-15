@@ -175,7 +175,7 @@ chartmuseum --debug --port=8080 \
 
 Make sure your environment is properly setup to access `mycontainer`.
 
-To do so, you much set the following env vars:
+To do so, you must set the following env vars:
 - `AZURE_STORAGE_ACCOUNT`
 - `AZURE_STORAGE_ACCESS_KEY`
 
