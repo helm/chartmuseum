@@ -1,6 +1,8 @@
 package chartmuseum
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,6 +24,11 @@ func (server *Server) setRoutes(username string, password string, enableAPI bool
 			readAccessGroup = basicAuthGroup
 		}
 	}
+
+	// Simple redirect of "/" to "/index.yaml" (see issue 46)
+	readAccessGroup.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/index.yaml")
+	})
 
 	// Server Info
 	sysInfoGroup.GET("/health", server.getHealthCheck)

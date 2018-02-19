@@ -239,6 +239,12 @@ func (suite *ServerTestSuite) TestRoutes() {
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 
 	// GET /
+	// Issue #46: "/" redirects to "/index.yaml"
+	res = suite.doRequest("anonymous", "GET", "/", nil, "")
+	suite.Equal(301, res.Status(), "301 GET /")
+	suite.Equal("/index.yaml", res.Header().Get("Location"), "/ redirects to /index.yaml")
+
+	// GET /health
 	res = suite.doRequest("anonymous", "GET", "/health", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /health")
 
