@@ -109,7 +109,7 @@ func loggingMiddleware(logger *Logger) gin.HandlerFunc {
 		}
 
 		switch {
-		case status == 200 || status == 201:
+		case status == 200 || status == 201 || status == 301:
 			logger.Infoc(c, msg, meta...)
 		case status == 404:
 			logger.Warnc(c, msg, meta...)
