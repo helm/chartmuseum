@@ -15,6 +15,8 @@ import:
   version: e26effb6cde37935f313bb3d5e5a1207f44cff69
 - package: github.com/atarantini/ginrequestid
   version: a432ade0ce478903613da1372cb5a62914cfe532
+- package: github.com/gin-contrib/location
+  version: 5220ebf8be6c350431168cbd884f2c0ace0e3f4c
 
 # Used by Microsoft Azure Blob storage backend
 - package: github.com/Azure/azure-sdk-for-go

@@ -9,6 +9,7 @@ import (
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 
+	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,7 +31,38 @@ type (
 	filenameFromContentFn func([]byte) (string, error)
 )
 
-func (server *Server) getHealthCheck(c *gin.Context) {
+func (server *Server) getWelcomePageHandler(c *gin.Context) {
+	c.Data(200, "text/html", []byte(fmt.Sprintf(
+		`<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to ChartMuseum!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to ChartMuseum!</h1>
+<p>If you see this page, the ChartMuseum web server is successfully installed and
+working.</p>
+
+<p>To add this as a local chart repository, please run the following command:</p>
+<pre>helm repo add chartmuseum %s</pre>
+
+<p>For online documentation and support please refer to the
+<a href="https://github.com/kubernetes-helm/chartmuseum">GitHub project</a>.<br/>
+
+<p><em>Thank you for using ChartMuseum.</em></p>
+</body>
+</html>
+	`, location.Get(c))))
+}
+
+func (server *Server) getHealthCheckHandler(c *gin.Context) {
 	c.JSON(200, healthCheckResponse)
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"github.com/atarantini/ginrequestid"
+	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"
 )
@@ -61,7 +62,7 @@ type (
 func NewRouter(logger *Logger, enableMetrics bool) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
-	engine.Use(ginrequestid.RequestId(), loggingMiddleware(logger), gin.Recovery())
+	engine.Use(location.Default(), ginrequestid.RequestId(), loggingMiddleware(logger), gin.Recovery())
 	if enableMetrics {
 		p := ginprometheus.NewPrometheus("chartmuseum")
 		p.ReqCntURLLabelMappingFn = mapURLWithParamsBackToRouteTemplate
