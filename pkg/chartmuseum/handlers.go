@@ -20,20 +20,7 @@ var (
 	badExtensionErrorResponse  = gin.H{"error": "unsupported file extension"}
 	alreadyExistsErrorResponse = gin.H{"error": "file already exists"}
 	healthCheckResponse        = gin.H{"healthy": true}
-)
-
-type (
-	packageOrProvenanceFile struct {
-		filename string
-		content  []byte
-		field    string // file was extracted from this form field
-	}
-	filenameFromContentFn func([]byte) (string, error)
-)
-
-func (server *Server) getWelcomePageHandler(c *gin.Context) {
-	c.Data(200, "text/html", []byte(fmt.Sprintf(
-		`<!DOCTYPE html>
+	welcomePageHTMLTemplate    = `<!DOCTYPE html>
 <html>
 <head>
 <title>Welcome to ChartMuseum!</title>
@@ -59,7 +46,21 @@ working.</p>
 <p><em>Thank you for using ChartMuseum.</em></p>
 </body>
 </html>
-	`, location.Get(c))))
+	`
+)
+
+type (
+	packageOrProvenanceFile struct {
+		filename string
+		content  []byte
+		field    string // file was extracted from this form field
+	}
+	filenameFromContentFn func([]byte) (string, error)
+)
+
+func (server *Server) getWelcomePageHandler(c *gin.Context) {
+	url := location.Get(c)
+	c.Data(200, "text/html", []byte(fmt.Sprintf(welcomePageHTMLTemplate, url)))
 }
 
 func (server *Server) getHealthCheckHandler(c *gin.Context) {
