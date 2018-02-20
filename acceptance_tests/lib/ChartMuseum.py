@@ -28,6 +28,9 @@ class ChartMuseum(common.CommandRunner):
         elif storage == 'microsoft':
             cmd += '--storage-microsoft-container="%s" --storage-microsoft-prefix="%s"  >> %s 2>&1' \
                    % (common.STORAGE_MICROSOFT_CONTAINER, common.STORAGE_MICROSOFT_PREFIX, common.LOGFILE)
+        elif storage == 'alibaba':
+            cmd += '--storage-alibaba-bucket="%s" --storage-alibaba-prefix="%s" --storage-alibaba-endpoint="%s" >> %s 2>&1' \
+                  % (common.STORAGE_ALIBABA_BUCKET, common.STORAGE_ALIBABA_PREFIX, common.STORAGE_ALIBABA_ENDPOINT, common.LOGFILE)
         print(cmd)
         self.run_command(cmd, detach=True)
 

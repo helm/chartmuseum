@@ -187,6 +187,22 @@ chartmuseum --debug --port=8080 \
   --storage-microsoft-prefix=""
 ```
 
+#### Using with Alibaba Cloud OSS Storage
+
+Make sure your environment is properly setup to access `my-oss-bucket`.
+
+To do so, you must set the following env vars:
+- `ALIBABA_CLOUD_ACCESS_KEY_ID`
+- `ALIBABA_CLOUD_ACCESS_KEY_SECRET`
+
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="alibaba" \
+  --storage-alibaba-bucket="my-oss-bucket" \
+  --storage-alibaba-prefix="" \
+  --storage-alibaba-endpoint="oss-cn-beijing.aliyuncs.com"
+```
+
 #### Using with local filesystem storage
 Make sure you have read-write access to `./chartstorage` (will create if doesn't exist)
 ```bash

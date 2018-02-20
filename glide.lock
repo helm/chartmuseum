@@ -1,5 +1,5 @@
-hash: dd0a48300d5bed94d76cfa166b2550aaf3da17f1cd8646c4bb1028aeabe2cf8d
-updated: 2018-02-19T17:22:05.874526-06:00
+hash: 405a3f67e73fb103b16161f1ab9a752590b4109fdd2f9cc8909b101286f01e43
+updated: 2018-02-21T16:46:44.580333+08:00
 imports:
 - name: cloud.google.com/go
   version: 3137f1def9552929c7beb11f2ac7d2dd998e4040
@@ -12,6 +12,10 @@ imports:
   - internal/optional
   - internal/version
   - storage
+- name: github.com/aliyun/aliyun-oss-go-sdk
+  version: 52de7239022ceba47354832fbcc65983aa8d019d
+  subpackages:
+  - oss
 - name: github.com/atarantini/ginrequestid
   version: a432ade0ce478903613da1372cb5a62914cfe532
 - name: github.com/aws/aws-sdk-go

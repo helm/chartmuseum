@@ -84,6 +84,8 @@ func backendFromContext(c *cli.Context) storage.Backend {
 		backend = googleBackendFromContext(c)
 	case "microsoft":
 		backend = microsoftBackendFromContext(c)
+	case "alibaba":
+		backend = alibabaBackendFromContext(c)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -126,6 +128,16 @@ func microsoftBackendFromContext(c *cli.Context) storage.Backend {
 	return storage.Backend(storage.NewMicrosoftBlobBackend(
 		c.String("storage-microsoft-container"),
 		c.String("storage-microsoft-prefix"),
+	))
+}
+
+func alibabaBackendFromContext(c *cli.Context) storage.Backend {
+	crashIfContextMissingFlags(c, []string{"storage-alibaba-bucket"})
+	return storage.Backend(storage.NewAlibabaCloudOSSBackend(
+		c.String("storage-alibaba-bucket"),
+		c.String("storage-alibaba-prefix"),
+		c.String("storage-alibaba-endpoint"),
+		c.String("storage-alibaba-sse"),
 	))
 }
 
@@ -262,6 +274,26 @@ var cliFlags = []cli.Flag{
 		Name:   "storage-microsoft-prefix",
 		Usage:  "prefix to store charts for --storage-microsoft-prefix",
 		EnvVar: "STORAGE_MICROSOFT_PREFIX",
+	},
+	cli.StringFlag{
+		Name:   "storage-alibaba-bucket",
+		Usage:  "OSS bucket to store charts for Alibaba Cloud storage backend",
+		EnvVar: "STORAGE_ALIBABA_BUCKET",
+	},
+	cli.StringFlag{
+		Name:   "storage-alibaba-prefix",
+		Usage:  "prefix to store charts for --storage-alibaba-cloud-bucket",
+		EnvVar: "STORAGE_ALIBABA_PREFIX",
+	},
+	cli.StringFlag{
+		Name:   "storage-alibaba-endpoint",
+		Usage:  "OSS endpoint",
+		EnvVar: "STORAGE_ALIBABA_ENDPOINT",
+	},
+	cli.StringFlag{
+		Name:   "storage-alibaba-sse",
+		Usage:  "server side encryption algorithm for Alibaba Cloud storage backend, AES256 or KMS",
+		EnvVar: "STORAGE_ALIBABA_SSE",
 	},
 	cli.StringFlag{
 		Name:   "chart-post-form-field-name",
