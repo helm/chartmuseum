@@ -53,6 +53,7 @@ Powered by some great Go technology:
 - `GET /api/charts/<name>/<version>` - describe a chart version
 
 ### Server Info
+- `GET /` - HTML welcome page
 - `GET /health` - returns 200 OK
 
 ## Uploading a Chart Package

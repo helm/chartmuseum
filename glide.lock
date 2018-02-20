@@ -1,5 +1,5 @@
-hash: 18422b04371f3b35164e2b4ee878c7047a328b37fc89e4a02839f8d659e54aa2
-updated: 2018-02-14T15:21:39.920654822-06:00
+hash: dd0a48300d5bed94d76cfa166b2550aaf3da17f1cd8646c4bb1028aeabe2cf8d
+updated: 2018-02-19T17:22:05.874526-06:00
 imports:
 - name: cloud.google.com/go
   version: 3137f1def9552929c7beb11f2ac7d2dd998e4040
@@ -66,6 +66,8 @@ imports:
   version: dbeaa9332f19a944acb5736b4456cfcc02140e29
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+- name: github.com/gin-contrib/location
+  version: 5220ebf8be6c350431168cbd884f2c0ace0e3f4c
 - name: github.com/gin-contrib/sse
   version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
 - name: github.com/gin-gonic/gin

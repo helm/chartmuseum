@@ -24,7 +24,8 @@ func (server *Server) setRoutes(username string, password string, enableAPI bool
 	}
 
 	// Server Info
-	sysInfoGroup.GET("/health", server.getHealthCheck)
+	sysInfoGroup.GET("/", server.getWelcomePageHandler)
+	sysInfoGroup.GET("/health", server.getHealthCheckHandler)
 
 	// Helm Chart Repository
 	readAccessGroup.GET("/index.yaml", server.getIndexFileRequestHandler)

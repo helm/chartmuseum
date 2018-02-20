@@ -238,7 +238,12 @@ func (suite *ServerTestSuite) TestRoutes() {
 	res = suite.doRequest("basicauth", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 
-	// GET /
+	// GET / (welcome page)
+	res = suite.doRequest("anonymous", "GET", "/", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /")
+	suite.Equal("text/html", res.Header().Get("Content-Type"), "welcome page is html")
+
+	// GET /health
 	res = suite.doRequest("anonymous", "GET", "/health", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /health")
 
