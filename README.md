@@ -182,7 +182,7 @@ To do so, you must set the following env vars:
 
 ```bash
 chartmuseum --debug --port=8080 \
-  --storage="azure" \
+  --storage="microsoft" \
   --storage-microsoft-container="mycontainer" \
   --storage-microsoft-prefix=""
 ```
