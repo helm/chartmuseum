@@ -31,6 +31,10 @@ import:
 - package: golang.org/x/oauth2
   version: 9a379c6b3e95a790ffc43293c2a78dee0d7b6e20
 
+# Database-related
+- package: github.com/jinzhu/gorm
+  version: v1.9
+
 testImports:
 - package: github.com/stretchr/testify
   version: v1.1.4

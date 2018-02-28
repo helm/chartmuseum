@@ -1,5 +1,5 @@
-hash: dd0a48300d5bed94d76cfa166b2550aaf3da17f1cd8646c4bb1028aeabe2cf8d
-updated: 2018-02-19T17:22:05.874526-06:00
+hash: f4826202c9871b42228762658f7e0b61c79ca535022ddc1772b69d826b657b63
+updated: 2018-02-27T09:51:05.637384-06:00
 imports:
 - name: cloud.google.com/go
   version: 3137f1def9552929c7beb11f2ac7d2dd998e4040
@@ -98,6 +98,12 @@ imports:
   - ptypes/timestamp
 - name: github.com/googleapis/gax-go
   version: 2cadd475a3e966ec9b77a21afc530dbacec6d613
+- name: github.com/jinzhu/gorm
+  version: 48a20a6e9f3f4d26095df82c3337efec6db0a6fc
+  subpackages:
+  - dialects/sqlite
+- name: github.com/jinzhu/inflection
+  version: 1c35d901db3da928c72a72d8458480cc9ade058f
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: github.com/marstr/guid
@@ -106,6 +112,8 @@ imports:
   version: 517734cc7d6470c0d07130e40fd40bdeb9bcd3fd
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
+- name: github.com/mattn/go-sqlite3
+  version: 696e2e43cb00dcb1acaf6073e01493e3c4197b75
 - name: github.com/matttproud/golang_protobuf_extensions
   version: fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a
   subpackages:

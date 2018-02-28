@@ -23,6 +23,36 @@ func (server *Server) setRoutes(username string, password string, enableAPI bool
 		}
 	}
 
+	// Multi-Tenancy POC
+	orgAccessGroup := server.Router.Group("/mt")
+	orgAccessGroup.Use(databaseMiddleware(server.Database))
+	{
+		// Fetch index.yaml, .tgz, .prov files from storage
+		orgAccessGroup.GET("/:org/:repo/index.yaml", server.getOrgRepoIndexFileRequestHandler)
+		orgAccessGroup.GET("/:org/:repo/charts/:filename", server.getOrgRepoStorageObjectRequestHandler)
+
+		if enableAPI {
+			// Org operations
+			orgAccessGroup.GET("/", server.getOrgsRequestHandler)
+			orgAccessGroup.POST("/", server.createOrgRequestHandler)
+			orgAccessGroup.GET("/:org", server.getOrgRequestHandler)
+			orgAccessGroup.DELETE("/:org", server.deleteOrgRequestHandler)
+
+			// Org-owned Repo operations
+			orgAccessGroup.POST("/:org", server.createRepoRequestHandler)
+			orgAccessGroup.GET("/:org/:repo", server.getRepoRequestHandler)
+			orgAccessGroup.DELETE("/:org/:repo", server.deleteRepoRequestHandler)
+
+			// TODO: ChartMuseum CRUD API per Org-Repo combination
+			//orgAccessGroup.GET("/:org/:repo/api/charts", server.getAllChartsRequestHandler)
+			//orgAccessGroup.GET("/:org/:repo/api/charts/:name", server.getChartRequestHandler)
+			//orgAccessGroup.GET("/:org/:repo/api/charts/:name/:version", server.getChartVersionRequestHandler)
+			//orgAccessGroup.POST("/:org/:repo/api/charts", server.postRequestHandler)
+			//orgAccessGroup.POST("/:org/:repo/api/prov", server.postProvenanceFileRequestHandler)
+			//orgAccessGroup.DELETE("/:org/:repo/api/charts/:name/:version", server.deleteChartVersionRequestHandler)
+		}
+	}
+
 	// Server Info
 	sysInfoGroup.GET("/", server.getWelcomePageHandler)
 	sysInfoGroup.GET("/health", server.getHealthCheckHandler)

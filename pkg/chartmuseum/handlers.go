@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
+	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
@@ -301,6 +302,105 @@ func (server *Server) postProvenanceFileRequestHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(201, objectSavedResponse)
+}
+
+func (server *Server) getOrgsRequestHandler(c *gin.Context) {
+	var orgs []Org
+	if err := server.Database.Preload("Repos").Find(&orgs).Error; err != nil {
+		c.JSON(500, errorResponse(err))
+		return
+	}
+	c.JSON(200, orgs)
+}
+
+func (server *Server) createOrgRequestHandler(c *gin.Context) {
+	var org Org
+	c.BindJSON(&org)
+	if err := server.Database.Create(&org).Error; err != nil {
+		c.JSON(500, errorResponse(err))
+		return
+	}
+	c.JSON(201, org)
+}
+
+func (server *Server) getOrgRequestHandler(c *gin.Context) {
+	org := c.MustGet("org").(*Org)
+	c.JSON(200, org)
+}
+
+func (server *Server) deleteOrgRequestHandler(c *gin.Context) {
+	org := c.MustGet("org").(*Org)
+	if err := server.Database.Delete(&org).Error; err != nil {
+		c.JSON(500, errorResponse(err))
+		return
+	}
+	c.JSON(200, objectDeletedResponse)
+}
+
+func (server *Server) createRepoRequestHandler(c *gin.Context) {
+	org := c.MustGet("org").(*Org)
+	var r Repo
+	c.BindJSON(&r)
+	r.OrgID = org.ID
+	if err := server.Database.Create(&r).Error; err != nil {
+		c.JSON(500, errorResponse(err))
+		return
+	}
+	c.JSON(201, r)
+}
+
+func (server *Server) getRepoRequestHandler(c *gin.Context) {
+	repo := c.MustGet("repo").(*Repo)
+	c.JSON(200, repo)
+}
+
+func (server *Server) deleteRepoRequestHandler(c *gin.Context) {
+	repo := c.MustGet("repo").(*Repo)
+	if err := server.Database.Delete(&repo).Error; err != nil {
+		c.JSON(500, errorResponse(err))
+		return
+	}
+	c.JSON(200, objectDeletedResponse)
+}
+
+func (server *Server) getOrgRepoIndexFileRequestHandler(c *gin.Context) {
+	org := c.MustGet("org").(*Org)
+	r := c.MustGet("repo").(*Repo)
+	rootDir := fmt.Sprintf("./charts/%s/%s", org.Name, r.Name)
+	tempBackend := storage.Backend(storage.NewLocalFilesystemBackend(rootDir))
+	tempIndex := repo.NewIndex("")
+	objects, _ := tempBackend.ListObjects()
+	for _, obj := range objects {
+		obj, _ = tempBackend.GetObject(obj.Path)
+		cv, _ := repo.ChartVersionFromStorageObject(obj)
+		tempIndex.AddEntry(cv)
+	}
+	tempIndex.Regenerate()
+	c.Data(200, repo.IndexFileContentType, tempIndex.Raw)
+}
+
+func (server *Server) getOrgRepoStorageObjectRequestHandler(c *gin.Context) {
+	org := c.MustGet("org").(*Org)
+	r := c.MustGet("repo").(*Repo)
+	filename := c.Param("filename")
+	rootDir := fmt.Sprintf("./charts/%s/%s", org.Name, r.Name)
+	tempBackend := storage.Backend(storage.NewLocalFilesystemBackend(rootDir))
+	isChartPackage := strings.HasSuffix(filename, repo.ChartPackageFileExtension)
+	isProvenanceFile := strings.HasSuffix(filename, repo.ProvenanceFileExtension)
+	if !isChartPackage && !isProvenanceFile {
+		c.JSON(500, badExtensionErrorResponse)
+		return
+	}
+	object, err := tempBackend.GetObject(filename)
+	if err != nil {
+		c.JSON(404, notFoundErrorResponse)
+		return
+	}
+	if isProvenanceFile {
+		c.Data(200, repo.ProvenanceFileContentType, object.Content)
+		return
+	}
+	c.Data(200, repo.ChartPackageContentType, object.Content)
 }
 
 func errorResponse(err error) map[string]interface{} {

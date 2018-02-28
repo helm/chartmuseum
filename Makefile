@@ -28,13 +28,13 @@ build_windows:
 	    -o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
 
 build_linux: export GOARCH=amd64
-build_linux: export CGO_ENABLED=0
+build_linux: export CGO_ENABLED=1
 build_linux:
 	@GOOS=linux go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 	    -o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
 
 build_mac: export GOARCH=amd64
-build_mac: export CGO_ENABLED=0
+build_mac: export CGO_ENABLED=1
 build_mac:
 	@GOOS=darwin go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 	    -o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
