@@ -22,6 +22,7 @@ type (
 
 	// Server contains a Logger, Router, storage backend and object cache
 	Server struct {
+		Database                *Database
 		Logger                  *Logger
 		Router                  *Router
 		RepositoryIndex         *repo.Index
@@ -75,12 +76,18 @@ func NewRouter(logger *Logger, enableMetrics bool) *Router {
 func NewServer(options ServerOptions) (*Server, error) {
 	logger, err := NewLogger(options.LogJSON, options.Debug)
 	if err != nil {
-		return new(Server), nil
+		return new(Server), err
+	}
+
+	database, err := NewDatabase()
+	if err != nil {
+		return new(Server), err
 	}
 
 	router := NewRouter(logger, options.EnableMetrics)
 
 	server := &Server{
+		Database:               database,
 		Logger:                 logger,
 		Router:                 router,
 		RepositoryIndex:        repo.NewIndex(options.ChartURL),
@@ -109,6 +116,7 @@ func (server *Server) Listen(port int) {
 	server.Logger.Infow("Starting ChartMuseum",
 		"port", port,
 	)
+	defer server.Database.Close()
 	if server.TlsCert != "" && server.TlsKey != "" {
 		server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port), server.TlsCert, server.TlsKey))
 	} else {
