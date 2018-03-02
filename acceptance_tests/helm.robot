@@ -22,6 +22,9 @@ ChartMuseum works with Helm using Google cloud storage
 ChartMuseum works with Helm using Microsoft cloud storage
     Test Helm integration   microsoft
 
+ChartMuseum works with Helm using Alibaba cloud storage
+    Test Helm integration   alibaba
+
 *** Keyword ***
 Test Helm integration
     [Arguments]    ${storage}
