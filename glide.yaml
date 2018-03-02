@@ -24,6 +24,12 @@ import:
   subpackages:
   - storage
 
+# Used by Alibaba Cloud OSS storage backend
+- package: github.com/aliyun/aliyun-oss-go-sdk
+  version: 1.8.0
+  subpackages:
+  - oss
+
 # these ones are srsly a pain in da butt...
 # all needed to get cloud.google.com/go/storage to work
 - package: github.com/golang/protobuf
