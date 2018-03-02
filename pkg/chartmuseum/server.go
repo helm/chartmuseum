@@ -28,6 +28,7 @@ type (
 		StorageBackend          storage.Backend
 		StorageCache            []storage.Object
 		AllowOverwrite          bool
+		MultiTenancyEnabled     bool
 		AnonymousGet            bool
 		TlsCert                 string
 		TlsKey                  string
@@ -47,6 +48,7 @@ type (
 		EnableAPI              bool
 		AllowOverwrite         bool
 		EnableMetrics          bool
+		EnableMultiTenancy     bool
 		AnonymousGet           bool
 		ChartURL               string
 		TlsCert                string
@@ -87,6 +89,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		StorageBackend:         options.StorageBackend,
 		StorageCache:           []storage.Object{},
 		AllowOverwrite:         options.AllowOverwrite,
+		MultiTenancyEnabled:    options.EnableMultiTenancy,
 		AnonymousGet:           options.AnonymousGet,
 		TlsCert:                options.TlsCert,
 		TlsKey:                 options.TlsKey,
@@ -96,11 +99,14 @@ func NewServer(options ServerOptions) (*Server, error) {
 		fetchedObjectsLock:     &sync.Mutex{},
 	}
 
-	server.setRoutes(options.Username, options.Password, options.EnableAPI)
-
-	// prime the cache
-	log := server.contextLoggingFn(&gin.Context{})
-	_, err = server.syncRepositoryIndex(log)
+	if server.MultiTenancyEnabled {
+		logger.Debugw("Multi-Tenancy Enabled")
+		server.setMultiTenancyRoutes()
+	} else {
+		server.setRoutes(options.Username, options.Password, options.EnableAPI)
+		log := server.contextLoggingFn(&gin.Context{})
+		_, err = server.syncRepositoryIndex(log) // prime the cache
+	}
 	return server, err
 }
 
