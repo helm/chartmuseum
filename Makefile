@@ -1,5 +1,5 @@
 # Change this and commit to create new release
-VERSION=0.3.1
+VERSION=0.4.0
 REVISION := $(shell git rev-parse --short HEAD;)
 
 HAS_GLIDE := $(shell command -v glide;)
