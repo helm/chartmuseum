@@ -293,3 +293,4 @@ chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mir
 
 ## Community
 You can reach the *ChartMuseum* community and developers in the [Kubernetes Slack](https://slack.k8s.io) **#chartmuseum** channel.
+
