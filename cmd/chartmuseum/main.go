@@ -310,7 +310,7 @@ var cliFlags = []cli.Flag{
 	},
 	cli.IntFlag{
 		Name:   "index-limit",
-		Value:  250,
+		Value:  0,
 		Usage:  "parallel scan limit for the repo indexer",
 		EnvVar: "INDEX_LIMIT",
 	},
