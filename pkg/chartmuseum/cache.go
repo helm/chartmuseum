@@ -214,8 +214,16 @@ func (server *Server) addIndexObjectsAsync(log loggingFn, index *repo.Index, obj
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Limit parallelism to the index-limit parameter value
+	limiter := make(chan bool, server.IndexLimit)
 	for _, object := range objects {
+		if server.IndexLimit != 0 {
+			limiter <- true
+		}
 		go func(o storage.Object) {
+			if server.IndexLimit != 0 {
+				<-limiter
+			}
 			select {
 			case <-ctx.Done():
 				return
@@ -230,6 +238,12 @@ func (server *Server) addIndexObjectsAsync(log loggingFn, index *repo.Index, obj
 				cvChan <- cvResult{chartVersion, err}
 			}
 		}(object)
+	}
+	// Wait for remaining func() calls to terminate
+	if server.IndexLimit != 0 {
+		for i := 0; i < cap(limiter); i++ {
+			limiter <- true
+		}
 	}
 
 	for validCount := 0; validCount < numObjects; validCount++ {

@@ -54,6 +54,7 @@ func cliHandler(c *cli.Context) {
 		ChartPostFormFieldName: c.String("chart-post-form-field-name"),
 		ProvPostFormFieldName:  c.String("prov-post-form-field-name"),
 		AnonymousGet:           c.Bool("auth-anonymous-get"),
+		IndexLimit:             c.Int("index-limit"),
 	}
 
 	server, err := newServer(options)
@@ -306,5 +307,11 @@ var cliFlags = []cli.Flag{
 		Value:  "prov",
 		Usage:  "form field which will be queried for the provenance file content",
 		EnvVar: "PROV_POST_FORM_FIELD_NAME",
+	},
+	cli.IntFlag{
+		Name:   "index-limit",
+		Value:  0,
+		Usage:  "parallel scan limit for the repo indexer",
+		EnvVar: "INDEX_LIMIT",
 	},
 }

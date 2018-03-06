@@ -37,6 +37,7 @@ type (
 		fetchedObjectsLock      *sync.Mutex
 		fetchedObjectsChans     []chan fetchedObjects
 		regeneratedIndexesChans []chan indexRegeneration
+		IndexLimit		int
 	}
 
 	// ServerOptions are options for constructing a Server
@@ -55,6 +56,7 @@ type (
 		Password               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
+		IndexLimit		int
 	}
 )
 
@@ -94,6 +96,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
 		regenerationLock:       &sync.Mutex{},
 		fetchedObjectsLock:     &sync.Mutex{},
+		IndexLimit:		options.IndexLimit,
 	}
 
 	server.setRoutes(options.Username, options.Password, options.EnableAPI)
