@@ -73,25 +73,25 @@ func (suite *ServerTestSuite) SetupSuite() {
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
 
-	server, err := NewServer(ServerOptions{backend, false, false, true, false, false, false, "", "", "", "", "", "", ""})
+	server, err := NewServer(ServerOptions{backend, false, false, true, false, false, false, "", "", "", "", "", "", "", 0})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new server, logJson=false, debug=false, disabled=false, overwrite=false, anon=false")
 
-	server, err = NewServer(ServerOptions{backend, true, true, true, false, false, false, "", "", "", "", "", "", ""})
+	server, err = NewServer(ServerOptions{backend, true, true, true, false, false, false, "", "", "", "", "", "", "", 0})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new server, logJson=true, debug=true, disabled=false, overwrite=false, anon=false")
 
-	server, err = NewServer(ServerOptions{backend, false, true, true, false, false, true, "", "", "", "user", "pass", "chart", "prov"})
+	server, err = NewServer(ServerOptions{backend, false, true, true, false, false, true, "", "", "", "user", "pass", "chart", "prov", 10})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false, anon=true")
 
 	suite.Server = server
 
-	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, false, false, false, "", "", "", "", "", "", ""})
+	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, false, false, false, "", "", "", "", "", "", "", 0})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=true, overwrite=false")
 
 	suite.DisabledAPIServer = disabledAPIServer
 
-	overwriteServer, err := NewServer(ServerOptions{backend, false, true, true, true, false, false, "", "", "", "", "", "chart", "prov"})
+	overwriteServer, err := NewServer(ServerOptions{backend, false, true, true, true, false, false, "", "", "", "", "", "chart", "prov", 0})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=true")
 
 	suite.OverwriteServer = overwriteServer
@@ -122,7 +122,7 @@ func (suite *ServerTestSuite) SetupSuite() {
 	defer os.RemoveAll(suite.BrokenTempDirectory)
 
 	brokenBackend := storage.Backend(storage.NewLocalFilesystemBackend(suite.BrokenTempDirectory))
-	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, false, false, false, "", "", "", "", "", "", ""})
+	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, false, false, false, "", "", "", "", "", "", "", 0})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false")
 
 	suite.BrokenServer = brokenServer
