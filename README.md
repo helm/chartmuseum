@@ -239,9 +239,9 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--storage-amazon-sse=<algorithm>` - s3 server side encryption algorithm
 - `--chart-post-form-field-name=<field>` - form field which will be queried for the chart file content
 - `--prov-post-form-field-name=<field>` - form field which will be queried for the provenance file content
-- `--index-limit=<number>` - limit the number of parallel indexers to <number>
+- `--index-limit=<number>` - limit the number of parallel indexers
+- `--context-path=<path>` - base context path (new root for application routes)
 
-### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
 
 Example usage (S3):
