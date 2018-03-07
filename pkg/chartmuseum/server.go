@@ -57,6 +57,7 @@ type (
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 		IndexLimit             int
+		ContextPath            string
 	}
 )
 
@@ -99,7 +100,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 		fetchedObjectsLock:     &sync.Mutex{},
 	}
 
-	server.setRoutes(options.Username, options.Password, options.EnableAPI)
+	server.setRoutes(options.Username, options.Password, options.EnableAPI, options.ContextPath)
 
 	// prime the cache
 	log := server.contextLoggingFn(&gin.Context{})

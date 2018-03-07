@@ -29,6 +29,7 @@ type ServerTestSuite struct {
 	DisabledAPIServer    *Server
 	BrokenServer         *Server
 	OverwriteServer      *Server
+	CustomContextServer  *Server
 	TempDirectory        string
 	BrokenTempDirectory  string
 	TestTarballFilename  string
@@ -54,6 +55,8 @@ func (suite *ServerTestSuite) doRequest(stype string, method string, urlStr stri
 		suite.DisabledAPIServer.Router.HandleContext(c)
 	case "overwrite":
 		suite.OverwriteServer.Router.HandleContext(c)
+	case "custompath":
+		suite.CustomContextServer.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -73,28 +76,33 @@ func (suite *ServerTestSuite) SetupSuite() {
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
 
-	server, err := NewServer(ServerOptions{backend, false, false, true, false, false, false, "", "", "", "", "", "", "", 0})
+	server, err := NewServer(ServerOptions{backend, false, false, true, false, false, false, "", "", "", "", "", "", "", 0, ""})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new server, logJson=false, debug=false, disabled=false, overwrite=false, anon=false")
 
-	server, err = NewServer(ServerOptions{backend, true, true, true, false, false, false, "", "", "", "", "", "", "", 0})
+	server, err = NewServer(ServerOptions{backend, true, true, true, false, false, false, "", "", "", "", "", "", "", 0, ""})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new server, logJson=true, debug=true, disabled=false, overwrite=false, anon=false")
 
-	server, err = NewServer(ServerOptions{backend, false, true, true, false, false, true, "", "", "", "user", "pass", "chart", "prov", 10})
+	server, err = NewServer(ServerOptions{backend, false, true, true, false, false, true, "", "", "", "user", "pass", "chart", "prov", 10, ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false, anon=true")
 
 	suite.Server = server
 
-	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, false, false, false, "", "", "", "", "", "", "", 0})
+	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, false, false, false, "", "", "", "", "", "", "", 0, ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=true, overwrite=false")
 
 	suite.DisabledAPIServer = disabledAPIServer
 
-	overwriteServer, err := NewServer(ServerOptions{backend, false, true, true, true, false, false, "", "", "", "", "", "chart", "prov", 0})
+	overwriteServer, err := NewServer(ServerOptions{backend, false, true, true, true, false, false, "", "", "", "", "", "chart", "prov", 0, ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=true")
 
 	suite.OverwriteServer = overwriteServer
+
+	customContextServer, err := NewServer(ServerOptions{backend, true, true, true, false, false, false, "", "", "", "", "", "", "", 0, "/test"})
+	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=true")
+
+	suite.CustomContextServer = customContextServer
 
 	suite.TestTarballFilename = pathutil.Join(suite.TempDirectory, "mychart-0.1.0.tgz")
 	destFileTarball, err := os.Create(suite.TestTarballFilename)
@@ -122,7 +130,7 @@ func (suite *ServerTestSuite) SetupSuite() {
 	defer os.RemoveAll(suite.BrokenTempDirectory)
 
 	brokenBackend := storage.Backend(storage.NewLocalFilesystemBackend(suite.BrokenTempDirectory))
-	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, false, false, false, "", "", "", "", "", "", "", 0})
+	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, false, false, false, "", "", "", "", "", "", "", 0, ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false")
 
 	suite.BrokenServer = brokenServer
@@ -386,6 +394,26 @@ func (suite *ServerTestSuite) TestRoutes() {
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
 	res = suite.doRequest("overwrite", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
+}
+
+func (suite *ServerTestSuite) TestRoutesCustomBasePath() {
+	var res gin.ResponseWriter
+
+	// GET /charts/<filename>
+	res = suite.doRequest("custompath", "GET", "/test/charts/mychart-0.1.0.tgz", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /test/charts/mychart-0.1.0.tgz")
+
+	// GET /charts/<filename>
+	res = suite.doRequest("custompath", "GET", "/charts/mychart-0.1.0.tgz", nil, "")
+	suite.Equal(404, res.Status(), "404 GET /test/charts/mychart-0.1.0.tgz")
+
+	// GET /health
+	res = suite.doRequest("custompath", "GET", "/test/health", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /test/health")
+
+	// GET /index.yaml
+	res = suite.doRequest("custompath", "GET", "/test/index.yaml", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /test/index.yaml")
 }
 
 func (suite *ServerTestSuite) getBodyWithMultipartFormFiles(fields []string, filenames []string) (io.Reader, *multipart.Writer) {
