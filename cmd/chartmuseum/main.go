@@ -51,6 +51,7 @@ func cliHandler(c *cli.Context) {
 		Username:               c.String("basic-auth-user"),
 		Password:               c.String("basic-auth-pass"),
 		StorageBackend:         backend,
+		ContextPath:            c.String("context-path"),
 		ChartPostFormFieldName: c.String("chart-post-form-field-name"),
 		ProvPostFormFieldName:  c.String("prov-post-form-field-name"),
 		AnonymousGet:           c.Bool("auth-anonymous-get"),
@@ -313,5 +314,11 @@ var cliFlags = []cli.Flag{
 		Value:  0,
 		Usage:  "parallel scan limit for the repo indexer",
 		EnvVar: "INDEX_LIMIT",
+	},
+	cli.StringFlag{
+		Name:   "context-path",
+		Value:  "",
+		Usage:  "base context path",
+		EnvVar: "CONTEXT_PATH",
 	},
 }

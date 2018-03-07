@@ -4,14 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) setRoutes(username string, password string, enableAPI bool) {
-	sysInfoGroup := &server.Router.RouterGroup
-	readAccessGroup := &server.Router.RouterGroup
-	writeAccessGroup := &server.Router.RouterGroup
+func (server *Server) setRoutes(username string, password string, enableAPI bool, contextPath string) {
+	baseGroup := server.Router.Group(contextPath)
+	sysInfoGroup := baseGroup
+	readAccessGroup := baseGroup
+	writeAccessGroup := baseGroup
 
 	// Reconfigure read-access, write-access groups if basic auth is enabled
 	if username != "" && password != "" {
-		basicAuthGroup := server.Router.Group("")
+		basicAuthGroup := server.Router.Group(contextPath)
 		users := make(map[string]string)
 		users[username] = password
 		basicAuthGroup.Use(gin.BasicAuthForRealm(users, "ChartMuseum"))
