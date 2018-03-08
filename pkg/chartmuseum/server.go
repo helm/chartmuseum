@@ -2,28 +2,21 @@ package chartmuseum
 
 import (
 	"fmt"
-	"regexp"
 	"sync"
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 
-	"github.com/atarantini/ginrequestid"
-	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
-	"github.com/zsais/go-gin-prometheus"
 )
 
 type (
-	// Router handles all incoming HTTP requests
-	Router struct {
-		*gin.Engine
-	}
-
 	// Server contains a Logger, Router, storage backend and object cache
 	Server struct {
-		Logger                  *Logger
-		Router                  *Router
+		Logger                  *logger.Logger
+		Router                  *router.Router
 		RepositoryIndex         *repo.Index
 		StorageBackend          storage.Backend
 		StorageCache            []storage.Object
@@ -63,27 +56,14 @@ type (
 	}
 )
 
-// NewRouter creates a new Router instance
-func NewRouter(logger *Logger, enableMetrics bool) *Router {
-	gin.SetMode(gin.ReleaseMode)
-	engine := gin.New()
-	engine.Use(location.Default(), ginrequestid.RequestId(), loggingMiddleware(logger), gin.Recovery())
-	if enableMetrics {
-		p := ginprometheus.NewPrometheus("chartmuseum")
-		p.ReqCntURLLabelMappingFn = mapURLWithParamsBackToRouteTemplate
-		p.Use(engine)
-	}
-	return &Router{engine}
-}
-
 // NewServer creates a new Server instance
 func NewServer(options ServerOptions) (*Server, error) {
-	logger, err := NewLogger(options.LogJSON, options.Debug)
+	logger, err := logger.NewLogger(options.LogJSON, options.Debug)
 	if err != nil {
 		return new(Server), nil
 	}
 
-	router := NewRouter(logger, options.EnableMetrics)
+	router := router.NewRouter(logger, options.EnableMetrics)
 
 	server := &Server{
 		Logger:                 logger,
@@ -106,7 +86,7 @@ func NewServer(options ServerOptions) (*Server, error) {
 	server.setRoutes(options.Username, options.Password, options.EnableAPI, options.ContextPath)
 
 	// prime the cache
-	log := server.contextLoggingFn(&gin.Context{})
+	log := logger.ContextLoggingFn(&gin.Context{})
 	_, err = server.syncRepositoryIndex(log)
 	return server, err
 }
@@ -121,19 +101,4 @@ func (server *Server) Listen(port int) {
 	} else {
 		server.Logger.Fatal(server.Router.Run(fmt.Sprintf(":%d", port)))
 	}
-}
-
-/*
-mapURLWithParamsBackToRouteTemplate is a valid ginprometheus ReqCntURLLabelMappingFn.
-For every route containing parameters (e.g. `/charts/:filename`, `/api/charts/:name/:version`, etc)
-the actual parameter values will be replaced by their name, to minimize the cardinality of the
-`chartmuseum_requests_total{url=..}` Prometheus counter.
-*/
-func mapURLWithParamsBackToRouteTemplate(c *gin.Context) string {
-	url := c.Request.URL.String()
-	for _, p := range c.Params {
-		re := regexp.MustCompile(fmt.Sprintf(`(^.*?)/\b%s\b(.*$)`, regexp.QuoteMeta(p.Value)))
-		url = re.ReplaceAllString(url, fmt.Sprintf(`$1/:%s$2`, p.Key))
-	}
-	return url
 }

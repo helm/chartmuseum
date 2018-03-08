@@ -42,10 +42,3 @@ func (server *Server) setRoutes(username string, password string, enableAPI bool
 		writeAccessGroup.DELETE("/api/charts/:name/:version", server.deleteChartVersionRequestHandler)
 	}
 }
-
-func (server *Server) setMultiTenancyRoutes() {
-	server.Router.GET("/", func(c *gin.Context) {
-		msg := "This ChartMuseum install is running in multi-repo mode."
-		c.Data(200, "text/plain", []byte(msg))
-	})
-}

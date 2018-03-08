@@ -1,10 +1,7 @@
-package chartmuseum
+package logger
 
 import (
 	"fmt"
-	"strconv"
-	"sync/atomic"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -13,21 +10,22 @@ import (
 )
 
 type (
-	// Logger handles all logging from application
+	// Logger handles all logger from application
 	Logger struct {
 		*zap.SugaredLogger
 	}
 
-	logLevel string
+	// LoggingFn is TODO
+	LoggingFn func(level logLevel, msg string, keysAndValues ...interface{})
 
-	loggingFn func(level logLevel, msg string, keysAndValues ...interface{})
+	logLevel string
 )
 
 const (
-	debugLevel logLevel = "DEBUG"
-	infoLevel  logLevel = "INFO"
-	warnLevel  logLevel = "WARN"
-	errorLevel logLevel = "ERROR"
+	DebugLevel logLevel = "DEBUG"
+	InfoLevel  logLevel = "INFO"
+	WarnLevel  logLevel = "WARN"
+	ErrorLevel logLevel = "ERROR"
 )
 
 // NewLogger creates a new Logger instance
@@ -50,6 +48,26 @@ func NewLogger(json bool, debug bool) (*Logger, error) {
 	}
 	defer logger.Sync()
 	return &Logger{logger.Sugar()}, nil
+}
+
+
+/*
+ContextLoggingFn creates a LoggingFn to be used in
+places that do not necessarily need access to the gin context
+*/
+func (logger *Logger) ContextLoggingFn(c *gin.Context) LoggingFn {
+	return func(level logLevel, msg string, keysAndValues ...interface{}) {
+		switch level {
+		case DebugLevel:
+			logger.Debugc(c, msg, keysAndValues...)
+		case InfoLevel:
+			logger.Infoc(c, msg, keysAndValues...)
+		case WarnLevel:
+			logger.Warnc(c, msg, keysAndValues...)
+		case ErrorLevel:
+			logger.Errorc(c, msg, keysAndValues...)
+		}
+	}
 }
 
 // Debugc wraps Debugw provided by zap, adding data from gin request context
@@ -83,59 +101,6 @@ func transformLogcArgs(c *gin.Context, msg string, keysAndValues []interface{}) 
 		keysAndValues = append(keysAndValues, "reqID", c.MustGet("RequestId"))
 	}
 	return msg, keysAndValues
-}
-
-func loggingMiddleware(logger *Logger) gin.HandlerFunc {
-	var requestCount int64
-	return func(c *gin.Context) {
-		reqCount := strconv.FormatInt(atomic.AddInt64(&requestCount, 1), 10)
-		c.Set("RequestCount", reqCount)
-
-		reqPath := c.Request.URL.Path
-		logger.Debugc(c, fmt.Sprintf("Incoming request: %s", reqPath))
-		start := time.Now()
-		c.Next()
-
-		msg := "Request served"
-		status := c.Writer.Status()
-
-		meta := []interface{}{
-			"path", reqPath,
-			"comment", c.Errors.ByType(gin.ErrorTypePrivate).String(),
-			"latency", time.Now().Sub(start),
-			"clientIP", c.ClientIP(),
-			"method", c.Request.Method,
-			"statusCode", status,
-		}
-
-		switch {
-		case status == 200 || status == 201:
-			logger.Infoc(c, msg, meta...)
-		case status == 404:
-			logger.Warnc(c, msg, meta...)
-		default:
-			logger.Errorc(c, msg, meta...)
-		}
-	}
-}
-
-/*
-contextLoggingFn creates a loggingFn to be used in
-places that do not necessarily need access to the gin context
-*/
-func (server *Server) contextLoggingFn(c *gin.Context) loggingFn {
-	return func(level logLevel, msg string, keysAndValues ...interface{}) {
-		switch level {
-		case debugLevel:
-			server.Logger.Debugc(c, msg, keysAndValues...)
-		case infoLevel:
-			server.Logger.Infoc(c, msg, keysAndValues...)
-		case warnLevel:
-			server.Logger.Warnc(c, msg, keysAndValues...)
-		case errorLevel:
-			server.Logger.Errorc(c, msg, keysAndValues...)
-		}
-	}
 }
 
 func init() {
