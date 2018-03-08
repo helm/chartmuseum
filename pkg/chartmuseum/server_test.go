@@ -8,7 +8,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	pathutil "path"
 	"testing"
@@ -76,30 +75,30 @@ func (suite *ServerTestSuite) SetupSuite() {
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
 
-	server, err := NewServer(ServerOptions{backend, false, false, true, false, false, false, "", "", "", "", "", "", "", 0, ""})
+	server, err := NewServer(ServerOptions{backend, false, false, true, false, false, false, false, "", "", "", "", "", "", "", 0, ""})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new server, logJson=false, debug=false, disabled=false, overwrite=false, anon=false")
 
-	server, err = NewServer(ServerOptions{backend, true, true, true, false, false, false, "", "", "", "", "", "", "", 0, ""})
+	server, err = NewServer(ServerOptions{backend, true, true, true, false, false, false, false, "", "", "", "", "", "", "", 0, ""})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new server, logJson=true, debug=true, disabled=false, overwrite=false, anon=false")
 
-	server, err = NewServer(ServerOptions{backend, false, true, true, false, false, true, "", "", "", "user", "pass", "chart", "prov", 10, ""})
+	server, err = NewServer(ServerOptions{backend, false, true, true, false, false, false, true, "", "", "", "user", "pass", "chart", "prov", 10, ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false, anon=true")
 
 	suite.Server = server
 
-	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, false, false, false, "", "", "", "", "", "", "", 0, ""})
+	disabledAPIServer, err := NewServer(ServerOptions{backend, false, true, false, false, false, false, false, "", "", "", "", "", "", "", 0, ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=true, overwrite=false")
 
 	suite.DisabledAPIServer = disabledAPIServer
 
-	overwriteServer, err := NewServer(ServerOptions{backend, false, true, true, true, false, false, "", "", "", "", "", "chart", "prov", 0, ""})
+	overwriteServer, err := NewServer(ServerOptions{backend, false, true, true, true, false, false, false, "", "", "", "", "", "chart", "prov", 0, ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=true")
 
 	suite.OverwriteServer = overwriteServer
 
-	customContextServer, err := NewServer(ServerOptions{backend, true, true, true, false, false, false, "", "", "", "", "", "", "", 0, "/test"})
+	customContextServer, err := NewServer(ServerOptions{backend, true, true, true, false, false, false, false, "", "", "", "", "", "", "", 0, "/test"})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=true")
 
 	suite.CustomContextServer = customContextServer
@@ -130,7 +129,7 @@ func (suite *ServerTestSuite) SetupSuite() {
 	defer os.RemoveAll(suite.BrokenTempDirectory)
 
 	brokenBackend := storage.Backend(storage.NewLocalFilesystemBackend(suite.BrokenTempDirectory))
-	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, false, false, false, "", "", "", "", "", "", "", 0, ""})
+	brokenServer, err := NewServer(ServerOptions{brokenBackend, false, true, true, false, false, false, false, "", "", "", "", "", "", "", 0, ""})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false")
 
 	suite.BrokenServer = brokenServer
@@ -142,7 +141,7 @@ func (suite *ServerTestSuite) TearDownSuite() {
 }
 
 func (suite *ServerTestSuite) TestRegenerateRepositoryIndex() {
-	log := suite.Server.contextLoggingFn(&gin.Context{})
+	log := suite.Server.Logger.ContextLoggingFn(&gin.Context{})
 
 	objects, err := suite.Server.fetchChartsInStorage(log)
 	diff := storage.GetObjectSliceDiff(suite.Server.StorageCache, objects)
@@ -436,39 +435,3 @@ func TestServerTestSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))
 }
 
-func TestMapURLWithParamsBackToRouteTemplate(t *testing.T) {
-	tests := []struct {
-		ctx    *gin.Context
-		expect string
-	}{
-		{&gin.Context{
-			Request: &http.Request{URL: &url.URL{Path: "/index.yaml"}},
-		}, "/index.yaml"},
-		{&gin.Context{
-			Request: &http.Request{URL: &url.URL{Path: "/charts/foo-1.2.3.tgz"}},
-			Params:  gin.Params{gin.Param{"filename", "foo-1.2.3.tgz"}},
-		}, "/charts/:filename"},
-		{&gin.Context{
-			Request: &http.Request{URL: &url.URL{Path: "/api/charts/foo/1.2.3"}},
-			Params:  gin.Params{gin.Param{"name", "foo"}, gin.Param{"version", "1.2.3"}},
-		}, "/api/charts/:name/:version"},
-		{&gin.Context{
-			Request: &http.Request{URL: &url.URL{Path: "/api/charts/charts-repo/1.2.3+api"}},
-			Params:  gin.Params{gin.Param{"name", "charts-repo"}, gin.Param{"version", "1.2.3+api"}},
-		}, "/api/charts/:name/:version"},
-		{&gin.Context{
-			Request: &http.Request{URL: &url.URL{Path: "/api/charts/chart/1.2.3"}},
-			Params:  gin.Params{gin.Param{"name", "chart"}, gin.Param{"version", "1.2.3"}},
-		}, "/api/charts/:name/:version"},
-		{&gin.Context{
-			Request: &http.Request{URL: &url.URL{Path: "/api/charts/chart"}},
-			Params:  gin.Params{gin.Param{"name", "chart"}},
-		}, "/api/charts/:name"},
-	}
-	for _, tt := range tests {
-		got := mapURLWithParamsBackToRouteTemplate(tt.ctx)
-		if got != tt.expect {
-			t.Errorf("expected %s, got %s", tt.expect, got)
-		}
-	}
-}

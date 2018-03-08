@@ -44,6 +44,7 @@ func cliHandler(c *cli.Context) {
 		LogJSON:                c.Bool("log-json"),
 		EnableAPI:              !c.Bool("disable-api"),
 		EnableMetrics:          !c.Bool("disable-metrics"),
+		EnableMultiTenancy:     c.Bool("multitenant"),
 		AllowOverwrite:         c.Bool("allow-overwrite"),
 		ChartURL:               c.String("chart-url"),
 		TlsCert:                c.String("tls-cert"),
@@ -156,6 +157,11 @@ func crashIfContextMissingFlags(c *cli.Context, flags []string) {
 }
 
 var cliFlags = []cli.Flag{
+	cli.BoolFlag{
+		Name:   "multitenant",
+		Usage:  "enable multitenancy (WARNING: experimental)",
+		EnvVar: "MULTITENANT",
+	},
 	cli.BoolFlag{
 		Name:   "gen-index",
 		Usage:  "generate index.yaml, print to stdout and exit",

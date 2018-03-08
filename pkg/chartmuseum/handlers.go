@@ -68,7 +68,7 @@ func (server *Server) getHealthCheckHandler(c *gin.Context) {
 }
 
 func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
-	log := server.contextLoggingFn(c)
+	log := server.Logger.ContextLoggingFn(c)
 	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
@@ -78,7 +78,7 @@ func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
 }
 
 func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
-	log := server.contextLoggingFn(c)
+	log := server.Logger.ContextLoggingFn(c)
 	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
@@ -89,7 +89,7 @@ func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
 
 func (server *Server) getChartRequestHandler(c *gin.Context) {
 	name := c.Param("name")
-	log := server.contextLoggingFn(c)
+	log := server.Logger.ContextLoggingFn(c)
 	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
@@ -109,7 +109,7 @@ func (server *Server) getChartVersionRequestHandler(c *gin.Context) {
 	if version == "latest" {
 		version = ""
 	}
-	log := server.contextLoggingFn(c)
+	log := server.Logger.ContextLoggingFn(c)
 	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
 		c.JSON(500, errorResponse(err))
