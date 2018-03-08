@@ -63,6 +63,14 @@ func (suite *MainTestSuite) TestMain() {
 	suite.Panics(main, "google storage")
 	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with google backend")
 
+	os.Args = []string{"chartmuseum", "--storage", "microsoft", "--storage-microsoft-container", "x"}
+	suite.Panics(main, "microsoft storage")
+	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with microsoft backend")
+
+	os.Args = []string{"chartmuseum", "--storage", "alibaba", "--storage-alibaba-bucket", "x", "--storage-alibaba-endpoint", "oss-cn-beijing.aliyuncs.com"}
+	suite.Panics(main, "alibaba storage")
+	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with alibaba backend")
+
 	// test the --gen-index option
 	newServer = func(options chartmuseum.ServerOptions) (*chartmuseum.Server, error) {
 		s := &chartmuseum.Server{}

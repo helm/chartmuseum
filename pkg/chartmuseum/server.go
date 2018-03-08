@@ -34,6 +34,7 @@ type (
 		TlsKey                  string
 		ChartPostFormFieldName  string
 		ProvPostFormFieldName   string
+		IndexLimit              int
 		regenerationLock        *sync.Mutex
 		fetchedObjectsLock      *sync.Mutex
 		fetchedObjectsChans     []chan fetchedObjects
@@ -57,6 +58,8 @@ type (
 		Password               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
+		IndexLimit             int
+		ContextPath            string
 	}
 )
 
@@ -95,18 +98,16 @@ func NewServer(options ServerOptions) (*Server, error) {
 		TlsKey:                 options.TlsKey,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
+		IndexLimit:             options.IndexLimit,
 		regenerationLock:       &sync.Mutex{},
 		fetchedObjectsLock:     &sync.Mutex{},
 	}
 
-	if server.MultiTenancyEnabled {
-		logger.Debugw("Multi-Tenancy Enabled")
-		server.setMultiTenancyRoutes()
-	} else {
-		server.setRoutes(options.Username, options.Password, options.EnableAPI)
-		log := server.contextLoggingFn(&gin.Context{})
-		_, err = server.syncRepositoryIndex(log) // prime the cache
-	}
+	server.setRoutes(options.Username, options.Password, options.EnableAPI, options.ContextPath)
+
+	// prime the cache
+	log := server.contextLoggingFn(&gin.Context{})
+	_, err = server.syncRepositoryIndex(log)
 	return server, err
 }
 

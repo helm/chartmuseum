@@ -52,9 +52,11 @@ func cliHandler(c *cli.Context) {
 		Username:               c.String("basic-auth-user"),
 		Password:               c.String("basic-auth-pass"),
 		StorageBackend:         backend,
+		ContextPath:            c.String("context-path"),
 		ChartPostFormFieldName: c.String("chart-post-form-field-name"),
 		ProvPostFormFieldName:  c.String("prov-post-form-field-name"),
 		AnonymousGet:           c.Bool("auth-anonymous-get"),
+		IndexLimit:             c.Int("index-limit"),
 	}
 
 	server, err := newServer(options)
@@ -85,6 +87,8 @@ func backendFromContext(c *cli.Context) storage.Backend {
 		backend = googleBackendFromContext(c)
 	case "microsoft":
 		backend = microsoftBackendFromContext(c)
+	case "alibaba":
+		backend = alibabaBackendFromContext(c)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -127,6 +131,16 @@ func microsoftBackendFromContext(c *cli.Context) storage.Backend {
 	return storage.Backend(storage.NewMicrosoftBlobBackend(
 		c.String("storage-microsoft-container"),
 		c.String("storage-microsoft-prefix"),
+	))
+}
+
+func alibabaBackendFromContext(c *cli.Context) storage.Backend {
+	crashIfContextMissingFlags(c, []string{"storage-alibaba-bucket"})
+	return storage.Backend(storage.NewAlibabaCloudOSSBackend(
+		c.String("storage-alibaba-bucket"),
+		c.String("storage-alibaba-prefix"),
+		c.String("storage-alibaba-endpoint"),
+		c.String("storage-alibaba-sse"),
 	))
 }
 
@@ -270,6 +284,26 @@ var cliFlags = []cli.Flag{
 		EnvVar: "STORAGE_MICROSOFT_PREFIX",
 	},
 	cli.StringFlag{
+		Name:   "storage-alibaba-bucket",
+		Usage:  "OSS bucket to store charts for Alibaba Cloud storage backend",
+		EnvVar: "STORAGE_ALIBABA_BUCKET",
+	},
+	cli.StringFlag{
+		Name:   "storage-alibaba-prefix",
+		Usage:  "prefix to store charts for --storage-alibaba-cloud-bucket",
+		EnvVar: "STORAGE_ALIBABA_PREFIX",
+	},
+	cli.StringFlag{
+		Name:   "storage-alibaba-endpoint",
+		Usage:  "OSS endpoint",
+		EnvVar: "STORAGE_ALIBABA_ENDPOINT",
+	},
+	cli.StringFlag{
+		Name:   "storage-alibaba-sse",
+		Usage:  "server side encryption algorithm for Alibaba Cloud storage backend, AES256 or KMS",
+		EnvVar: "STORAGE_ALIBABA_SSE",
+	},
+	cli.StringFlag{
 		Name:   "chart-post-form-field-name",
 		Value:  "chart",
 		Usage:  "form field which will be queried for the chart file content",
@@ -280,5 +314,17 @@ var cliFlags = []cli.Flag{
 		Value:  "prov",
 		Usage:  "form field which will be queried for the provenance file content",
 		EnvVar: "PROV_POST_FORM_FIELD_NAME",
+	},
+	cli.IntFlag{
+		Name:   "index-limit",
+		Value:  0,
+		Usage:  "parallel scan limit for the repo indexer",
+		EnvVar: "INDEX_LIMIT",
+	},
+	cli.StringFlag{
+		Name:   "context-path",
+		Value:  "",
+		Usage:  "base context path",
+		EnvVar: "CONTEXT_PATH",
 	},
 }

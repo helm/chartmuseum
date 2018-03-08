@@ -6,7 +6,7 @@
 [![GoDoc](https://godoc.org/github.com/kubernetes-helm/chartmuseum?status.svg)](https://godoc.org/github.com/kubernetes-helm/chartmuseum)
 <sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
 
-*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md)** written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), and [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/).
+*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md)** written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), and [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss).
 
 Works as a valid Helm Chart Repository, and also provides an API for uploading new chart packages to storage etc.
 
@@ -116,7 +116,7 @@ mv ./chartmuseum /usr/local/bin
 ```
 Using `latest` in URLs above will get the latest binary (built from master branch).
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.3.1`).
+Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.4.1`).
 
 Determine your version with `chartmuseum --version`.
 
@@ -187,6 +187,22 @@ chartmuseum --debug --port=8080 \
   --storage-microsoft-prefix=""
 ```
 
+#### Using with Alibaba Cloud OSS Storage
+
+Make sure your environment is properly setup to access `my-oss-bucket`.
+
+To do so, you must set the following env vars:
+- `ALIBABA_CLOUD_ACCESS_KEY_ID`
+- `ALIBABA_CLOUD_ACCESS_KEY_SECRET`
+
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="alibaba" \
+  --storage-alibaba-bucket="my-oss-bucket" \
+  --storage-alibaba-prefix="" \
+  --storage-alibaba-endpoint="oss-cn-beijing.aliyuncs.com"
+```
+
 #### Using with local filesystem storage
 Make sure you have read-write access to `./chartstorage` (will create if doesn't exist)
 ```bash
@@ -223,8 +239,9 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--storage-amazon-sse=<algorithm>` - s3 server side encryption algorithm
 - `--chart-post-form-field-name=<field>` - form field which will be queried for the chart file content
 - `--prov-post-form-field-name=<field>` - form field which will be queried for the provenance file content
+- `--index-limit=<number>` - limit the number of parallel indexers
+- `--context-path=<path>` - base context path (new root for application routes)
 
-### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
 
 Example usage (S3):
@@ -276,3 +293,4 @@ chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mir
 
 ## Community
 You can reach the *ChartMuseum* community and developers in the [Kubernetes Slack](https://slack.k8s.io) **#chartmuseum** channel.
+
