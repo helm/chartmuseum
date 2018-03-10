@@ -4,7 +4,7 @@ import:
 - package: github.com/gin-gonic/gin
   version: v1.2
 - package: k8s.io/helm
-  version: v2.8.1
+  version: v2.8.2
 - package: github.com/urfave/cli
   version: v1.20.0
 - package: github.com/aws/aws-sdk-go
