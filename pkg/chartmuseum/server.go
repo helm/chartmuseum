@@ -1,39 +1,13 @@
 package chartmuseum
 
 import (
-	"fmt"
-	"sync"
-
-	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
-
-	"github.com/gin-gonic/gin"
+	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/singletenant"
 )
 
 type (
-	// Server contains a Logger, Router, storage backend and object cache
-	Server struct {
-		Logger                  *logger.Logger
-		Router                  *router.Router
-		RepositoryIndex         *repo.Index
-		StorageBackend          storage.Backend
-		StorageCache            []storage.Object
-		AllowOverwrite          bool
-		MultiTenancyEnabled     bool
-		AnonymousGet            bool
-		TlsCert                 string
-		TlsKey                  string
-		ChartPostFormFieldName  string
-		ProvPostFormFieldName   string
-		IndexLimit              int
-		regenerationLock        *sync.Mutex
-		fetchedObjectsLock      *sync.Mutex
-		fetchedObjectsChans     []chan fetchedObjects
-		regeneratedIndexesChans []chan indexRegeneration
-	}
-
 	// ServerOptions are options for constructing a Server
 	ServerOptions struct {
 		StorageBackend         storage.Backend
@@ -44,6 +18,7 @@ type (
 		EnableMetrics          bool
 		EnableMultiTenancy     bool
 		AnonymousGet           bool
+		GenIndex               bool
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
@@ -54,51 +29,52 @@ type (
 		IndexLimit             int
 		ContextPath            string
 	}
+
+	Server interface {
+		Listen(port int)
+	}
 )
 
 // NewServer creates a new Server instance
-func NewServer(options ServerOptions) (*Server, error) {
-	logger, err := logger.NewLogger(options.LogJSON, options.Debug)
+func NewServer(options ServerOptions) (Server, error) {
+	loggerOptions := logger.LoggerOptions{
+		Debug:   options.Debug,
+		LogJSON: options.LogJSON,
+	}
+	logger, err := logger.NewLogger(loggerOptions)
 	if err != nil {
-		return new(Server), nil
+		return nil, nil
 	}
 
-	router := router.NewRouter(logger, options.EnableMetrics)
-
-	server := &Server{
-		Logger:                 logger,
-		Router:                 router,
-		RepositoryIndex:        repo.NewIndex(options.ChartURL),
-		StorageBackend:         options.StorageBackend,
-		StorageCache:           []storage.Object{},
-		AllowOverwrite:         options.AllowOverwrite,
-		MultiTenancyEnabled:    options.EnableMultiTenancy,
-		AnonymousGet:           options.AnonymousGet,
-		TlsCert:                options.TlsCert,
-		TlsKey:                 options.TlsKey,
-		ChartPostFormFieldName: options.ChartPostFormFieldName,
-		ProvPostFormFieldName:  options.ProvPostFormFieldName,
-		IndexLimit:             options.IndexLimit,
-		regenerationLock:       &sync.Mutex{},
-		fetchedObjectsLock:     &sync.Mutex{},
+	routerOptions := router.RouterOptions{
+		Logger:        logger,
+		Username:      options.Username,
+		Password:      options.Password,
+		ContextPath:   options.ContextPath,
+		TlsCert:       options.TlsCert,
+		TlsKey:        options.TlsKey,
+		EnableAPI:     options.EnableAPI,
+		EnableMetrics: options.EnableMetrics,
 	}
+	router := router.NewRouter(routerOptions)
 
-	server.setRoutes(options.Username, options.Password, options.EnableAPI, options.ContextPath)
-
-	// prime the cache
-	log := logger.ContextLoggingFn(&gin.Context{})
-	_, err = server.syncRepositoryIndex(log)
-	return server, err
-}
-
-// Listen starts server on a given port
-func (server *Server) Listen(port int) {
-	server.Logger.Infow("Starting ChartMuseum",
-		"port", port,
-	)
-	if server.TlsCert != "" && server.TlsKey != "" {
-		server.Logger.Fatal(server.Router.RunTLS(fmt.Sprintf(":%d", port), server.TlsCert, server.TlsKey))
+	if options.EnableMultiTenancy {
+		panic("please run without the --multitenant flag")
 	} else {
-		server.Logger.Fatal(server.Router.Run(fmt.Sprintf(":%d", port)))
+		singleTenantServerOptions := singletenant.SingleTenantServerOptions{
+			Logger:                 logger,
+			Router:                 router,
+			StorageBackend:         options.StorageBackend,
+			EnableAPI:              options.EnableAPI,
+			AllowOverwrite:         options.AllowOverwrite,
+			GenIndex:               options.GenIndex,
+			ChartURL:               options.ChartURL,
+			ChartPostFormFieldName: options.ChartPostFormFieldName,
+			ProvPostFormFieldName:  options.ProvPostFormFieldName,
+			ContextPath:            options.ContextPath,
+			IndexLimit:             options.IndexLimit,
+		}
+		singleTenantServer, err := singletenant.NewSingleTenantServer(singleTenantServerOptions)
+		return singleTenantServer, err
 	}
 }

@@ -16,20 +16,62 @@ type (
 	// Router handles all incoming HTTP requests
 	Router struct {
 		*gin.Engine
+		Groups *RouterGroups
+		Logger        *logger.Logger
+		TlsCert       string
+		TlsKey        string
+	}
+
+	// RouterOptions TODO
+	RouterOptions struct {
+		Logger        *logger.Logger
+		Username      string
+		Password      string
+		ContextPath   string
+		TlsCert       string
+		TlsKey        string
+		EnableAPI     bool
+		EnableMetrics bool
 	}
 )
 
 // NewRouter creates a new Router instance
-func NewRouter(logger *logger.Logger, enableMetrics bool) *Router {
+func NewRouter(options RouterOptions) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
-	engine.Use(location.Default(), ginrequestid.RequestId(), loggingMiddleware(logger), gin.Recovery())
-	if enableMetrics {
+	engine.Use(location.Default(), ginrequestid.RequestId(), loggingMiddleware(options.Logger), gin.Recovery())
+	if options.EnableMetrics {
 		p := ginprometheus.NewPrometheus("chartmuseum")
 		p.ReqCntURLLabelMappingFn = mapURLWithParamsBackToRouteTemplate
 		p.Use(engine)
 	}
-	return &Router{engine}
+	router := &Router{
+		Engine:  engine,
+		Groups:  new(RouterGroups),
+		Logger:  options.Logger,
+		TlsCert: options.TlsCert,
+		TlsKey:  options.TlsKey,
+	}
+	routerGroupsOptions := RouterGroupsOptions{
+		Logger:      options.Logger,
+		Router:      router,
+		Username:    options.Username,
+		Password:    options.Password,
+		ContextPath: options.ContextPath,
+	}
+	router.Groups = NewRouterGroups(routerGroupsOptions)
+	return router
+}
+
+func (router *Router) Start(port int) {
+	router.Logger.Infow("Starting ChartMuseum",
+		"port", port,
+	)
+	if router.TlsCert != "" && router.TlsKey != "" {
+		router.Logger.Fatal(router.RunTLS(fmt.Sprintf(":%d", port), router.TlsCert, router.TlsKey))
+	} else {
+		router.Logger.Fatal(router.Run(fmt.Sprintf(":%d", port)))
+	}
 }
 
 /*

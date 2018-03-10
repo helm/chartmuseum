@@ -14,8 +14,6 @@ import (
 
 var (
 	crash = log.Fatal
-	echo  = fmt.Print
-	exit  = os.Exit
 
 	newServer = chartmuseum.NewServer
 
@@ -56,17 +54,13 @@ func cliHandler(c *cli.Context) {
 		ChartPostFormFieldName: c.String("chart-post-form-field-name"),
 		ProvPostFormFieldName:  c.String("prov-post-form-field-name"),
 		AnonymousGet:           c.Bool("auth-anonymous-get"),
+		GenIndex:               c.Bool("gen-index"),
 		IndexLimit:             c.Int("index-limit"),
 	}
 
 	server, err := newServer(options)
 	if err != nil {
 		crash(err)
-	}
-
-	if c.Bool("gen-index") {
-		echo(string(server.RepositoryIndex.Raw[:]))
-		exit(0)
 	}
 
 	server.Listen(c.Int("port"))
