@@ -1,4 +1,4 @@
-package chartmuseum
+package singletenant
 
 /*
 __../)
@@ -21,7 +21,7 @@ import (
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
-	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 
 	helm_repo "k8s.io/helm/pkg/repo"
 )
@@ -38,7 +38,7 @@ type (
 )
 
 // getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
-func (server *Server) getChartList(log logger.LoggingFn) <-chan fetchedObjects {
+func (server *SingleTenantServer) getChartList(log cm_logger.LoggingFn) <-chan fetchedObjects {
 	ch := make(chan fetchedObjects, 1)
 
 	server.fetchedObjectsLock.Lock()
@@ -62,7 +62,7 @@ func (server *Server) getChartList(log logger.LoggingFn) <-chan fetchedObjects {
 	return ch
 }
 
-func (server *Server) regenerateRepositoryIndex(log logger.LoggingFn, diff storage.ObjectSliceDiff, storageObjects []storage.Object) <-chan indexRegeneration {
+func (server *SingleTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, diff storage.ObjectSliceDiff, storageObjects []storage.Object) <-chan indexRegeneration {
 	ch := make(chan indexRegeneration, 1)
 
 	server.regenerationLock.Lock()
@@ -89,7 +89,7 @@ syncRepositoryIndex is the workhorse of maintaining a coherent index cache. It i
 comming in a short period. When two requests for the backing store arrive, only the first is served, and other consumers receive the
 result of this request. This allows very fast updates in constant time. See getChartList() and regenerateRepositoryIndex().
 */
-func (server *Server) syncRepositoryIndex(log logger.LoggingFn) (*repo.Index, error) {
+func (server *SingleTenantServer) syncRepositoryIndex(log cm_logger.LoggingFn) (*repo.Index, error) {
 	fo := <-server.getChartList(log)
 
 	if fo.err != nil {
@@ -108,8 +108,8 @@ func (server *Server) syncRepositoryIndex(log logger.LoggingFn) (*repo.Index, er
 	return ir.index, ir.err
 }
 
-func (server *Server) fetchChartsInStorage(log logger.LoggingFn) ([]storage.Object, error) {
-	log(logger.DebugLevel, "Fetching chart list from storage")
+func (server *SingleTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn) ([]storage.Object, error) {
+	log(cm_logger.DebugLevel, "Fetching chart list from storage")
 	allObjects, err := server.StorageBackend.ListObjects()
 	if err != nil {
 		return []storage.Object{}, err
@@ -126,8 +126,8 @@ func (server *Server) fetchChartsInStorage(log logger.LoggingFn) ([]storage.Obje
 	return filteredObjects, nil
 }
 
-func (server *Server) regenerateRepositoryIndexWorker(log logger.LoggingFn, diff storage.ObjectSliceDiff, storageObjects []storage.Object) (*repo.Index, error) {
-	log(logger.DebugLevel, "Regenerating index.yaml")
+func (server *SingleTenantServer) regenerateRepositoryIndexWorker(log cm_logger.LoggingFn, diff storage.ObjectSliceDiff, storageObjects []storage.Object) (*repo.Index, error) {
+	log(cm_logger.DebugLevel, "Regenerating index.yaml")
 	index := &repo.Index{
 		IndexFile: server.RepositoryIndex.IndexFile,
 		Raw:       server.RepositoryIndex.Raw,
@@ -164,16 +164,16 @@ func (server *Server) regenerateRepositoryIndexWorker(log logger.LoggingFn, diff
 	server.RepositoryIndex = index
 	server.StorageCache = storageObjects
 
-	log(logger.DebugLevel, "index.yaml regenerated")
+	log(cm_logger.DebugLevel, "index.yaml regenerated")
 	return index, nil
 }
 
-func (server *Server) removeIndexObject(log logger.LoggingFn, index *repo.Index, object storage.Object) error {
+func (server *SingleTenantServer) removeIndexObject(log cm_logger.LoggingFn, index *repo.Index, object storage.Object) error {
 	chartVersion, err := server.getObjectChartVersion(object, false)
 	if err != nil {
 		return server.checkInvalidChartPackageError(log, object, err, "removed")
 	}
-	log(logger.DebugLevel, "Removing chart from index",
+	log(cm_logger.DebugLevel, "Removing chart from index",
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
@@ -181,12 +181,12 @@ func (server *Server) removeIndexObject(log logger.LoggingFn, index *repo.Index,
 	return nil
 }
 
-func (server *Server) updateIndexObject(log logger.LoggingFn, index *repo.Index, object storage.Object) error {
+func (server *SingleTenantServer) updateIndexObject(log cm_logger.LoggingFn, index *repo.Index, object storage.Object) error {
 	chartVersion, err := server.getObjectChartVersion(object, true)
 	if err != nil {
 		return server.checkInvalidChartPackageError(log, object, err, "updated")
 	}
-	log(logger.DebugLevel, "Updating chart in index",
+	log(cm_logger.DebugLevel, "Updating chart in index",
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
@@ -194,13 +194,13 @@ func (server *Server) updateIndexObject(log logger.LoggingFn, index *repo.Index,
 	return nil
 }
 
-func (server *Server) addIndexObjectsAsync(log logger.LoggingFn, index *repo.Index, objects []storage.Object) error {
+func (server *SingleTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, index *repo.Index, objects []storage.Object) error {
 	numObjects := len(objects)
 	if numObjects == 0 {
 		return nil
 	}
 
-	log(logger.DebugLevel, "Loading charts packages from storage (this could take awhile)",
+	log(cm_logger.DebugLevel, "Loading charts packages from storage (this could take awhile)",
 		"total", numObjects,
 	)
 
@@ -255,7 +255,7 @@ func (server *Server) addIndexObjectsAsync(log logger.LoggingFn, index *repo.Ind
 		if cvRes.cv == nil {
 			continue
 		}
-		log(logger.DebugLevel, "Adding chart to index",
+		log(cm_logger.DebugLevel, "Adding chart to index",
 			"name", cvRes.cv.Name,
 			"version", cvRes.cv.Version,
 		)
@@ -265,7 +265,7 @@ func (server *Server) addIndexObjectsAsync(log logger.LoggingFn, index *repo.Ind
 	return nil
 }
 
-func (server *Server) getObjectChartVersion(object storage.Object, load bool) (*helm_repo.ChartVersion, error) {
+func (server *SingleTenantServer) getObjectChartVersion(object storage.Object, load bool) (*helm_repo.ChartVersion, error) {
 	if load {
 		var err error
 		object, err = server.StorageBackend.GetObject(object.Path)
@@ -279,9 +279,9 @@ func (server *Server) getObjectChartVersion(object storage.Object, load bool) (*
 	return repo.ChartVersionFromStorageObject(object)
 }
 
-func (server *Server) checkInvalidChartPackageError(log logger.LoggingFn, object storage.Object, err error, action string) error {
+func (server *SingleTenantServer) checkInvalidChartPackageError(log cm_logger.LoggingFn, object storage.Object, err error, action string) error {
 	if err == repo.ErrorInvalidChartPackage {
-		log(logger.WarnLevel, "Invalid package in storage",
+		log(cm_logger.WarnLevel, "Invalid package in storage",
 			"action", action,
 			"package", object.Path,
 		)

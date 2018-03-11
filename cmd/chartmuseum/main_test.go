@@ -7,15 +7,12 @@ import (
 	"testing"
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
-	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 
 	"github.com/stretchr/testify/suite"
 )
 
 type MainTestSuite struct {
 	suite.Suite
-	LastPrinted      string
-	LastExitCode     int
 	LastCrashMessage string
 }
 
@@ -24,17 +21,8 @@ func (suite *MainTestSuite) SetupSuite() {
 		suite.LastCrashMessage = fmt.Sprint(v...)
 		panic(v)
 	}
-	echo = func(v ...interface{}) (int, error) {
-		suite.LastPrinted = fmt.Sprint(v...)
-		return 0, nil
-	}
-	exit = func(code int) {
-		suite.LastExitCode = code
-		suite.LastCrashMessage = fmt.Sprintf("exited %d", code)
-		panic(fmt.Sprintf("exited %d", code))
-	}
-	newServer = func(options chartmuseum.ServerOptions) (*chartmuseum.Server, error) {
-		return &chartmuseum.Server{}, errors.New("graceful crash")
+	newServer = func(options chartmuseum.ServerOptions) (chartmuseum.Server, error) {
+		return nil, errors.New("graceful crash")
 	}
 }
 
@@ -70,19 +58,6 @@ func (suite *MainTestSuite) TestMain() {
 	os.Args = []string{"chartmuseum", "--storage", "alibaba", "--storage-alibaba-bucket", "x", "--storage-alibaba-endpoint", "oss-cn-beijing.aliyuncs.com"}
 	suite.Panics(main, "alibaba storage")
 	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with alibaba backend")
-
-	// test the --gen-index option
-	newServer = func(options chartmuseum.ServerOptions) (*chartmuseum.Server, error) {
-		s := &chartmuseum.Server{}
-		s.RepositoryIndex = repo.NewIndex("")
-		s.RepositoryIndex.Regenerate()
-		return s, nil
-	}
-	os.Args = []string{"chartmuseum", "--gen-index", "--storage", "local", "--storage-local-rootdir", "../../.chartstorage"}
-	suite.Panics(main, "exited 0")
-	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
-	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
-	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
 }
 
 func TestMainTestSuite(t *testing.T) {

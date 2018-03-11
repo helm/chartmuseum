@@ -15,6 +15,12 @@ type (
 		*zap.SugaredLogger
 	}
 
+	// LoggerOptions TODO
+	LoggerOptions struct {
+		Debug   bool
+		LogJSON bool
+	}
+
 	// LoggingFn is TODO
 	LoggingFn func(level logLevel, msg string, keysAndValues ...interface{})
 
@@ -29,17 +35,17 @@ const (
 )
 
 // NewLogger creates a new Logger instance
-func NewLogger(json bool, debug bool) (*Logger, error) {
+func NewLogger(options LoggerOptions) (*Logger, error) {
 	config := zap.NewDevelopmentConfig()
 	config.DisableStacktrace = true
 	config.Development = false
 	config.DisableCaller = true
-	if json {
+	if options.LogJSON {
 		config.Encoding = "json"
 	} else {
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	}
-	if !debug {
+	if !options.Debug {
 		config.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 	}
 	logger, err := config.Build()
@@ -49,7 +55,6 @@ func NewLogger(json bool, debug bool) (*Logger, error) {
 	defer logger.Sync()
 	return &Logger{logger.Sugar()}, nil
 }
-
 
 /*
 ContextLoggingFn creates a LoggingFn to be used in

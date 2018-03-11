@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 
 	"github.com/gin-gonic/gin"
 	"net/http/httptest"
@@ -18,22 +18,31 @@ type RouterTestSuite struct {
 }
 
 func (suite *RouterTestSuite) TestRouterHandleContext() {
-	logger, err := logger.NewLogger(true, true)
+	log, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug:   true,
+		LogJSON: true,
+	})
 	suite.Nil(err, "no error creating logger")
 
-	routerMetricsDisabled := NewRouter(logger, false)
+	routerMetricsDisabled := NewRouter(RouterOptions{
+		Logger:        log,
+		EnableMetrics: false,
+	})
 	testContext, _ := gin.CreateTestContext(httptest.NewRecorder())
 	testContext.Request, _ = http.NewRequest("GET", "/", nil)
 	routerMetricsDisabled.HandleContext(testContext)
 	suite.Equal(404, testContext.Writer.Status())
 
-	routerMetricsEnabled := NewRouter(logger, true)
+	routerMetricsEnabled := NewRouter(RouterOptions{
+		Logger:        log,
+		EnableMetrics: true,
+	})
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
 	testContext.Request, _ = http.NewRequest("GET", "/", nil)
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(404, testContext.Writer.Status())
 
-	routerMetricsEnabled.GET("/giveme200", func (c *gin.Context) {
+	routerMetricsEnabled.GET("/giveme200", func(c *gin.Context) {
 		c.Data(200, "text/html", []byte("200"))
 	})
 
@@ -42,7 +51,7 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
 
-	routerMetricsEnabled.GET("/giveme500", func (c *gin.Context) {
+	routerMetricsEnabled.GET("/giveme500", func(c *gin.Context) {
 		c.Data(500, "text/html", []byte("500"))
 	})
 

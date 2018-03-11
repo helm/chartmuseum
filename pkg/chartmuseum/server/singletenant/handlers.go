@@ -1,4 +1,4 @@
-package chartmuseum
+package singletenant
 
 import (
 	"bytes"
@@ -58,16 +58,16 @@ type (
 	filenameFromContentFn func([]byte) (string, error)
 )
 
-func (server *Server) getWelcomePageHandler(c *gin.Context) {
+func (server *SingleTenantServer) getWelcomePageHandler(c *gin.Context) {
 	url := location.Get(c)
 	c.Data(200, "text/html", []byte(fmt.Sprintf(welcomePageHTMLTemplate, url)))
 }
 
-func (server *Server) getHealthCheckHandler(c *gin.Context) {
+func (server *SingleTenantServer) getHealthCheckHandler(c *gin.Context) {
 	c.JSON(200, healthCheckResponse)
 }
 
-func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) getIndexFileRequestHandler(c *gin.Context) {
 	log := server.Logger.ContextLoggingFn(c)
 	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
@@ -77,7 +77,7 @@ func (server *Server) getIndexFileRequestHandler(c *gin.Context) {
 	c.Data(200, repo.IndexFileContentType, index.Raw)
 }
 
-func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	log := server.Logger.ContextLoggingFn(c)
 	index, err := server.syncRepositoryIndex(log)
 	if err != nil {
@@ -87,7 +87,7 @@ func (server *Server) getAllChartsRequestHandler(c *gin.Context) {
 	c.JSON(200, index.Entries)
 }
 
-func (server *Server) getChartRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) getChartRequestHandler(c *gin.Context) {
 	name := c.Param("name")
 	log := server.Logger.ContextLoggingFn(c)
 	index, err := server.syncRepositoryIndex(log)
@@ -103,7 +103,7 @@ func (server *Server) getChartRequestHandler(c *gin.Context) {
 	c.JSON(200, chart)
 }
 
-func (server *Server) getChartVersionRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) getChartVersionRequestHandler(c *gin.Context) {
 	name := c.Param("name")
 	version := c.Param("version")
 	if version == "latest" {
@@ -123,7 +123,7 @@ func (server *Server) getChartVersionRequestHandler(c *gin.Context) {
 	c.JSON(200, chartVersion)
 }
 
-func (server *Server) deleteChartVersionRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) deleteChartVersionRequestHandler(c *gin.Context) {
 	name := c.Param("name")
 	version := c.Param("version")
 	filename := repo.ChartPackageFilenameFromNameVersion(name, version)
@@ -140,7 +140,7 @@ func (server *Server) deleteChartVersionRequestHandler(c *gin.Context) {
 	c.JSON(200, objectDeletedResponse)
 }
 
-func (server *Server) getStorageObjectRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) getStorageObjectRequestHandler(c *gin.Context) {
 	filename := c.Param("filename")
 	isChartPackage := strings.HasSuffix(filename, repo.ChartPackageFileExtension)
 	isProvenanceFile := strings.HasSuffix(filename, repo.ProvenanceFileExtension)
@@ -160,7 +160,7 @@ func (server *Server) getStorageObjectRequestHandler(c *gin.Context) {
 	c.Data(200, repo.ChartPackageContentType, object.Content)
 }
 
-func (server *Server) extractAndValidateFormFile(req *http.Request, field string, fnFromContent filenameFromContentFn) (*packageOrProvenanceFile, int, error) {
+func (server *SingleTenantServer) extractAndValidateFormFile(req *http.Request, field string, fnFromContent filenameFromContentFn) (*packageOrProvenanceFile, int, error) {
 	file, header, _ := req.FormFile(field)
 	var ppf *packageOrProvenanceFile
 	if file == nil || header == nil {
@@ -185,7 +185,7 @@ func (server *Server) extractAndValidateFormFile(req *http.Request, field string
 	return &packageOrProvenanceFile{filename, content, field}, 200, nil
 }
 
-func (server *Server) postPackageAndProvenanceRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) postPackageAndProvenanceRequestHandler(c *gin.Context) {
 	var ppFiles []*packageOrProvenanceFile
 
 	type fieldFuncPair struct {
@@ -237,7 +237,7 @@ func (server *Server) postPackageAndProvenanceRequestHandler(c *gin.Context) {
 	c.JSON(201, objectSavedResponse)
 }
 
-func (server *Server) postRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) postRequestHandler(c *gin.Context) {
 	if c.ContentType() == "multipart/form-data" {
 		server.postPackageAndProvenanceRequestHandler(c) // new route handling form-based chart and/or prov files
 	} else {
@@ -245,7 +245,7 @@ func (server *Server) postRequestHandler(c *gin.Context) {
 	}
 }
 
-func (server *Server) postPackageRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) postPackageRequestHandler(c *gin.Context) {
 	content, err := c.GetRawData()
 	if err != nil {
 		c.JSON(500, errorResponse(err))
@@ -274,7 +274,7 @@ func (server *Server) postPackageRequestHandler(c *gin.Context) {
 	c.JSON(201, objectSavedResponse)
 }
 
-func (server *Server) postProvenanceFileRequestHandler(c *gin.Context) {
+func (server *SingleTenantServer) postProvenanceFileRequestHandler(c *gin.Context) {
 	content, err := c.GetRawData()
 	if err != nil {
 		c.JSON(500, errorResponse(err))

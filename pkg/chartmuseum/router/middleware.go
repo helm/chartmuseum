@@ -6,12 +6,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
-func loggingMiddleware(logger *logger.Logger) gin.HandlerFunc {
+func loggingMiddleware(logger *cm_logger.Logger) gin.HandlerFunc {
 	var requestCount int64
 	return func(c *gin.Context) {
 		reqCount := strconv.FormatInt(atomic.AddInt64(&requestCount, 1), 10)
