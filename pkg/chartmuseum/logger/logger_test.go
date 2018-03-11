@@ -14,16 +14,28 @@ type LoggerTestSuite struct {
 }
 
 func (suite *LoggerTestSuite) SetupSuite() {
-	logger, err := NewLogger(false, false)
+	logger, err := NewLogger(LoggerOptions{
+		Debug:   false,
+		LogJSON: false,
+	})
 	suite.Nil(err, "No err creating Logger, json=false, debug=false")
 
-	logger, err = NewLogger(false, true)
+	logger, err = NewLogger(LoggerOptions{
+		Debug:   false,
+		LogJSON: true,
+	})
 	suite.Nil(err, "No err creating Logger, json=false, debug=true")
 
-	logger, err = NewLogger(true, false)
+	logger, err = NewLogger(LoggerOptions{
+		Debug:   true,
+		LogJSON: false,
+	})
 	suite.Nil(err, "No err creating Logger, json=true, debug=false")
 
-	logger, err = NewLogger(true, true)
+	logger, err = NewLogger(LoggerOptions{
+		Debug:   true,
+		LogJSON: true,
+	})
 	suite.Nil(err, "No err creating Logger, json=true, debug=true")
 	suite.Logger = logger
 

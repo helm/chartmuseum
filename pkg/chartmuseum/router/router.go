@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 
 	"github.com/atarantini/ginrequestid"
 	"github.com/gin-contrib/location"
@@ -16,22 +16,22 @@ type (
 	// Router handles all incoming HTTP requests
 	Router struct {
 		*gin.Engine
-		Groups *RouterGroups
-		Logger        *logger.Logger
-		TlsCert       string
-		TlsKey        string
+		Groups  *RouterGroups
+		Logger  *cm_logger.Logger
+		TlsCert string
+		TlsKey  string
 	}
 
 	// RouterOptions TODO
 	RouterOptions struct {
-		Logger        *logger.Logger
+		Logger        *cm_logger.Logger
 		Username      string
 		Password      string
 		ContextPath   string
 		TlsCert       string
 		TlsKey        string
-		EnableAPI     bool
 		EnableMetrics bool
+		AnonymousGet  bool
 	}
 )
 
@@ -53,11 +53,12 @@ func NewRouter(options RouterOptions) *Router {
 		TlsKey:  options.TlsKey,
 	}
 	routerGroupsOptions := RouterGroupsOptions{
-		Logger:      options.Logger,
-		Router:      router,
-		Username:    options.Username,
-		Password:    options.Password,
-		ContextPath: options.ContextPath,
+		Logger:       options.Logger,
+		Router:       router,
+		Username:     options.Username,
+		Password:     options.Password,
+		ContextPath:  options.ContextPath,
+		AnonymousGet: options.AnonymousGet,
 	}
 	router.Groups = NewRouterGroups(routerGroupsOptions)
 	return router

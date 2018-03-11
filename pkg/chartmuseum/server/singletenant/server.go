@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
-	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
+	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
@@ -20,8 +20,8 @@ var (
 type (
 	// SingleTenantServer contains a Logger, Router, storage backend and object cache
 	SingleTenantServer struct {
-		Logger                  *logger.Logger
-		Router                  *router.Router
+		Logger                  *cm_logger.Logger
+		Router                  *cm_router.Router
 		RepositoryIndex         *repo.Index
 		StorageBackend          storage.Backend
 		StorageCache            []storage.Object
@@ -38,8 +38,8 @@ type (
 
 	// SingleTenantServerOptions are options for constructing a SingleTenantServer
 	SingleTenantServerOptions struct {
-		Logger                 *logger.Logger
-		Router                 *router.Router
+		Logger                 *cm_logger.Logger
+		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
 		EnableAPI              bool
 		AllowOverwrite         bool
@@ -47,7 +47,6 @@ type (
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
-		ContextPath            string
 		IndexLimit             int
 	}
 )

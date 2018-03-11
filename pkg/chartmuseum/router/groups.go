@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +16,7 @@ type (
 
 	// RouterGroupsOptions TODO
 	RouterGroupsOptions struct {
-		Logger       *logger.Logger
+		Logger       *cm_logger.Logger
 		Router       *Router
 		Username     string
 		Password     string
@@ -47,9 +47,9 @@ func NewRouterGroups(options RouterGroupsOptions) *RouterGroups {
 	}
 
 	routerGroups := &RouterGroups{
-		ReadAccess:  sysInfoGroup,
-		WriteAccess: readAccessGroup,
-		SysInfo:     writeAccessGroup,
+		ReadAccess:  readAccessGroup,
+		WriteAccess: writeAccessGroup,
+		SysInfo:     sysInfoGroup,
 	}
 
 	return routerGroups
