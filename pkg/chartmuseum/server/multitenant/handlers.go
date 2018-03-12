@@ -18,7 +18,7 @@ var (
 <body>
 <h1>WARNING</h1>
 <p>This ChartMuseum install is running in multitenancy mode.</p>
-<p>This feature is still and progress, and is not considered stable.</p>
+<p>This feature is still a work in progress, and is not considered stable.</p>
 <p>Please run without the --multitenant flag to disable this.</p>
 </body>
 </html>
