@@ -62,6 +62,7 @@ func NewServer(options ServerOptions) (Server, error) {
 	var server Server
 
 	if options.EnableMultiTenancy {
+		logger.Debug("Multitenancy enabled")
 		server, err = mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
 			Logger:         logger,
 			Router:         router,
