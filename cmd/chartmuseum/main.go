@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
@@ -36,9 +37,11 @@ func main() {
 
 func cliHandler(c *cli.Context) {
 	backend := backendFromContext(c)
+	cacheStore := cacheStoreFromContext(c)
 
 	options := chartmuseum.ServerOptions{
 		StorageBackend:         backend,
+		Cache:                  cacheStore,
 		ChartURL:               c.String("chart-url"),
 		TlsCert:                c.String("tls-cert"),
 		TlsKey:                 c.String("tls-key"),
@@ -136,6 +139,12 @@ func alibabaBackendFromContext(c *cli.Context) storage.Backend {
 		c.String("storage-alibaba-endpoint"),
 		c.String("storage-alibaba-sse"),
 	))
+}
+
+func cacheStoreFromContext(c *cli.Context) cache.Store {
+	// TODO inspect c for Redis args, return Redis store
+	store := cache.NewInMemoryStore()
+	return store
 }
 
 func crashIfContextMissingFlags(c *cli.Context, flags []string) {

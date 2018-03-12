@@ -13,6 +13,7 @@ type (
 	// ServerOptions are options for constructing a Server
 	ServerOptions struct {
 		StorageBackend         storage.Backend
+		Cache                  cache.Store
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
@@ -58,8 +59,6 @@ func NewServer(options ServerOptions) (Server, error) {
 		AnonymousGet:  options.AnonymousGet,
 	})
 
-	store := cache.NewInMemoryStore()
-
 	var server Server
 
 	if options.EnableMultiTenancy {
@@ -67,14 +66,14 @@ func NewServer(options ServerOptions) (Server, error) {
 			Logger:         logger,
 			Router:         router,
 			StorageBackend: options.StorageBackend,
-			Cache:          store,
+			Cache:          options.Cache,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{
 			Logger:                 logger,
 			Router:                 router,
 			StorageBackend:         options.StorageBackend,
-			Cache:                  store,
+			Cache:                  options.Cache,
 			EnableAPI:              options.EnableAPI,
 			AllowOverwrite:         options.AllowOverwrite,
 			GenIndex:               options.GenIndex,
