@@ -1,10 +1,11 @@
 package chartmuseum
 
 import (
-	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
+	mt "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/multitenant"
 	st "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/singletenant"
+	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
 
 type (
@@ -56,10 +57,16 @@ func NewServer(options ServerOptions) (Server, error) {
 		AnonymousGet:  options.AnonymousGet,
 	})
 
+	var server Server
+
 	if options.EnableMultiTenancy {
-		panic("please run without the --multitenant flag")
+		server, err = mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
+			Logger:         logger,
+			Router:         router,
+			StorageBackend: options.StorageBackend,
+		})
 	} else {
-		singleTenantServer, err := st.NewSingleTenantServer(st.SingleTenantServerOptions{
+		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{
 			Logger:                 logger,
 			Router:                 router,
 			StorageBackend:         options.StorageBackend,
@@ -71,6 +78,7 @@ func NewServer(options ServerOptions) (Server, error) {
 			ProvPostFormFieldName:  options.ProvPostFormFieldName,
 			IndexLimit:             options.IndexLimit,
 		})
-		return singleTenantServer, err
 	}
+
+	return server, err
 }

@@ -32,8 +32,14 @@ func (suite *ServerTestSuite) TestNewServer() {
 	serverOptions := ServerOptions{
 		StorageBackend: suite.Backend,
 	}
-	server, err := NewServer(serverOptions)
-	suite.NotNil(server)
+
+	singleTenantServer, err := NewServer(serverOptions)
+	suite.NotNil(singleTenantServer)
+	suite.Nil(err)
+
+	serverOptions.EnableMultiTenancy = true
+	multiTenantServer, err := NewServer(serverOptions)
+	suite.NotNil(multiTenantServer)
 	suite.Nil(err)
 }
 
