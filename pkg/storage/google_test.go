@@ -33,10 +33,10 @@ func (suite *GoogleTestSuite) TearDownSuite() {
 }
 
 func (suite *GoogleTestSuite) TestListObjects() {
-	_, err := suite.BrokenGoogleCSBackend.ListObjects()
+	_, err := suite.BrokenGoogleCSBackend.ListObjects("")
 	suite.NotNil(err, "cannot list objects with bad bucket")
 
-	_, err = suite.NoPrefixGoogleCSBackend.ListObjects()
+	_, err = suite.NoPrefixGoogleCSBackend.ListObjects("")
 	suite.Nil(err, "can list objects with good bucket, no prefix")
 }
 

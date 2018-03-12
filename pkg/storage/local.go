@@ -25,9 +25,9 @@ func NewLocalFilesystemBackend(rootDirectory string) *LocalFilesystemBackend {
 }
 
 // ListObjects lists all objects in root directory (depth 1)
-func (b LocalFilesystemBackend) ListObjects() ([]Object, error) {
+func (b LocalFilesystemBackend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
-	files, err := ioutil.ReadDir(b.RootDirectory)
+	files, err := ioutil.ReadDir(pathutil.Join(b.RootDirectory, prefix))
 	if err != nil {
 		return objects, err
 	}

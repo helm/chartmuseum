@@ -37,7 +37,7 @@ func NewGoogleCSBackend(bucket string, prefix string) *GoogleCSBackend {
 }
 
 // ListObjects lists all objects in Google Cloud Storage bucket, at prefix
-func (b GoogleCSBackend) ListObjects() ([]Object, error) {
+func (b GoogleCSBackend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
 	it := b.Client.Objects(b.Context, b.Query)
 	for {

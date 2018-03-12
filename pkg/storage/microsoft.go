@@ -42,7 +42,7 @@ func NewMicrosoftBlobBackend(container string, prefix string) *MicrosoftBlobBack
 }
 
 // ListObjects lists all objects in Microsoft Azure Blob Storage container
-func (b MicrosoftBlobBackend) ListObjects() ([]Object, error) {
+func (b MicrosoftBlobBackend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
 
 	if b.Container == nil {

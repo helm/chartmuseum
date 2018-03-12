@@ -24,7 +24,7 @@ func (suite *LocalTestSuite) SetupSuite() {
 }
 
 func (suite *LocalTestSuite) TestListObjects() {
-	_, err := suite.LocalFilesystemBackend.ListObjects()
+	_, err := suite.LocalFilesystemBackend.ListObjects("")
 	suite.NotNil(err, "cannot list objects with bad root dir")
 }
 

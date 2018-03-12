@@ -42,7 +42,7 @@ func NewAmazonS3Backend(bucket string, prefix string, region string, endpoint st
 }
 
 // ListObjects lists all objects in Amazon S3 bucket, at prefix
-func (b AmazonS3Backend) ListObjects() ([]Object, error) {
+func (b AmazonS3Backend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
 	s3Input := &s3.ListObjectsInput{
 		Bucket: aws.String(b.Bucket),

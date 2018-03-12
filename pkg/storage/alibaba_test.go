@@ -56,14 +56,14 @@ func (suite *AlibabaTestSuite) TearDownSuite() {
 }
 
 func (suite *AlibabaTestSuite) TestListObjects() {
-	_, err := suite.BrokenAlibabaOSSBackend.ListObjects()
+	_, err := suite.BrokenAlibabaOSSBackend.ListObjects("")
 	suite.NotNil(err, "cannot list objects with bad bucket")
 
-	objs, err := suite.NoPrefixAlibabaOSSBackend.ListObjects()
+	objs, err := suite.NoPrefixAlibabaOSSBackend.ListObjects("")
 	suite.Nil(err, "can list objects with good bucket, no prefix")
 	suite.Equal(len(objs), testCount, "able to list objects")
 
-	objs, err = suite.SSEAlibabaOSSBackend.ListObjects()
+	objs, err = suite.SSEAlibabaOSSBackend.ListObjects("")
 	suite.Nil(err, "can list objects with good bucket, SSE")
 	suite.Equal(len(objs), testCount, "able to list objects")
 }

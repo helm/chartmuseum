@@ -57,13 +57,13 @@ func NewAlibabaCloudOSSBackend(bucket string, prefix string, endpoint string, ss
 }
 
 // ListObjects lists all objects in Alibaba Cloud OSS bucket, at prefix
-func (b AlibabaCloudOSSBackend) ListObjects() ([]Object, error) {
+func (b AlibabaCloudOSSBackend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
 
-	prefix := oss.Prefix(b.Prefix)
+	pfx := oss.Prefix(b.Prefix)
 	marker := oss.Marker("")
 	for {
-		lor, err := b.Bucket.ListObjects(oss.MaxKeys(50), marker, prefix)
+		lor, err := b.Bucket.ListObjects(oss.MaxKeys(50), marker, pfx)
 		if err != nil {
 			return objects, err
 		}
@@ -82,7 +82,7 @@ func (b AlibabaCloudOSSBackend) ListObjects() ([]Object, error) {
 		if !lor.IsTruncated {
 			break
 		}
-		prefix = oss.Prefix(lor.Prefix)
+		pfx = oss.Prefix(lor.Prefix)
 		marker = oss.Marker(lor.NextMarker)
 	}
 
