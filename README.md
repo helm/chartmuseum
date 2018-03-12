@@ -271,6 +271,33 @@ helm install incubator/chartmuseum
 
 If interested in making changes, please submit a PR to kubernetes/charts. Before doing any work, please check for any [currently open pull requests](https://github.com/kubernetes/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
 
+## Multitenancy
+Multitenant support is currently under active development and is considered **experimental**.
+
+Important things to note:
+- local filesystem storage is the only tested backend
+- all "Chart Manipulation" routes are disabled
+
+To begin, start with a directory structure such as
+```
+charts
+├── org1
+│   ├── repoa
+│   │   └── nginx-ingress-0.9.3.tgz
+├── org2
+│   ├── repob
+│   │   └── chartmuseum-0.4.0.tgz
+```
+
+Start the server with the `--multitenant` option, pointing to the `charts/` directory:
+```
+chartmuseum --debug --port=8080 --multitenant --storage="local" --storage-local-rootdir=./charts 
+```
+
+This example will provide two separate Helm Chart Repositories at the following locations:
+- `http://localhost:8080/r/org1/repoa`
+- `http://localhost:8080/r/org2/repob`
+
 ## Notes on index.yaml
 The repository index (index.yaml) is dynamically generated based on packages found in storage. If you store your own version of index.yaml, it will be completely ignored.
 
