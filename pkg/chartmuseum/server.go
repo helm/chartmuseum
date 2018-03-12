@@ -1,6 +1,7 @@
 package chartmuseum
 
 import (
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	mt "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/multitenant"
@@ -57,6 +58,8 @@ func NewServer(options ServerOptions) (Server, error) {
 		AnonymousGet:  options.AnonymousGet,
 	})
 
+	store := cache.NewInMemoryStore()
+
 	var server Server
 
 	if options.EnableMultiTenancy {
@@ -64,12 +67,14 @@ func NewServer(options ServerOptions) (Server, error) {
 			Logger:         logger,
 			Router:         router,
 			StorageBackend: options.StorageBackend,
+			Cache:          store,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{
 			Logger:                 logger,
 			Router:                 router,
 			StorageBackend:         options.StorageBackend,
+			Cache:                  store,
 			EnableAPI:              options.EnableAPI,
 			AllowOverwrite:         options.AllowOverwrite,
 			GenIndex:               options.GenIndex,

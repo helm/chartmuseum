@@ -1,6 +1,7 @@
 package multitenant
 
 import (
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -12,6 +13,7 @@ type (
 		Logger         *cm_logger.Logger
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
+		Cache          cache.Store
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -19,6 +21,7 @@ type (
 		Logger         *cm_logger.Logger
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
+		Cache          cache.Store
 	}
 )
 
@@ -28,6 +31,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:         options.Logger,
 		Router:         options.Router,
 		StorageBackend: options.StorageBackend,
+		Cache:          options.Cache,
 	}
 
 	server.setRoutes()

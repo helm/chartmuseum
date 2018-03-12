@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -57,6 +58,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
+		Cache:          cache.NewInMemoryStore(),
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant server")
