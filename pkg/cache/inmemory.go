@@ -60,7 +60,6 @@ func (store *InMemoryStore) Delete(key string) error {
 		store.KeyLock.Lock()
 		delete(store.Keys, key)
 		store.KeyLock.Unlock()
-		return nil
 	}
-	return errors.New(fmt.Sprintf("Could not find key \"%s\"", key))
+	return nil
 }

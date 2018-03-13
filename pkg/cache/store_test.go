@@ -50,11 +50,8 @@ func (suite *StoreTestSuite) TestAllStores() {
 		suite.NotNil(err, fmt.Sprintf("error getting deleted key using %s store", key))
 		suite.Nil(value, fmt.Sprintf("error getting deleted key using %s store", key))
 
-		// in Redis, "A key is ignored if it does not exist"
-		if key == "InMemory" {
-			err = store.Delete("x")
-			suite.NotNil(err, fmt.Sprintf("error deleting already-deleted key using %s store", key))
-		}
+		err = store.Delete("x")
+		suite.Nil(err, fmt.Sprintf("no error deleting already-deleted key using %s store", key))
 	}
 }
 
