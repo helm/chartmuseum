@@ -44,9 +44,10 @@ func NewAmazonS3Backend(bucket string, prefix string, region string, endpoint st
 // ListObjects lists all objects in Amazon S3 bucket, at prefix
 func (b AmazonS3Backend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
+	prefix = pathutil.Join(b.Prefix, prefix)
 	s3Input := &s3.ListObjectsInput{
 		Bucket: aws.String(b.Bucket),
-		Prefix: aws.String(b.Prefix),
+		Prefix: aws.String(prefix),
 	}
 	for {
 		s3Result, err := b.Client.ListObjects(s3Input)
@@ -54,7 +55,7 @@ func (b AmazonS3Backend) ListObjects(prefix string) ([]Object, error) {
 			return objects, err
 		}
 		for _, obj := range s3Result.Contents {
-			path := removePrefixFromObjectPath(b.Prefix, *obj.Key)
+			path := removePrefixFromObjectPath(prefix, *obj.Key)
 			if objectPathIsInvalid(path) {
 				continue
 			}

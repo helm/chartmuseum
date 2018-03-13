@@ -274,9 +274,7 @@ If interested in making changes, please submit a PR to kubernetes/charts. Before
 ## Multitenancy
 Multitenant support is currently under active development and is considered **experimental**.
 
-Important things to note:
-- local filesystem storage is the only tested backend
-- all "Chart Manipulation" routes are disabled
+Please note that all "Chart Manipulation" routes are currently disabled.
 
 To begin, start with a directory structure such as
 ```
@@ -297,6 +295,8 @@ chartmuseum --debug --port=8080 --multitenant --storage="local" --storage-local-
 This example will provide two separate Helm Chart Repositories at the following locations:
 - `http://localhost:8080/r/org1/repoa`
 - `http://localhost:8080/r/org2/repob`
+
+This should work with all supported storage backends.
 
 ## Notes on index.yaml
 The repository index (index.yaml) is dynamically generated based on packages found in storage. If you store your own version of index.yaml, it will be completely ignored.
