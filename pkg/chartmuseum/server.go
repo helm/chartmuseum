@@ -48,7 +48,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		return nil, err
 	}
 
-	router := cm_router.NewRouter(cm_router.RouterOptions{
+	routerOptions := cm_router.RouterOptions{
 		Logger:        logger,
 		Username:      options.Username,
 		Password:      options.Password,
@@ -57,7 +57,12 @@ func NewServer(options ServerOptions) (Server, error) {
 		TlsKey:        options.TlsKey,
 		EnableMetrics: options.EnableMetrics,
 		AnonymousGet:  options.AnonymousGet,
-	})
+	}
+	if options.EnableMultiTenancy {
+		routerOptions.PathPrefix = mt.PathPrefix
+	}
+
+	router := cm_router.NewRouter(routerOptions)
 
 	var server Server
 

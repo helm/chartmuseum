@@ -293,8 +293,8 @@ chartmuseum --debug --port=8080 --multitenant --storage="local" --storage-local-
 ```
 
 This example will provide two separate Helm Chart Repositories at the following locations:
-- `http://localhost:8080/r/org1/repoa`
-- `http://localhost:8080/r/org2/repob`
+- `http://localhost:8080/org1/repoa`
+- `http://localhost:8080/org2/repob`
 
 This should work with all supported storage backends.
 
