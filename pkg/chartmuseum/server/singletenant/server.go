@@ -5,11 +5,13 @@ import (
 	"os"
 	"sync"
 
-	"github.com/gin-gonic/gin"
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -24,6 +26,7 @@ type (
 		Router                  *cm_router.Router
 		RepositoryIndex         *repo.Index
 		StorageBackend          storage.Backend
+		Cache                   cache.Store
 		StorageCache            []storage.Object
 		AllowOverwrite          bool
 		APIEnabled              bool
@@ -41,6 +44,7 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
+		Cache                  cache.Store
 		EnableAPI              bool
 		AllowOverwrite         bool
 		GenIndex               bool
@@ -58,6 +62,7 @@ func NewSingleTenantServer(options SingleTenantServerOptions) (*SingleTenantServ
 		Router:                 options.Router,
 		RepositoryIndex:        repo.NewIndex(options.ChartURL),
 		StorageBackend:         options.StorageBackend,
+		Cache:                  options.Cache,
 		StorageCache:           []storage.Object{},
 		APIEnabled:             options.EnableAPI,
 		AllowOverwrite:         options.AllowOverwrite,

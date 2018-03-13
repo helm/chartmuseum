@@ -30,6 +30,7 @@ type (
 		ContextPath   string
 		TlsCert       string
 		TlsKey        string
+		PathPrefix    string
 		EnableMetrics bool
 		AnonymousGet  bool
 	}
@@ -39,7 +40,11 @@ type (
 func NewRouter(options RouterOptions) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
-	engine.Use(location.Default(), ginrequestid.RequestId(), loggingMiddleware(options.Logger), gin.Recovery())
+
+	// Middleware
+	engine.Use(location.Default(), ginrequestid.RequestId(), loggingMiddleware(options.Logger, options.PathPrefix),
+		gin.Recovery(), prefixPathMiddleware(engine, options.PathPrefix))
+
 	if options.EnableMetrics {
 		p := ginprometheus.NewPrometheus("chartmuseum")
 		p.ReqCntURLLabelMappingFn = mapURLWithParamsBackToRouteTemplate

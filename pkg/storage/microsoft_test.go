@@ -33,10 +33,10 @@ func (suite *MicrosoftTestSuite) TearDownSuite() {
 }
 
 func (suite *MicrosoftTestSuite) TestListObjects() {
-	_, err := suite.BrokenAzureBlobBackend.ListObjects()
+	_, err := suite.BrokenAzureBlobBackend.ListObjects("")
 	suite.NotNil(err, "cannot list objects with bad bucket")
 
-	_, err = suite.NoPrefixAzureBlobBackend.ListObjects()
+	_, err = suite.NoPrefixAzureBlobBackend.ListObjects("")
 	suite.Nil(err, "can list objects with good bucket, no prefix")
 }
 

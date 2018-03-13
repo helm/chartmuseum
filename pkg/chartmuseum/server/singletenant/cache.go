@@ -110,7 +110,7 @@ func (server *SingleTenantServer) syncRepositoryIndex(log cm_logger.LoggingFn) (
 
 func (server *SingleTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn) ([]storage.Object, error) {
 	log(cm_logger.DebugLevel, "Fetching chart list from storage")
-	allObjects, err := server.StorageBackend.ListObjects()
+	allObjects, err := server.StorageBackend.ListObjects("")
 	if err != nil {
 		return []storage.Object{}, err
 	}

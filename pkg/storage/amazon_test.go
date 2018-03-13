@@ -45,13 +45,13 @@ func (suite *AmazonTestSuite) TearDownSuite() {
 }
 
 func (suite *AmazonTestSuite) TestListObjects() {
-	_, err := suite.BrokenAmazonS3Backend.ListObjects()
+	_, err := suite.BrokenAmazonS3Backend.ListObjects("")
 	suite.NotNil(err, "cannot list objects with bad bucket")
 
-	_, err = suite.NoPrefixAmazonS3Backend.ListObjects()
+	_, err = suite.NoPrefixAmazonS3Backend.ListObjects("")
 	suite.Nil(err, "can list objects with good bucket, no prefix")
 
-	_, err = suite.SSEAmazonS3Backend.ListObjects()
+	_, err = suite.SSEAmazonS3Backend.ListObjects("")
 	suite.Nil(err, "can list objects with good bucket, SSE")
 }
 

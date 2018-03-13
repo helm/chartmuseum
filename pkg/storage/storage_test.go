@@ -98,7 +98,7 @@ func (suite *StorageTestSuite) TearDownSuite() {
 
 func (suite *StorageTestSuite) TestListObjects() {
 	for key, backend := range suite.StorageBackends {
-		objects, err := backend.ListObjects()
+		objects, err := backend.ListObjects("")
 		message := fmt.Sprintf("no error listing objects using %s backend", key)
 		suite.Nil(err, message)
 		expectedNumObjects := 9

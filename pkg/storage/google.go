@@ -12,7 +12,6 @@ import (
 // GoogleCSBackend is a storage backend for Google Cloud Storage
 type GoogleCSBackend struct {
 	Prefix  string
-	Query   *storage.Query
 	Client  *storage.BucketHandle
 	Context context.Context
 }
@@ -26,10 +25,8 @@ func NewGoogleCSBackend(bucket string, prefix string) *GoogleCSBackend {
 	}
 	bucketHandle := client.Bucket(bucket)
 	prefix = cleanPrefix(prefix)
-	listQuery := storage.Query{Prefix: prefix}
 	b := &GoogleCSBackend{
 		Prefix:  prefix,
-		Query:   &listQuery,
 		Client:  bucketHandle,
 		Context: ctx,
 	}
@@ -37,9 +34,13 @@ func NewGoogleCSBackend(bucket string, prefix string) *GoogleCSBackend {
 }
 
 // ListObjects lists all objects in Google Cloud Storage bucket, at prefix
-func (b GoogleCSBackend) ListObjects() ([]Object, error) {
+func (b GoogleCSBackend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
-	it := b.Client.Objects(b.Context, b.Query)
+	prefix = pathutil.Join(b.Prefix, prefix)
+	listQuery := &storage.Query{
+		Prefix: prefix,
+	}
+	it := b.Client.Objects(b.Context, listQuery)
 	for {
 		attrs, err := it.Next()
 		if err == iterator.Done {
@@ -48,7 +49,7 @@ func (b GoogleCSBackend) ListObjects() ([]Object, error) {
 		if err != nil {
 			return objects, err
 		}
-		path := removePrefixFromObjectPath(b.Prefix, attrs.Name)
+		path := removePrefixFromObjectPath(prefix, attrs.Name)
 		if objectPathIsInvalid(path) {
 			continue
 		}
