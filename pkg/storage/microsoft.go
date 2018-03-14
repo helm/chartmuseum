@@ -50,14 +50,15 @@ func (b MicrosoftBlobBackend) ListObjects(prefix string) ([]Object, error) {
 	}
 
 	var params microsoft_storage.ListBlobsParameters
-	params.Prefix = b.Prefix
+	prefix = pathutil.Join(b.Prefix, prefix)
+	params.Prefix = prefix
 	response, err := b.Container.ListBlobs(params)
 	if err != nil {
 		return objects, err
 	}
 
 	for _, blob := range response.Blobs {
-		path := removePrefixFromObjectPath(b.Prefix, blob.Name)
+		path := removePrefixFromObjectPath(prefix, blob.Name)
 		if objectPathIsInvalid(path) {
 			continue
 		}

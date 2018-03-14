@@ -2,7 +2,9 @@ package router
 
 import (
 	"fmt"
+	pathutil "path"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -11,13 +13,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func loggingMiddleware(logger *cm_logger.Logger) gin.HandlerFunc {
+// this is needed due to issues with Gin handling wildcard routes:
+// https://github.com/gin-gonic/gin/issues/388
+func prefixPathMiddleware(engine *gin.Engine, pathPrefix string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		reqPath := c.Request.URL.Path
+		if strings.HasPrefix(reqPath, pathPrefix) {
+			return
+		}
+		c.Request.URL.Path = pathutil.Join(pathPrefix, reqPath)
+		engine.HandleContext(c)
+	}
+}
+
+func loggingMiddleware(logger *cm_logger.Logger, ignorePrefix string) gin.HandlerFunc {
 	var requestCount int64
 	return func(c *gin.Context) {
+		reqPath := c.Request.URL.Path
+		if ignorePrefix != "" && strings.HasPrefix(reqPath, ignorePrefix) {
+			return
+		}
+
 		reqCount := strconv.FormatInt(atomic.AddInt64(&requestCount, 1), 10)
 		c.Set("RequestCount", reqCount)
 
-		reqPath := c.Request.URL.Path
 		logger.Debugc(c, fmt.Sprintf("Incoming request: %s", reqPath))
 		start := time.Now()
 		c.Next()

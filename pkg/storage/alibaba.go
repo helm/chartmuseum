@@ -60,15 +60,16 @@ func NewAlibabaCloudOSSBackend(bucket string, prefix string, endpoint string, ss
 func (b AlibabaCloudOSSBackend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
 
-	pfx := oss.Prefix(b.Prefix)
+	prefix = pathutil.Join(b.Prefix, prefix)
+	ossPrefix := oss.Prefix(prefix)
 	marker := oss.Marker("")
 	for {
-		lor, err := b.Bucket.ListObjects(oss.MaxKeys(50), marker, pfx)
+		lor, err := b.Bucket.ListObjects(oss.MaxKeys(50), marker, ossPrefix)
 		if err != nil {
 			return objects, err
 		}
 		for _, obj := range lor.Objects {
-			path := removePrefixFromObjectPath(b.Prefix, obj.Key)
+			path := removePrefixFromObjectPath(prefix, obj.Key)
 			if objectPathIsInvalid(path) {
 				continue
 			}
@@ -82,7 +83,7 @@ func (b AlibabaCloudOSSBackend) ListObjects(prefix string) ([]Object, error) {
 		if !lor.IsTruncated {
 			break
 		}
-		pfx = oss.Prefix(lor.Prefix)
+		ossPrefix = oss.Prefix(lor.Prefix)
 		marker = oss.Marker(lor.NextMarker)
 	}
 
