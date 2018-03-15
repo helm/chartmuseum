@@ -8,6 +8,11 @@ import (
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
 
+var (
+	chartPackageContentType = "application/x-tar"
+	provenanceFileContentType = "application/pgp-signature"
+)
+
 type (
 	StorageObject struct {
 		*storage.Object
@@ -31,9 +36,9 @@ func (server *MultiTenantServer) getStorageObject(prefix string, filename string
 
 	var contentType string
 	if isProvenanceFile {
-		contentType = repo.ProvenanceFileContentType
+		contentType = chartPackageContentType
 	} else {
-		contentType = repo.ChartPackageContentType
+		contentType = chartPackageContentType
 	}
 
 	storageObject := &StorageObject{

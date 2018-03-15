@@ -287,9 +287,11 @@ charts
 │   │   └── chartmuseum-0.4.0.tgz
 ```
 
-Start the server with the `--multitenant` option, pointing to the `charts/` directory:
+This represents a storage layout appropriate for `--depth=2`. The organization level can be eliminated by using `--depth=1`. Technically, you could even use `--depth=0` to get a singletenant server.
+
+Start the server with the `--multitenant` and `--depth=2` options, pointing to the `charts/` directory:
 ```
-chartmuseum --debug --port=8080 --multitenant --storage="local" --storage-local-rootdir=./charts 
+chartmuseum --debug --multitenant --depth=2 --storage="local" --storage-local-rootdir=./charts
 ```
 
 This example will provide two separate Helm Chart Repositories at the following locations:

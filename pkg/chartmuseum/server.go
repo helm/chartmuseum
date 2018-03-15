@@ -31,6 +31,7 @@ type (
 		AnonymousGet           bool
 		GenIndex               bool
 		IndexLimit             int
+		Depth                  int
 	}
 
 	Server interface {
@@ -57,6 +58,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		TlsKey:        options.TlsKey,
 		EnableMetrics: options.EnableMetrics,
 		AnonymousGet:  options.AnonymousGet,
+		Depth:         options.Depth,
 	}
 	if options.EnableMultiTenancy {
 		routerOptions.PathPrefix = mt.PathPrefix
@@ -73,6 +75,7 @@ func NewServer(options ServerOptions) (Server, error) {
 			Router:         router,
 			StorageBackend: options.StorageBackend,
 			Cache:          options.Cache,
+			Depth:          options.Depth,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{

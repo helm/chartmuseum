@@ -59,6 +59,7 @@ func cliHandler(c *cli.Context) {
 		AnonymousGet:           c.Bool("auth-anonymous-get"),
 		GenIndex:               c.Bool("gen-index"),
 		IndexLimit:             c.Int("index-limit"),
+		Depth:                  c.Int("depth"),
 	}
 
 	server, err := newServer(options)
@@ -160,11 +161,6 @@ func crashIfContextMissingFlags(c *cli.Context, flags []string) {
 }
 
 var cliFlags = []cli.Flag{
-	cli.BoolFlag{
-		Name:   "multitenant",
-		Usage:  "enable multitenancy (WARNING: experimental)",
-		EnvVar: "MULTITENANT",
-	},
 	cli.BoolFlag{
 		Name:   "gen-index",
 		Usage:  "generate index.yaml, print to stdout and exit",
@@ -329,5 +325,16 @@ var cliFlags = []cli.Flag{
 		Value:  "",
 		Usage:  "base context path",
 		EnvVar: "CONTEXT_PATH",
+	},
+	cli.BoolFlag{
+		Name:   "multitenant",
+		Usage:  "enable multitenancy (WARNING: experimental)",
+		EnvVar: "MULTITENANT",
+	},
+	cli.IntFlag{
+		Name:   "depth",
+		Value:  0,
+		Usage:  "levels of nested repos for multitenancy (WARNING: experimental)",
+		EnvVar: "DEPTH",
 	},
 }

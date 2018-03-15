@@ -15,11 +15,21 @@ import (
 
 // this is needed due to issues with Gin handling wildcard routes:
 // https://github.com/gin-gonic/gin/issues/388
-func prefixPathMiddleware(engine *gin.Engine, pathPrefix string) gin.HandlerFunc {
+// also adds the "ChartMuseum-Repo" when appropriate
+func prefixPathMiddleware(engine *gin.Engine, pathPrefix string, depth int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		reqPath := c.Request.URL.Path
 		if strings.HasPrefix(reqPath, pathPrefix) {
 			return
+		}
+		pathSplit := strings.Split(reqPath, "/")
+		if len(pathSplit) > depth {
+			var a []string
+			for i := 1; i <= depth; i++ {
+				a = append(a, pathSplit[i])
+			}
+			cmRepoHeader := strings.Join(a, "/")
+			c.Request.Header.Add("ChartMuseum-Repo", cmRepoHeader)
 		}
 		c.Request.URL.Path = pathutil.Join(pathPrefix, reqPath)
 		engine.HandleContext(c)

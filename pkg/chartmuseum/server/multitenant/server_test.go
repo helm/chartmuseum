@@ -24,11 +24,14 @@ var testProvfilePath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.pr
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
-	Server               *MultiTenantServer
+	Depth0Server         *MultiTenantServer
+	Depth1Server         *MultiTenantServer
+	Depth2Server         *MultiTenantServer
+	Depth3Server         *MultiTenantServer
 	TempDirectory        string
 	TestTarballFilename  string
 	TestProvfileFilename string
-	StorageDirectory     map[string][]string
+	StorageDirectory     map[string]map[string][]string
 }
 
 func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string) gin.ResponseWriter {
@@ -39,61 +42,88 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 	}
 
 	switch stype {
-	case "anonymous":
-		suite.Server.Router.HandleContext(c)
+	case "depth0":
+		suite.Depth0Server.Router.HandleContext(c)
+	case "depth1":
+		suite.Depth1Server.Router.HandleContext(c)
+	case "depth2":
+		suite.Depth2Server.Router.HandleContext(c)
+	case "depth3":
+		suite.Depth3Server.Router.HandleContext(c)
 	}
 
 	return c.Writer
 }
 
-func (suite *MultiTenantServerTestSuite) populateOrgRepoDirectory(org string, repo string) {
-	testPrefix := fmt.Sprintf("%s/%s", org, repo)
-	newDir := pathutil.Join(suite.TempDirectory, testPrefix)
-	os.MkdirAll(newDir, os.ModePerm)
-
+func (suite *MultiTenantServerTestSuite) copyTestFilesTo(dir string) {
 	srcFileTarball, err := os.Open(testTarballPath)
 	suite.Nil(err, "no error opening test tarball")
 	defer srcFileTarball.Close()
 
-	destFileTarball, err := os.Create(pathutil.Join(newDir, "mychart-0.1.0.tgz"))
-	suite.Nil(err, fmt.Sprintf("no error creating new tarball in %s", testPrefix))
+	destFileTarball, err := os.Create(pathutil.Join(dir, "mychart-0.1.0.tgz"))
+	suite.Nil(err, fmt.Sprintf("no error creating new tarball in %s", dir))
 	defer destFileTarball.Close()
 
 	_, err = io.Copy(destFileTarball, srcFileTarball)
-	suite.Nil(err, fmt.Sprintf("no error copying test testball to %s", testPrefix))
+	suite.Nil(err, fmt.Sprintf("no error copying test testball to %s", dir))
 
 	err = destFileTarball.Sync()
-	suite.Nil(err, fmt.Sprintf("no error syncing temp tarball in %s", testPrefix))
+	suite.Nil(err, fmt.Sprintf("no error syncing temp tarball in %s", dir))
 
 	srcFileProvfile, err := os.Open(testProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
 	defer srcFileProvfile.Close()
 
-	destFileProvfile, err := os.Create(pathutil.Join(newDir, "mychart-0.1.0.tgz.prov"))
-	suite.Nil(err, fmt.Sprintf("no error creating new provenance file in %s", testPrefix))
+	destFileProvfile, err := os.Create(pathutil.Join(dir, "mychart-0.1.0.tgz.prov"))
+	suite.Nil(err, fmt.Sprintf("no error creating new provenance file in %s", dir))
 	defer destFileProvfile.Close()
 
 	_, err = io.Copy(destFileProvfile, srcFileProvfile)
-	suite.Nil(err, fmt.Sprintf("no error copying test provenance file to %s", testPrefix))
+	suite.Nil(err, fmt.Sprintf("no error copying test provenance file to %s", dir))
 
 	err = destFileProvfile.Sync()
-	suite.Nil(err, fmt.Sprintf("no error syncing temp provenance file in %s", testPrefix))
+	suite.Nil(err, fmt.Sprintf("no error syncing temp provenance file in %s", dir))
+}
+
+func (suite *MultiTenantServerTestSuite) populateOrgTeamRepoDirectory(org string, team string, repo string) {
+	testPrefix := fmt.Sprintf("%s/%s/%s", org, team, repo)
+	newDir := pathutil.Join(suite.TempDirectory, testPrefix)
+	os.MkdirAll(newDir, os.ModePerm)
+	suite.copyTestFilesTo(newDir)
+	suite.copyTestFilesTo(pathutil.Join(newDir, ".."))
+	suite.copyTestFilesTo(pathutil.Join(newDir, "../.."))
 }
 
 func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	timestamp := time.Now().Format("20060102150405")
 	suite.TempDirectory = fmt.Sprintf("../../../../.test/chartmuseum-multitenant-server/%s", timestamp)
+	os.MkdirAll(suite.TempDirectory, os.ModePerm)
+	suite.copyTestFilesTo(suite.TempDirectory)
 
-	suite.StorageDirectory = map[string][]string{
-		"org1": {"repo1", "repo2", "repo3"},
-		"org2": {"repo1", "repo2", "repo3"},
-		"org3": {"repo1", "repo2", "repo3"},
+	suite.StorageDirectory = map[string]map[string][]string{
+		"org1": {
+			"team1": {"repo1", "repo2", "repo3"},
+			"team2": {"repo1", "repo2", "repo3"},
+			"team3": {"repo1", "repo2", "repo3"},
+		},
+		"org2": {
+			"team1": {"repo1", "repo2", "repo3"},
+			"team2": {"repo1", "repo2", "repo3"},
+			"team3": {"repo1", "repo2", "repo3"},
+		},
+		"org3": {
+			"team1": {"repo1", "repo2", "repo3"},
+			"team2": {"repo1", "repo2", "repo3"},
+			"team3": {"repo1", "repo2", "repo3"},
+		},
 	}
 
 	// Scaffold out test storage directory structure
-	for org, repos := range suite.StorageDirectory {
-		for _, repo := range repos {
-			suite.populateOrgRepoDirectory(org, repo)
+	for org, teams := range suite.StorageDirectory {
+		for team, repos := range teams {
+			for _, repo := range repos {
+				suite.populateOrgTeamRepoDirectory(org, team, repo)
+			}
 		}
 	}
 
@@ -107,18 +137,66 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	router := cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:     logger,
 		PathPrefix: PathPrefix,
+		Depth:      0,
 	})
-
 	server, err := NewMultiTenantServer(MultiTenantServerOptions{
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
 		Cache:          cache.NewInMemoryStore(),
+		Depth:          0,
 	})
 	suite.NotNil(server)
-	suite.Nil(err, "no error creating new multitenant server")
+	suite.Nil(err, "no error creating new multitenant (depth=0) server")
+	suite.Depth0Server = server
 
-	suite.Server = server
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:     logger,
+		PathPrefix: PathPrefix,
+		Depth:      1,
+	})
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: backend,
+		Cache:          cache.NewInMemoryStore(),
+		Depth:          1,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new multitenant (depth=1) server")
+	suite.Depth1Server = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:     logger,
+		PathPrefix: PathPrefix,
+		Depth:      2,
+	})
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: backend,
+		Cache:          cache.NewInMemoryStore(),
+		Depth:          2,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new multitenant (depth=2) server")
+	suite.Depth2Server = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:     logger,
+		PathPrefix: PathPrefix,
+		Depth:      3,
+	})
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: backend,
+		Cache:          cache.NewInMemoryStore(),
+		Depth:          3,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new multitenant (depth=3) server")
+	suite.Depth3Server = server
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -127,37 +205,46 @@ func (suite *MultiTenantServerTestSuite) TearDownSuite() {
 }
 
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
-	var res gin.ResponseWriter
-
-	// GET /
-	res = suite.doRequest("anonymous", "GET", "/", nil, "")
-	suite.Equal(200, res.Status(), "200 GET /")
-
-	for org, repos := range suite.StorageDirectory {
-		for _, repo := range repos {
-			prefix := fmt.Sprintf("%s/%s", org, repo)
-
-			// GET /<org>/<repo>/index.yaml
-			res = suite.doRequest("anonymous", "GET", fmt.Sprintf("/%s/index.yaml", prefix), nil, "")
-			suite.Equal(200, res.Status(), fmt.Sprintf("200 GET /%s/index.yaml", prefix))
-
-			// GET /<org>/<repo>/charts/<filename>
-			res = suite.doRequest("anonymous", "GET", fmt.Sprintf("/%s/charts/mychart-0.1.0.tgz", prefix), nil, "")
-			suite.Equal(200, res.Status(), fmt.Sprintf("200 GET /%s/charts/mychart-0.1.0.tgz", prefix))
-
-			res = suite.doRequest("anonymous", "GET", fmt.Sprintf("/%s/charts/mychart-0.1.0.tgz.prov", prefix), nil, "")
-			suite.Equal(200, res.Status(), fmt.Sprintf("200 GET /%s/charts/mychart-0.1.0.tgz.prov", prefix))
-
-			res = suite.doRequest("anonymous", "GET", fmt.Sprintf("/%s/charts/fakechart-0.1.0.tgz", prefix), nil, "")
-			suite.Equal(404, res.Status(), fmt.Sprintf("404 GET /%s/charts/fakechart-0.1.0.tgz", prefix))
-
-			res = suite.doRequest("anonymous", "GET", fmt.Sprintf("/%s/charts/fakechart-0.1.0.tgz.prov", prefix), nil, "")
-			suite.Equal(404, res.Status(), fmt.Sprintf("404 GET /%s/charts/fakechart-0.1.0.tgz.prov", prefix))
-
-			res = suite.doRequest("anonymous", "GET", fmt.Sprintf("/%s/charts/fakechart-0.1.0.bad", prefix), nil, "")
-			suite.Equal(500, res.Status(), fmt.Sprintf("500 GET /%s/charts/fakechart-0.1.0.bad", prefix))
+	suite.testAllRoutes("", 0)
+	for org, teams := range suite.StorageDirectory {
+		suite.testAllRoutes(fmt.Sprintf("/%s", org), 1)
+		for team, repos := range teams {
+			suite.testAllRoutes(fmt.Sprintf("/%s/%s", org, team), 2)
+			for _, repo := range repos {
+				suite.testAllRoutes(fmt.Sprintf("/%s/%s/%s", org, team, repo), 3)
+			}
 		}
 	}
+}
+
+func (suite *MultiTenantServerTestSuite) testAllRoutes(prefix string, depth int) {
+	var res gin.ResponseWriter
+
+	stype := fmt.Sprintf("depth%d", depth)
+
+	// GET /
+	res = suite.doRequest(stype, "GET", "/", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /")
+
+	// GET /:repo/index.yaml
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/index.yaml", prefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/index.yaml", prefix))
+
+	// GET /:repo/charts/:filename
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/mychart-0.1.0.tgz", prefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/charts/mychart-0.1.0.tgz", prefix))
+
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/mychart-0.1.0.tgz.prov", prefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/charts/mychart-0.1.0.tgz.prov", prefix))
+
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/fakechart-0.1.0.tgz", prefix), nil, "")
+	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/charts/fakechart-0.1.0.tgz", prefix))
+
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/fakechart-0.1.0.tgz.prov", prefix), nil, "")
+	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/charts/fakechart-0.1.0.tgz.prov", prefix))
+
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/fakechart-0.1.0.bad", prefix), nil, "")
+	suite.Equal(500, res.Status(), fmt.Sprintf("500 GET %s/charts/fakechart-0.1.0.bad", prefix))
 }
 
 func TestMultiTenantServerTestSuite(t *testing.T) {

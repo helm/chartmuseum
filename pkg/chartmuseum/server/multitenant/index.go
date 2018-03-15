@@ -7,6 +7,10 @@ import (
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 )
 
+var (
+	indexFileContentType = "application/x-yaml"
+)
+
 func (server *MultiTenantServer) getIndexFile(prefix string) (*repo.Index, *HTTPError) {
 	objects, err := server.StorageBackend.ListObjects(prefix)
 	if err != nil {
@@ -25,7 +29,7 @@ func (server *MultiTenantServer) getIndexFile(prefix string) (*repo.Index, *HTTP
 		if err != nil {
 			continue
 		}
-		chartVersion.URLs[0] = fmt.Sprintf("charts/%s", op)
+		chartVersion.URLs = []string{fmt.Sprintf("charts/%s", op)}
 		indexFile.AddEntry(chartVersion)
 	}
 

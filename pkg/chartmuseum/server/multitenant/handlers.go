@@ -1,11 +1,6 @@
 package multitenant
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,23 +32,19 @@ func (server *MultiTenantServer) defaultHandler(c *gin.Context) {
 }
 
 func (server *MultiTenantServer) getIndexFileRequestHandler(c *gin.Context) {
-	orgName := c.Param("org")
-	repoName := c.Param("repo")
-	prefix := fmt.Sprintf("%s/%s", orgName, repoName)
-	indexFile, err := server.getIndexFile(prefix)
+	repo := server.getContextParam(c, "repo")
+	indexFile, err := server.getIndexFile(repo)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
-	c.Data(200, repo.IndexFileContentType, indexFile.Raw)
+	c.Data(200, indexFileContentType, indexFile.Raw)
 }
 
 func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) {
-	orgName := c.Param("org")
-	repoName := c.Param("repo")
-	prefix := fmt.Sprintf("%s/%s", orgName, repoName)
-	filename := c.Param("filename")
-	storageObject, err := server.getStorageObject(prefix, filename)
+	repo := server.getContextParam(c, "repo")
+	filename := server.getContextParam(c, "filename")
+	storageObject, err := server.getStorageObject(repo, filename)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
