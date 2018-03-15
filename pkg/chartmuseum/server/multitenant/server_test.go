@@ -71,7 +71,7 @@ func (suite *MultiTenantServerTestSuite) populateOrgRepoDirectory(org string, re
 
 	destFileProvfile, err := os.Create(pathutil.Join(newDir, "mychart-0.1.0.tgz.prov"))
 	suite.Nil(err, fmt.Sprintf("no error creating new provenance file in %s", testPrefix))
-	defer destFileTarball.Close()
+	defer destFileProvfile.Close()
 
 	_, err = io.Copy(destFileProvfile, srcFileProvfile)
 	suite.Nil(err, fmt.Sprintf("no error copying test provenance file to %s", testPrefix))
@@ -99,7 +99,9 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
 
-	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{})
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug: true,
+	})
 	suite.Nil(err, "no error creating logger")
 
 	router := cm_router.NewRouter(cm_router.RouterOptions{
