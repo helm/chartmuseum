@@ -18,6 +18,10 @@ import:
 - package: github.com/gin-contrib/location
   version: 5220ebf8be6c350431168cbd884f2c0ace0e3f4c
 
+# Redis support
+- package: github.com/go-redis/redis
+  version: v6.10.0
+
 # Used by Microsoft Azure Blob storage backend
 - package: github.com/Azure/azure-sdk-for-go
   version: v14.0.0

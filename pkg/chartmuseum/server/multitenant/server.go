@@ -1,14 +1,18 @@
 package multitenant
 
 import (
+	"fmt"
 	"math/rand"
 	pathutil "path"
+	"strings"
 	"time"
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -22,6 +26,7 @@ type (
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
 		Cache          cache.Store
+		Depth          int
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -30,6 +35,7 @@ type (
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
 		Cache          cache.Store
+		Depth          int
 	}
 )
 
@@ -40,6 +46,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Router:         options.Router,
 		StorageBackend: options.StorageBackend,
 		Cache:          options.Cache,
+		Depth:          options.Depth,
 	}
 
 	server.setRoutes()
@@ -52,8 +59,24 @@ func (server *MultiTenantServer) Listen(port int) {
 	server.Router.Start(port)
 }
 
+// get URL param, "repo" gets special treatment since it is augmented
+// in the headers by the router
+func (server *MultiTenantServer) getContextParam(c *gin.Context, param string) string {
+	if param == "repo" {
+		return c.Request.Header.Get("ChartMuseum-Repo")
+	}
+	return c.Param(param)
+}
+
 // simple helper to prepend the necessary path prefix for each route
-func p(path string) string {
+// based on server.Depth, ":arg1/:arg2" etc added for extended route matching
+func (server *MultiTenantServer) p(path string) string {
+	var a []string
+	for i := 1; i <= server.Depth; i++ {
+		a = append(a, fmt.Sprintf(":arg%d", i))
+	}
+	dynamicParamsPath := "/" + strings.Join(a, "/")
+	path = strings.Replace(path, "/:repo", dynamicParamsPath, 1)
 	return pathutil.Join(PathPrefix, path)
 }
 

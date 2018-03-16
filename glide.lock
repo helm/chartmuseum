@@ -1,5 +1,5 @@
-hash: a11a56b8ad5d6673feab708670cc57052d393e236d8cc9d30044f7f2b7d96d8b
-updated: 2018-03-09T18:23:43.660725-06:00
+hash: f0805a1913b183412dc7573e074a10bdda8b485a2f8df806075338b838e58faa
+updated: 2018-03-12T23:20:55.203123-05:00
 imports:
 - name: cloud.google.com/go
   version: 3137f1def9552929c7beb11f2ac7d2dd998e4040
@@ -81,6 +81,8 @@ imports:
   - render
 - name: github.com/go-ini/ini
   version: c787282c39ac1fc618827141a1f762240def08a3
+- name: github.com/go-redis/redis
+  version: 9133634a132e00309476e2d9acbf0c8058d4c888
 - name: github.com/gobwas/glob
   version: 5ccd90ef52e1e632236f7326478d4faa74f99438
   subpackages:

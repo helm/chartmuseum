@@ -15,7 +15,7 @@ type (
 
 	// InMemoryObject represents a single in-memory key value
 	InMemoryObject struct {
-		Contents  interface{}
+		Contents  []byte
 		WriteLock *sync.Mutex
 	}
 )
@@ -30,7 +30,7 @@ func NewInMemoryStore() *InMemoryStore {
 }
 
 // Get returns an object at key
-func (store *InMemoryStore) Get(key string) (interface{}, error) {
+func (store *InMemoryStore) Get(key string) ([]byte, error) {
 	if object, ok := store.Keys[key]; ok {
 		return object.Contents, nil
 	}
@@ -38,7 +38,7 @@ func (store *InMemoryStore) Get(key string) (interface{}, error) {
 }
 
 // Set saves a new value for key
-func (store *InMemoryStore) Set(key string, contents interface{}) error {
+func (store *InMemoryStore) Set(key string, contents []byte) error {
 	if object, ok := store.Keys[key]; ok {
 		object.WriteLock.Lock()
 		object.Contents = contents
@@ -60,7 +60,6 @@ func (store *InMemoryStore) Delete(key string) error {
 		store.KeyLock.Lock()
 		delete(store.Keys, key)
 		store.KeyLock.Unlock()
-		return nil
 	}
-	return errors.New(fmt.Sprintf("Could not find key \"%s\"", key))
+	return nil
 }

@@ -33,6 +33,7 @@ type (
 		PathPrefix    string
 		EnableMetrics bool
 		AnonymousGet  bool
+		Depth         int
 	}
 )
 
@@ -43,7 +44,7 @@ func NewRouter(options RouterOptions) *Router {
 
 	// Middleware
 	engine.Use(location.Default(), ginrequestid.RequestId(), loggingMiddleware(options.Logger, options.PathPrefix),
-		gin.Recovery(), prefixPathMiddleware(engine, options.PathPrefix))
+		gin.Recovery(), prefixPathMiddleware(engine, options.PathPrefix, options.Depth))
 
 	if options.EnableMetrics {
 		p := ginprometheus.NewPrometheus("chartmuseum")
