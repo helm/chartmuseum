@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -35,6 +36,18 @@ type (
 // HasExtension determines whether or not an object contains a file extension
 func (object Object) HasExtension(extension string) bool {
 	return filepath.Ext(object.Path) == fmt.Sprintf(".%s", extension)
+}
+
+// ObjectSliceToJSON converts an object slice into JSON-encoded data
+func ObjectSliceToJSON(os []Object) ([]byte, error) {
+	return json.Marshal(os)
+}
+
+// JSONToObjectSlice JSON-encoded data into an object slice
+func JSONToObjectSlice(j []byte) ([]Object, error) {
+	var os []Object
+	err := json.Unmarshal(j, &os)
+	return os, err
 }
 
 // GetObjectSliceDiff takes two objects slices and returns an ObjectSliceDiff
