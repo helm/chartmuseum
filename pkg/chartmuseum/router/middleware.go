@@ -45,7 +45,8 @@ func loggingMiddleware(logger *cm_logger.Logger, ignorePrefix string) gin.Handle
 		}
 
 		reqCount := strconv.FormatInt(atomic.AddInt64(&requestCount, 1), 10)
-		c.Set("RequestCount", reqCount)
+		c.Request.Header.Set("ChartMuseum-RequestCount", reqCount)
+		c.Request.Header.Set("ChartMuseum-RequestID", c.GetString("RequestId"))
 
 		logger.Debugc(c, fmt.Sprintf("Incoming request: %s", reqPath))
 		start := time.Now()

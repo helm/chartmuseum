@@ -101,9 +101,10 @@ func (logger *Logger) Errorc(c *gin.Context, msg string, keysAndValues ...interf
 
 // transformLogcArgs prefixes msg with RequestCount and adds RequestId to keysAndValues
 func transformLogcArgs(c *gin.Context, msg string, keysAndValues []interface{}) (string, []interface{}) {
-	if reqCount, exists := c.Get("RequestCount"); exists {
+	if reqCount := c.Request.Header.Get("ChartMuseum-RequestCount"); reqCount != "" {
 		msg = fmt.Sprintf("[%s] %s", reqCount, msg)
-		keysAndValues = append(keysAndValues, "reqID", c.MustGet("RequestId"))
+		reqID := c.Request.Header.Get("ChartMuseum-RequestID")
+		keysAndValues = append(keysAndValues, "reqID", reqID)
 	}
 	return msg, keysAndValues
 }
