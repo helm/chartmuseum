@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	pathutil "path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
@@ -22,11 +23,14 @@ var (
 type (
 	// MultiTenantServer contains a Logger, Router, storage backend and object cache
 	MultiTenantServer struct {
-		Logger         *cm_logger.Logger
-		Router         *cm_router.Router
-		StorageBackend storage.Backend
-		Cache          cache.Store
-		Depth          int
+		Logger            *cm_logger.Logger
+		Router            *cm_router.Router
+		StorageBackend    storage.Backend
+		Cache             cache.Store
+		Depth             int
+		IndexLimit        int
+		IndexCache        map[string]*cachedIndexFile
+		IndexCacheKeyLock *sync.Mutex
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -42,11 +46,13 @@ type (
 // NewMultiTenantServer creates a new MultiTenantServer instance
 func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer, error) {
 	server := &MultiTenantServer{
-		Logger:         options.Logger,
-		Router:         options.Router,
-		StorageBackend: options.StorageBackend,
-		Cache:          options.Cache,
-		Depth:          options.Depth,
+		Logger:            options.Logger,
+		Router:            options.Router,
+		StorageBackend:    options.StorageBackend,
+		Cache:             options.Cache,
+		Depth:             options.Depth,
+		IndexCache:        map[string]*cachedIndexFile{},
+		IndexCacheKeyLock: &sync.Mutex{},
 	}
 
 	server.setRoutes()

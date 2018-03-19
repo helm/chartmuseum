@@ -61,7 +61,7 @@ func ChartVersionFromStorageObject(object storage.Object) (*helm_repo.ChartVersi
 		return nil, err
 	}
 	chartVersion := &helm_repo.ChartVersion{
-		URLs:     []string{fmt.Sprintf("charts/%s", object.Path)},
+		URLs:     []string{fmt.Sprintf("charts/%s", pathutil.Base(object.Path))},
 		Metadata: chart.Metadata,
 		Digest:   digest,
 		Created:  object.LastModified,

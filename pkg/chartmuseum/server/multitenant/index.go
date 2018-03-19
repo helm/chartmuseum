@@ -1,38 +1,44 @@
 package multitenant
 
-
 import (
-	"fmt"
-
-	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
+	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
+	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
 
 var (
 	indexFileContentType = "application/x-yaml"
 )
 
-func (server *MultiTenantServer) getIndexFile(prefix string) (*repo.Index, *HTTPError) {
-	objects, err := server.StorageBackend.ListObjects(prefix)
-	if err != nil {
-		return new(repo.Index), &HTTPError{500, err.Error()}
+func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo string) (*cm_repo.Index, *HTTPError) {
+	server.initCachedIndexFile(log, repo)
+
+	fo := <-server.getChartList(log, repo)
+
+	if fo.err != nil {
+		errStr := fo.err.Error()
+		log(cm_logger.ErrorLevel, errStr,
+			"repo", repo,
+		)
+		return nil, &HTTPError{500, errStr}
 	}
 
-	indexFile := repo.NewIndex("")
-	for _, object := range objects {
-		op := object.Path
-		objectPath := fmt.Sprintf("%s/%s", prefix, op)
-		object, err = server.StorageBackend.GetObject(objectPath)
-		if err != nil {
-			continue
-		}
-		chartVersion, err := repo.ChartVersionFromStorageObject(object)
-		if err != nil {
-			continue
-		}
-		chartVersion.URLs = []string{fmt.Sprintf("charts/%s", op)}
-		indexFile.AddEntry(chartVersion)
+	diff := cm_storage.GetObjectSliceDiff(server.IndexCache[repo].StorageCache, fo.objects)
+
+	// return fast if no changes
+	if !diff.Change {
+		return server.IndexCache[repo].RepositoryIndex, nil
 	}
 
-	indexFile.Regenerate()
-	return indexFile, nil
+	ir := <-server.regenerateRepositoryIndex(log, repo, diff, fo.objects)
+
+	if ir.err != nil {
+		errStr := fo.err.Error()
+		log(cm_logger.ErrorLevel, errStr,
+			"repo", repo,
+		)
+		return ir.index, &HTTPError{500, errStr}
+	}
+
+	return ir.index, nil
 }

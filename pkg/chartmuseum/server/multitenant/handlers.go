@@ -33,7 +33,8 @@ func (server *MultiTenantServer) defaultHandler(c *gin.Context) {
 
 func (server *MultiTenantServer) getIndexFileRequestHandler(c *gin.Context) {
 	repo := server.getContextParam(c, "repo")
-	indexFile, err := server.getIndexFile(repo)
+	log := server.Logger.ContextLoggingFn(c)
+	indexFile, err := server.getIndexFile(log, repo)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
@@ -44,7 +45,8 @@ func (server *MultiTenantServer) getIndexFileRequestHandler(c *gin.Context) {
 func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) {
 	repo := server.getContextParam(c, "repo")
 	filename := server.getContextParam(c, "filename")
-	storageObject, err := server.getStorageObject(repo, filename)
+	log := server.Logger.ContextLoggingFn(c)
+	storageObject, err := server.getStorageObject(log, repo, filename)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
