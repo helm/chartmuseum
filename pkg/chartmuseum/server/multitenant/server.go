@@ -1,23 +1,12 @@
 package multitenant
 
 import (
-	"fmt"
-	"math/rand"
-	pathutil "path"
-	"strings"
 	"sync"
-	"time"
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
-
-	"github.com/gin-gonic/gin"
-)
-
-var (
-	PathPrefix string
 )
 
 type (
@@ -65,39 +54,7 @@ func (server *MultiTenantServer) Listen(port int) {
 	server.Router.Start(port)
 }
 
-// get URL param, "repo" gets special treatment since it is augmented
-// in the headers by the router
-func (server *MultiTenantServer) getContextParam(c *gin.Context, param string) string {
-	if param == "repo" {
-		return c.Request.Header.Get("ChartMuseum-Repo")
-	}
-	return c.Param(param)
-}
-
-// simple helper to prepend the necessary path prefix for each route
-// based on server.Depth, ":arg1/:arg2" etc added for extended route matching
+// simple helper to modify route definitions
 func (server *MultiTenantServer) p(path string) string {
-	var a []string
-	for i := 1; i <= server.Depth; i++ {
-		a = append(a, fmt.Sprintf(":arg%d", i))
-	}
-	dynamicParamsPath := "/" + strings.Join(a, "/")
-	path = strings.Replace(path, "/:repo", dynamicParamsPath, 1)
-	return pathutil.Join(PathPrefix, path)
-}
-
-// make the PathPrefix pretty much unguessable,
-// incoming requests with this prefix will not be logged
-func setPathPrefix() {
-	charset := "abcdefghijklmnopqrstuvwxyz0123456789"
-	b := make([]byte, 40)
-	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	PathPrefix = "/" + string(b)
-}
-
-func init() {
-	setPathPrefix()
+	return cm_router.PrefixRouteDefinition(path, server.Depth)
 }

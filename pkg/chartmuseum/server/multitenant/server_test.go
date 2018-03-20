@@ -136,7 +136,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 
 	router := cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:     logger,
-		PathPrefix: PathPrefix,
 		Depth:      0,
 	})
 	server, err := NewMultiTenantServer(MultiTenantServerOptions{
@@ -152,7 +151,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:     logger,
-		PathPrefix: PathPrefix,
 		Depth:      1,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -168,7 +166,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:     logger,
-		PathPrefix: PathPrefix,
 		Depth:      2,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -184,7 +181,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:     logger,
-		PathPrefix: PathPrefix,
 		Depth:      3,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -225,6 +221,10 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(prefix string, depth int)
 	// GET /
 	res = suite.doRequest(stype, "GET", "/", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /")
+
+	// GET /system/health
+	res = suite.doRequest(stype, "GET", "/system/health", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /system/health")
 
 	// GET /:repo/index.yaml
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/index.yaml", prefix), nil, "")

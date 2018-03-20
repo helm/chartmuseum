@@ -96,3 +96,8 @@ func (server *SingleTenantServer) genIndex() {
 	echo(string(server.RepositoryIndex.Raw[:]))
 	exit(0)
 }
+
+// simple helper to modify route definitions
+func (server *SingleTenantServer) p(path string) string {
+	return cm_router.PrefixRouteDefinition(path, 0)
+}

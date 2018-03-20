@@ -42,21 +42,23 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(404, testContext.Writer.Status())
 
-	routerMetricsEnabled.GET("/giveme200", func(c *gin.Context) {
+	prefixed200Path := PrefixRouteDefinition("/system/giveme200", 0)
+	routerMetricsEnabled.GET(prefixed200Path, func(c *gin.Context) {
 		c.Data(200, "text/html", []byte("200"))
 	})
 
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
-	testContext.Request, _ = http.NewRequest("GET", "/giveme200", nil)
+	testContext.Request, _ = http.NewRequest("GET", "/system/giveme200", nil)
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
 
-	routerMetricsEnabled.GET("/giveme500", func(c *gin.Context) {
+	prefixed500Path := PrefixRouteDefinition("/system/giveme500", 0)
+	routerMetricsEnabled.GET(prefixed500Path, func(c *gin.Context) {
 		c.Data(500, "text/html", []byte("500"))
 	})
 
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
-	testContext.Request, _ = http.NewRequest("GET", "/giveme500", nil)
+	testContext.Request, _ = http.NewRequest("GET", "/system/giveme500", nil)
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(500, testContext.Writer.Status())
 }

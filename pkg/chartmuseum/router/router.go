@@ -2,14 +2,23 @@ package router
 
 import (
 	"fmt"
+	"math/rand"
+	pathutil "path"
 	"regexp"
+	"strings"
+	"time"
 
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 
-	"github.com/atarantini/ginrequestid"
-	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"
+)
+
+var (
+	rootRoutePrefix   string
+	systemRoutePrefix string
+	apiRoutePrefix    string
+	repoRoutePrefix   string
 )
 
 type (
@@ -41,10 +50,10 @@ type (
 func NewRouter(options RouterOptions) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
+	engine.Use(gin.Recovery())
 
-	// Middleware
-	engine.Use(location.Default(), ginrequestid.RequestId(), loggingMiddleware(options.Logger, options.PathPrefix),
-		gin.Recovery(), prefixPathMiddleware(engine, options.PathPrefix, options.Depth))
+	// Add custom request wrapping middleware
+	engine.Use(requestWrapper(options.Logger, engine, options.ContextPath, options.Depth))
 
 	if options.EnableMetrics {
 		p := ginprometheus.NewPrometheus("chartmuseum")
@@ -81,6 +90,34 @@ func (router *Router) Start(port int) {
 	}
 }
 
+// PrefixRouteDefinition prepends the necessary path prefix for each
+// route based on depth, ":arg1/:arg2" etc added for extended route matching
+func PrefixRouteDefinition(path string, depth int) string {
+	var prefix string
+
+	// TODO: remove check of /health once singletenant goes away
+	if path == "/" || path == "/health" {
+		prefix = pathutil.Join(rootRoutePrefix, path)
+
+	} else if strings.HasPrefix(path, "/system/") {
+		prefix = pathutil.Join(systemRoutePrefix, path)
+
+	} else if strings.HasPrefix(path, "/api/") {
+		prefix = pathutil.Join(apiRoutePrefix, path)
+
+	} else if strings.HasPrefix(path, "/:repo/") {
+		var a []string
+		for i := 1; i <= depth; i++ {
+			a = append(a, fmt.Sprintf(":arg%d", i))
+		}
+		dynamicParamsPath := "/" + strings.Join(a, "/")
+		path = strings.Replace(path, "/:repo", dynamicParamsPath, 1)
+		prefix = pathutil.Join(repoRoutePrefix, path)
+	}
+
+	return prefix
+}
+
 /*
 mapURLWithParamsBackToRouteTemplate is a valid ginprometheus ReqCntURLLabelMappingFn.
 For every route containing parameters (e.g. `/charts/:filename`, `/api/charts/:name/:version`, etc)
@@ -94,4 +131,23 @@ func mapURLWithParamsBackToRouteTemplate(c *gin.Context) string {
 		url = re.ReplaceAllString(url, fmt.Sprintf(`$1/:%s$2`, p.Key))
 	}
 	return url
+}
+
+func getRandPathPrefix() string {
+	charset := "abcdefghijklmnopqrstuvwxyz0123456789"
+	b := make([]byte, 40)
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return "/" + string(b)
+}
+
+// make the prefixes pretty much unguessable,
+// incoming requests with these prefixes will not be treated properly
+func init() {
+	rootRoutePrefix = getRandPathPrefix()
+	systemRoutePrefix = getRandPathPrefix()
+	apiRoutePrefix = getRandPathPrefix()
+	repoRoutePrefix = getRandPathPrefix()
 }

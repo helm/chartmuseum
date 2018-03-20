@@ -1,21 +1,21 @@
 package singletenant
 
-func (server *SingleTenantServer) setRoutes() {
+func (s *SingleTenantServer) setRoutes() {
 	// Server Info
-	server.Router.Groups.ReadAccess.GET("/", server.getWelcomePageHandler)
-	server.Router.Groups.SysInfo.GET("/health", server.getHealthCheckHandler)
+	s.Router.Groups.ReadAccess.GET(s.p("/"), s.getWelcomePageHandler)
+	s.Router.Groups.SysInfo.GET(s.p("/health"), s.getHealthCheckHandler)
 
 	// Helm Chart Repository
-	server.Router.Groups.ReadAccess.GET("/index.yaml", server.getIndexFileRequestHandler)
-	server.Router.Groups.ReadAccess.GET("/charts/:filename", server.getStorageObjectRequestHandler)
+	s.Router.Groups.ReadAccess.GET(s.p("/:repo/index.yaml"), s.getIndexFileRequestHandler)
+	s.Router.Groups.ReadAccess.GET(s.p("/:repo/charts/:filename"), s.getStorageObjectRequestHandler)
 
 	// Chart Manipulation
-	if server.APIEnabled {
-		server.Router.Groups.ReadAccess.GET("/api/charts", server.getAllChartsRequestHandler)
-		server.Router.Groups.ReadAccess.GET("/api/charts/:name", server.getChartRequestHandler)
-		server.Router.Groups.ReadAccess.GET("/api/charts/:name/:version", server.getChartVersionRequestHandler)
-		server.Router.Groups.WriteAccess.POST("/api/charts", server.postRequestHandler)
-		server.Router.Groups.WriteAccess.POST("/api/prov", server.postProvenanceFileRequestHandler)
-		server.Router.Groups.WriteAccess.DELETE("/api/charts/:name/:version", server.deleteChartVersionRequestHandler)
+	if s.APIEnabled {
+		s.Router.Groups.ReadAccess.GET(s.p("/api/charts"), s.getAllChartsRequestHandler)
+		s.Router.Groups.ReadAccess.GET(s.p("/api/charts/:name"), s.getChartRequestHandler)
+		s.Router.Groups.ReadAccess.GET(s.p("/api/charts/:name/:version"), s.getChartVersionRequestHandler)
+		s.Router.Groups.WriteAccess.POST(s.p("/api/charts"), s.postRequestHandler)
+		s.Router.Groups.WriteAccess.POST(s.p("/api/prov"), s.postProvenanceFileRequestHandler)
+		s.Router.Groups.WriteAccess.DELETE(s.p("/api/charts/:name/:version"), s.deleteChartVersionRequestHandler)
 	}
 }

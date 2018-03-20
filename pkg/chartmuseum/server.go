@@ -60,9 +60,6 @@ func NewServer(options ServerOptions) (Server, error) {
 		AnonymousGet:  options.AnonymousGet,
 		Depth:         options.Depth,
 	}
-	if options.EnableMultiTenancy {
-		routerOptions.PathPrefix = mt.PathPrefix
-	}
 
 	router := cm_router.NewRouter(routerOptions)
 
