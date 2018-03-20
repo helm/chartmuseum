@@ -254,7 +254,7 @@ func (suite *SingleTenantServerTestSuite) TearDownSuite() {
 }
 
 func (suite *SingleTenantServerTestSuite) TestRegenerateRepositoryIndex() {
-	log := suite.Server.Logger.ContextLoggingFn(&gin.Context{Request: &http.Request{Header: http.Header{}}})
+	log := suite.Server.Logger.ContextLoggingFn(&gin.Context{})
 
 	objects, err := suite.Server.fetchChartsInStorage(log)
 	diff := storage.GetObjectSliceDiff(suite.Server.StorageCache, objects)
