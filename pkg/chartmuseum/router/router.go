@@ -102,17 +102,23 @@ func PrefixRouteDefinition(path string, depth int) string {
 	} else if strings.HasPrefix(path, "/system/") {
 		prefix = pathutil.Join(systemRoutePrefix, path)
 
-	} else if strings.HasPrefix(path, "/api/") {
-		prefix = pathutil.Join(apiRoutePrefix, path)
+	} else if strings.Contains(path, "/:repo/") {
+		hasRepoPrefix := strings.HasPrefix(path, "/:repo/")
 
-	} else if strings.HasPrefix(path, "/:repo/") {
 		var a []string
 		for i := 1; i <= depth; i++ {
 			a = append(a, fmt.Sprintf(":arg%d", i))
 		}
 		dynamicParamsPath := "/" + strings.Join(a, "/")
 		path = strings.Replace(path, "/:repo", dynamicParamsPath, 1)
-		prefix = pathutil.Join(repoRoutePrefix, path)
+
+		if hasRepoPrefix {
+			prefix = pathutil.Join(repoRoutePrefix, path)
+		}
+	}
+
+	if strings.HasPrefix(path, "/api/") {
+		prefix = pathutil.Join(apiRoutePrefix, path)
 	}
 
 	return prefix

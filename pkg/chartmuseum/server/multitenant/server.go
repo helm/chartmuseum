@@ -16,6 +16,7 @@ type (
 		Router            *cm_router.Router
 		StorageBackend    storage.Backend
 		Cache             cache.Store
+		APIEnabled        bool
 		Depth             int
 		IndexLimit        int
 		IndexCache        map[string]*cachedIndexFile
@@ -28,6 +29,7 @@ type (
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
 		Cache          cache.Store
+		EnableAPI      bool
 		Depth          int
 	}
 )
@@ -39,6 +41,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Router:            options.Router,
 		StorageBackend:    options.StorageBackend,
 		Cache:             options.Cache,
+		APIEnabled:        options.EnableAPI,
 		Depth:             options.Depth,
 		IndexCache:        map[string]*cachedIndexFile{},
 		IndexCacheKeyLock: &sync.Mutex{},

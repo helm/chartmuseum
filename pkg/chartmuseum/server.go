@@ -72,6 +72,7 @@ func NewServer(options ServerOptions) (Server, error) {
 			Router:         router,
 			StorageBackend: options.StorageBackend,
 			Cache:          options.Cache,
+			EnableAPI:      options.EnableAPI,
 			Depth:          options.Depth,
 		})
 	} else {
