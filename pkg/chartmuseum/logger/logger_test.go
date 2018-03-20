@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -39,9 +40,9 @@ func (suite *LoggerTestSuite) SetupSuite() {
 	suite.Nil(err, "No err creating Logger, json=true, debug=true")
 	suite.Logger = logger
 
-	context := &gin.Context{}
-	context.Set("RequestCount", "1")
-	context.Set("RequestId", "xyz")
+	context := &gin.Context{Request: &http.Request{Header: http.Header{}}}
+	context.Request.Header.Set("ChartMuseum-RequestCount", "1")
+	context.Request.Header.Set("ChartMuseum-RequestID", "xyz")
 	suite.Context = context
 }
 

@@ -2,6 +2,7 @@ package singletenant
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
 
@@ -76,7 +77,7 @@ func NewSingleTenantServer(options SingleTenantServerOptions) (*SingleTenantServ
 	server.setRoutes()
 
 	// prime the cache
-	log := server.Logger.ContextLoggingFn(&gin.Context{})
+	log := server.Logger.ContextLoggingFn(&gin.Context{Request: &http.Request{Header: http.Header{}}})
 	_, err := server.syncRepositoryIndex(log)
 
 	if options.GenIndex {

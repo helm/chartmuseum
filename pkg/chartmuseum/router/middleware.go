@@ -29,7 +29,7 @@ func prefixPathMiddleware(engine *gin.Engine, pathPrefix string, depth int) gin.
 				a = append(a, pathSplit[i])
 			}
 			cmRepoHeader := strings.Join(a, "/")
-			c.Request.Header.Add("ChartMuseum-Repo", cmRepoHeader)
+			c.Request.Header.Set("ChartMuseum-Repo", cmRepoHeader)
 		}
 		c.Request.URL.Path = pathutil.Join(pathPrefix, reqPath)
 		engine.HandleContext(c)
