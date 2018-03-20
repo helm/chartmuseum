@@ -73,6 +73,7 @@ func NewServer(options ServerOptions) (Server, error) {
 			StorageBackend: options.StorageBackend,
 			Cache:          options.Cache,
 			Depth:          options.Depth,
+			IndexLimit:     options.IndexLimit,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{

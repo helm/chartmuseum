@@ -18,6 +18,7 @@ type (
 		Cache             cache.Store
 		Depth             int
 		IndexLimit        int
+		Limiter           chan struct{}
 		IndexCache        map[string]*cachedIndexFile
 		IndexCacheKeyLock *sync.Mutex
 	}
@@ -29,6 +30,7 @@ type (
 		StorageBackend storage.Backend
 		Cache          cache.Store
 		Depth          int
+		IndexLimit     int
 	}
 )
 
@@ -42,6 +44,10 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Depth:             options.Depth,
 		IndexCache:        map[string]*cachedIndexFile{},
 		IndexCacheKeyLock: &sync.Mutex{},
+	}
+
+	if options.IndexLimit != 0 {
+		server.Limiter = make(chan struct{}, options.IndexLimit)
 	}
 
 	server.setRoutes()

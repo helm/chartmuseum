@@ -213,15 +213,14 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Limit parallelism to the index-limit parameter value
-	limiter := make(chan bool, server.IndexLimit)
 	for _, object := range objects {
-		if server.IndexLimit != 0 {
-			limiter <- true
-		}
 		go func(o cm_storage.Object) {
 			if server.IndexLimit != 0 {
-				<-limiter
+				// Limit parallelism to the index-limit parameter value
+				// if there are more than IndexLimit concurrent fetches, this send will block
+				server.Limiter <- struct{}{}
+				// once work is over, read one Limiter channel item to allow other workers to continue
+				defer func() { <-server.Limiter }()
 			}
 			select {
 			case <-ctx.Done():
@@ -237,12 +236,6 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 				cvChan <- cvResult{chartVersion, err}
 			}
 		}(object)
-	}
-	// Wait for remaining func() calls to terminate
-	if server.IndexLimit != 0 {
-		for i := 0; i < cap(limiter); i++ {
-			limiter <- true
-		}
 	}
 
 	for validCount := 0; validCount < numObjects; validCount++ {
