@@ -69,7 +69,7 @@ func NewSingleTenantServer(options SingleTenantServerOptions) (*SingleTenantServ
 		fetchedObjectsLock:     &sync.Mutex{},
 	}
 
-	server.setRoutes()
+	server.Router.SetRoutes(server.Routes())
 
 	// prime the cache
 	log := server.Logger.ContextLoggingFn(&gin.Context{})
@@ -90,9 +90,4 @@ func (server *SingleTenantServer) Listen(port int) {
 func (server *SingleTenantServer) genIndex() {
 	echo(string(server.RepositoryIndex.Raw[:]))
 	exit(0)
-}
-
-// simple helper to modify route definitions
-func (server *SingleTenantServer) p(path string) string {
-	return cm_router.PrefixRouteDefinition(path, 0)
 }

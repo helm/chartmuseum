@@ -46,7 +46,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		server.Limiter = make(chan struct{}, options.IndexLimit)
 	}
 
-	server.setRoutes()
+	server.Router.SetRoutes(server.Routes())
 
 	return server, nil
 }
@@ -54,9 +54,4 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 // Listen TODO
 func (server *MultiTenantServer) Listen(port int) {
 	server.Router.Start(port)
-}
-
-// simple helper to modify route definitions
-func (server *MultiTenantServer) p(path string) string {
-	return cm_router.PrefixRouteDefinition(path, server.Depth)
 }

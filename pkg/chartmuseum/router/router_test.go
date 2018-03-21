@@ -42,7 +42,7 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(404, testContext.Writer.Status())
 
-	prefixed200Path := PrefixRouteDefinition("/system/giveme200", 0)
+	prefixed200Path := routerMetricsEnabled.transformRoutePath("/system/giveme200")
 	routerMetricsEnabled.GET(prefixed200Path, func(c *gin.Context) {
 		c.Data(200, "text/html", []byte("200"))
 	})
@@ -52,7 +52,7 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
 
-	prefixed500Path := PrefixRouteDefinition("/system/giveme500", 0)
+	prefixed500Path := routerMetricsEnabled.transformRoutePath("/system/giveme500")
 	routerMetricsEnabled.GET(prefixed500Path, func(c *gin.Context) {
 		c.Data(500, "text/html", []byte("500"))
 	})
