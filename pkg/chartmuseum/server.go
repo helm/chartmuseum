@@ -71,7 +71,6 @@ func NewServer(options ServerOptions) (Server, error) {
 			Logger:         logger,
 			Router:         router,
 			StorageBackend: options.StorageBackend,
-			Cache:          options.Cache,
 			Depth:          options.Depth,
 			IndexLimit:     options.IndexLimit,
 		})
@@ -80,7 +79,6 @@ func NewServer(options ServerOptions) (Server, error) {
 			Logger:                 logger,
 			Router:                 router,
 			StorageBackend:         options.StorageBackend,
-			Cache:                  options.Cache,
 			EnableAPI:              options.EnableAPI,
 			AllowOverwrite:         options.AllowOverwrite,
 			GenIndex:               options.GenIndex,

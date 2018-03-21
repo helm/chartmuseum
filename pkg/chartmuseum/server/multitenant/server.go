@@ -3,7 +3,6 @@ package multitenant
 import (
 	"sync"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -15,7 +14,6 @@ type (
 		Logger            *cm_logger.Logger
 		Router            *cm_router.Router
 		StorageBackend    storage.Backend
-		Cache             cache.Store
 		Depth             int
 		IndexLimit        int
 		Limiter           chan struct{}
@@ -28,7 +26,6 @@ type (
 		Logger         *cm_logger.Logger
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
-		Cache          cache.Store
 		Depth          int
 		IndexLimit     int
 	}
@@ -40,7 +37,6 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:            options.Logger,
 		Router:            options.Router,
 		StorageBackend:    options.StorageBackend,
-		Cache:             options.Cache,
 		Depth:             options.Depth,
 		IndexCache:        map[string]*cachedIndexFile{},
 		IndexCacheKeyLock: &sync.Mutex{},

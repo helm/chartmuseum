@@ -184,42 +184,6 @@ func (suite *StorageTestSuite) TestGetObjectSliceDiff() {
 	suite.Empty(diff.Updated, "updated slice empty")
 }
 
-func (suite *StorageTestSuite) TestJSONConversion() {
-	now := time.Now()
-	osOriginal := []Object{
-		{
-			Path:         "test1.txt",
-			Content:      []byte("testing1"),
-			LastModified: now,
-		},
-		{
-			Path:         "test2.txt",
-			Content:      []byte("testing2"),
-			LastModified: now,
-		},
-		{
-			Path:         "test3.txt",
-			Content:      []byte("testing3"),
-			LastModified: now,
-		},
-	}
-
-	j, err := ObjectSliceToJSON(osOriginal)
-	suite.Nil(err,"no error converting object slice to JSON")
-
-	osNew, err := JSONToObjectSlice(j)
-	suite.Nil(err,"no error converting JSON to object slice")
-
-	for i, obj := range osNew {
-		suite.Equal(osOriginal[i].Path, obj.Path, fmt.Sprintf("obj at index %d has same Path as original", i))
-		suite.Equal(osOriginal[i].Content, obj.Content, fmt.Sprintf("obj at index %d has same Content as original", i))
-		suite.True(osOriginal[i].LastModified.Equal(obj.LastModified), fmt.Sprintf("obj at index %d has same LastModified as original", i))
-	}
-
-	diff := GetObjectSliceDiff(osOriginal, osNew)
-	suite.False(diff.Change, "no diff after converting object slice in and out of json")
-}
-
 func TestStorageTestSuite(t *testing.T) {
 	suite.Run(t, new(StorageTestSuite))
 }

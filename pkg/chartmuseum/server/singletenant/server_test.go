@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
@@ -102,7 +101,6 @@ func (suite *SingleTenantServerTestSuite) SetupSuite() {
 		Logger: logger,
 		Router: router,
 		StorageBackend: backend,
-		Cache: cache.NewInMemoryStore(),
 		EnableAPI: true,
 	})
 	suite.NotNil(server)
@@ -122,7 +120,6 @@ func (suite *SingleTenantServerTestSuite) SetupSuite() {
 		Logger: logger,
 		Router: router,
 		StorageBackend: backend,
-		Cache: cache.NewInMemoryStore(),
 		EnableAPI: true,
 	})
 	suite.NotNil(server)
@@ -145,7 +142,6 @@ func (suite *SingleTenantServerTestSuite) SetupSuite() {
 		Logger: logger,
 		Router: router,
 		StorageBackend: backend,
-		Cache: cache.NewInMemoryStore(),
 		EnableAPI: true,
 		IndexLimit: 10,
 		ChartPostFormFieldName: "chart",
@@ -163,7 +159,6 @@ func (suite *SingleTenantServerTestSuite) SetupSuite() {
 		Logger: logger,
 		Router: router,
 		StorageBackend: backend,
-		Cache: cache.NewInMemoryStore(),
 		EnableAPI: false,
 	})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=true, overwrite=false")
@@ -178,7 +173,6 @@ func (suite *SingleTenantServerTestSuite) SetupSuite() {
 		Logger: logger,
 		Router: router,
 		StorageBackend: backend,
-		Cache: cache.NewInMemoryStore(),
 		EnableAPI: true,
 		AllowOverwrite: true,
 		ChartPostFormFieldName: "chart",
@@ -197,7 +191,6 @@ func (suite *SingleTenantServerTestSuite) SetupSuite() {
 		Logger: logger,
 		Router: router,
 		StorageBackend: backend,
-		Cache: cache.NewInMemoryStore(),
 		EnableAPI: true,
 		AllowOverwrite: true,
 	})
@@ -240,7 +233,6 @@ func (suite *SingleTenantServerTestSuite) SetupSuite() {
 		Logger: logger,
 		Router: router,
 		StorageBackend: brokenBackend,
-		Cache: cache.NewInMemoryStore(),
 		EnableAPI: true,
 	})
 	suite.Nil(err, "no error creating new server, logJson=false, debug=true, disabled=false, overwrite=false")
@@ -309,7 +301,6 @@ func (suite *SingleTenantServerTestSuite) TestGenIndex() {
 		Logger: logger,
 		Router: router,
 		StorageBackend: suite.Server.StorageBackend,
-		Cache: cache.NewInMemoryStore(),
 		GenIndex: true,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")

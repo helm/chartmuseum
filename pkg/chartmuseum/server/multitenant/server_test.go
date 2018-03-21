@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -142,7 +141,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		Cache:          cache.NewInMemoryStore(),
 		Depth:          0,
 	})
 	suite.NotNil(server)
@@ -157,7 +155,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		Cache:          cache.NewInMemoryStore(),
 		Depth:          1,
 	})
 	suite.NotNil(server)
@@ -172,7 +169,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		Cache:          cache.NewInMemoryStore(),
 		Depth:          2,
 	})
 	suite.NotNil(server)
@@ -187,7 +183,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		Cache:          cache.NewInMemoryStore(),
 		Depth:          3,
 	})
 	suite.NotNil(server)
