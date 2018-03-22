@@ -2,7 +2,7 @@
 VERSION=0.4.2
 REVISION := $(shell git rev-parse --short HEAD;)
 
-HAS_GLIDE := $(shell command -v glide;)
+HAS_DEP := $(shell command -v dep;)
 HAS_PIP := $(shell command -v pip;)
 HAS_PIPENV := $(shell command -v pipenv;)
 HAS_VENV := $(shell command -v virtualenv;)
@@ -14,10 +14,10 @@ CM_LOADTESTING_HOST ?= http://localhost:8080
 
 .PHONY: bootstrap
 bootstrap:
-ifndef HAS_GLIDE
-	@go get -u github.com/Masterminds/glide
+ifndef HAS_DEP
+	@go get -u github.com/golang/dep/cmd/dep
 endif
-	@glide install --strip-vendor
+	@dep ensure -vendor-only
 
 .PHONY: build
 build: build_linux build_mac build_windows
@@ -25,19 +25,19 @@ build: build_linux build_mac build_windows
 build_windows: export GOARCH=amd64
 build_windows:
 	@GOOS=windows go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
-	    -o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
+		-o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
 
 build_linux: export GOARCH=amd64
 build_linux: export CGO_ENABLED=0
 build_linux:
 	@GOOS=linux go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
-	    -o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
+		-o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
 
 build_mac: export GOARCH=amd64
 build_mac: export CGO_ENABLED=0
 build_mac:
 	@GOOS=darwin go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
-	    -o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
+		-o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
 
 .PHONY: clean
 clean:
@@ -81,7 +81,7 @@ acceptance: setup-test-environment
 run:
 	@rm -rf .chartstorage/
 	@bin/darwin/amd64/chartmuseum --debug --port=8080 --storage="local" \
-	    --storage-local-rootdir=".chartstorage/"
+		--storage-local-rootdir=".chartstorage/"
 
 .PHONY: tree
 tree:
