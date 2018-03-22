@@ -17,7 +17,7 @@ bootstrap:
 ifndef HAS_DEP
 	@go get -u github.com/golang/dep/cmd/dep
 endif
-	@dep ensure -vendor-only
+	@dep ensure -v -vendor-only
 
 .PHONY: build
 build: build_linux build_mac build_windows
