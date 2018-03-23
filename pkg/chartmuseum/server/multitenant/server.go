@@ -1,11 +1,18 @@
 package multitenant
 
 import (
+	"fmt"
+	"os"
 	"sync"
 
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+)
+
+var (
+	echo = fmt.Print
+	exit = os.Exit
 )
 
 type (
@@ -26,6 +33,7 @@ type (
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
 		IndexLimit     int
+		GenIndex       bool
 	}
 )
 
@@ -40,12 +48,23 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		IndexCache:        map[string]*cachedIndexFile{},
 		IndexCacheKeyLock: &sync.Mutex{},
 	}
+
 	server.Router.SetRoutes(server.Routes())
 	err := server.primeCache()
+
+	if options.GenIndex && server.Router.Depth == 0 {
+		server.genIndex()
+	}
+
 	return server, err
 }
 
 // Listen TODO
 func (server *MultiTenantServer) Listen(port int) {
 	server.Router.Start(port)
+}
+
+func (server *MultiTenantServer) genIndex() {
+	echo(string(server.IndexCache[""].RepositoryIndex.Raw[:]))
+	exit(0)
 }
