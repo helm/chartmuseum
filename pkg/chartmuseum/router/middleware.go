@@ -99,7 +99,6 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 	}
 
 	// If root route, prefix with rootRoutePrefix
-	// TODO: remove check of /health once singletenant goes away
 	if reqPath == "/" || reqPath == "/health" {
 		c.Request.URL.Path = pathutil.Join(rootRoutePrefix, reqPath)
 		return
@@ -109,18 +108,9 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 	pathSplit := strings.Split(reqPath, "/")
 	numParts := len(pathSplit)
 
-	if numParts >= 2 {
-		// If prefixed with /system, prefix with defaultPrefix
-		if pathSplit[1] == "system" {
-			c.Request.URL.Path = pathutil.Join(systemRoutePrefix, reqPath)
-			return
-		}
-
-		// If prefixed with /api, prefix with apiPrefix
-		if pathSplit[1] == "api" {
-			c.Request.URL.Path = pathutil.Join(apiRoutePrefix, reqPath)
-			alreadyPrefixed = true
-		}
+	if numParts >= 2 && pathSplit[1] == "api" {
+		c.Request.URL.Path = pathutil.Join(apiRoutePrefix, reqPath)
+		alreadyPrefixed = true
 	}
 
 	// set "repo" in c.Request.Response.Header (if appropriate)

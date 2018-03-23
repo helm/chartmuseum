@@ -15,10 +15,9 @@ import (
 )
 
 var (
-	rootRoutePrefix   string
-	systemRoutePrefix string
-	apiRoutePrefix    string
-	repoRoutePrefix   string
+	rootRoutePrefix string
+	apiRoutePrefix  string
+	repoRoutePrefix string
 )
 
 type (
@@ -129,13 +128,8 @@ func (router *Router) SetRoutes(routes []Route) {
 }
 
 func (router *Router) transformRoutePath(path string) string {
-	// TODO: remove check of /health once singletenant goes away
 	if path == "/" || path == "/health" {
 		path = pathutil.Join(rootRoutePrefix, router.ContextPath, path)
-
-	} else if strings.HasPrefix(path, "/system/") {
-		path = pathutil.Join(systemRoutePrefix, router.ContextPath, path)
-
 	} else if strings.Contains(path, "/:repo/") {
 		var a []string
 		for i := 1; i <= router.Depth; i++ {
@@ -143,14 +137,12 @@ func (router *Router) transformRoutePath(path string) string {
 		}
 		dynamicParamsPath := "/" + strings.Join(a, "/")
 		path = strings.Replace(path, "/:repo", dynamicParamsPath, 1)
-
 		if strings.HasPrefix(path, "/api/") {
 			path = pathutil.Join(apiRoutePrefix, router.ContextPath, path)
 		} else {
 			path = pathutil.Join(repoRoutePrefix, router.ContextPath, path)
 		}
 	}
-
 	return path
 }
 
@@ -183,7 +175,6 @@ func getRandPathPrefix() string {
 // incoming requests with these prefixes will not be treated properly
 func init() {
 	rootRoutePrefix = getRandPathPrefix()
-	systemRoutePrefix = getRandPathPrefix()
 	apiRoutePrefix = getRandPathPrefix()
 	repoRoutePrefix = getRandPathPrefix()
 }

@@ -214,8 +214,8 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(prefix string, depth int)
 	suite.Equal(200, res.Status(), "200 GET /")
 
 	// GET /system/health
-	res = suite.doRequest(stype, "GET", "/system/health", nil, "")
-	suite.Equal(200, res.Status(), "200 GET /system/health")
+	res = suite.doRequest(stype, "GET", "/health", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /health")
 
 	// GET /:repo/index.yaml
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/index.yaml", prefix), nil, "")

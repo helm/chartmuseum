@@ -9,7 +9,7 @@ func (s *MultiTenantServer) Routes() []cm_router.Route {
 
 	serverInfoRoutes := []cm_router.Route{
 		{"READ", "GET", "/", s.defaultHandler},
-		{"SYSTEM", "GET", "/system/health", s.getHealthCheckHandler},
+		{"SYSTEM", "GET", "/health", s.getHealthCheckHandler},
 	}
 
 	helmChartRepositoryRoutes := []cm_router.Route{
