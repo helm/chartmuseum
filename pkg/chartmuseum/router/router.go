@@ -15,20 +15,21 @@ import (
 )
 
 var (
-	rootRoutePrefix   string
-	systemRoutePrefix string
-	apiRoutePrefix    string
-	repoRoutePrefix   string
+	rootRoutePrefix string
+	apiRoutePrefix  string
+	repoRoutePrefix string
 )
 
 type (
 	// Router handles all incoming HTTP requests
 	Router struct {
 		*gin.Engine
-		Groups  *RouterGroups
-		Logger  *cm_logger.Logger
-		TlsCert string
-		TlsKey  string
+		Groups      *RouterGroups
+		Logger      *cm_logger.Logger
+		TlsCert     string
+		TlsKey      string
+		ContextPath string
+		Depth       int
 	}
 
 	// RouterOptions TODO
@@ -44,6 +45,22 @@ type (
 		AnonymousGet  bool
 		Depth         int
 	}
+
+	// Route TODO
+	Route struct {
+		AccessGroup accessGroup
+		Method      string
+		Path        string
+		Handler     gin.HandlerFunc
+	}
+
+	accessGroup string
+)
+
+const (
+	ReadAccessGroup  accessGroup = "READ"
+	WriteAccessGroup accessGroup = "WRITE"
+	SystemInfoGroup  accessGroup = "SYSTEM"
 )
 
 // NewRouter creates a new Router instance
@@ -61,11 +78,13 @@ func NewRouter(options RouterOptions) *Router {
 		p.Use(engine)
 	}
 	router := &Router{
-		Engine:  engine,
-		Groups:  new(RouterGroups),
-		Logger:  options.Logger,
-		TlsCert: options.TlsCert,
-		TlsKey:  options.TlsKey,
+		Engine:      engine,
+		Groups:      new(RouterGroups),
+		Logger:      options.Logger,
+		TlsCert:     options.TlsCert,
+		TlsKey:      options.TlsKey,
+		ContextPath: options.ContextPath,
+		Depth:       options.Depth,
 	}
 	routerGroupsOptions := RouterGroupsOptions{
 		Logger:       options.Logger,
@@ -90,38 +109,41 @@ func (router *Router) Start(port int) {
 	}
 }
 
-// PrefixRouteDefinition prepends the necessary path prefix for each
+// SetRoutes applies list of routes, prepending the necessary path prefix for each
 // route based on depth, ":arg1/:arg2" etc added for extended route matching
-func PrefixRouteDefinition(path string, depth int) string {
-	var prefix string
+func (router *Router) SetRoutes(routes []Route) {
+	for _, route := range routes {
+		var accessGroup *gin.RouterGroup
+		switch route.AccessGroup {
+		case ReadAccessGroup:
+			accessGroup = router.Groups.ReadAccess
+		case WriteAccessGroup:
+			accessGroup = router.Groups.WriteAccess
+		case SystemInfoGroup:
+			accessGroup = router.Groups.SysInfo
+		}
+		path := router.transformRoutePath(route.Path)
+		accessGroup.Handle(route.Method, path, route.Handler)
+	}
+}
 
-	// TODO: remove check of /health once singletenant goes away
+func (router *Router) transformRoutePath(path string) string {
 	if path == "/" || path == "/health" {
-		prefix = pathutil.Join(rootRoutePrefix, path)
-
-	} else if strings.HasPrefix(path, "/system/") {
-		prefix = pathutil.Join(systemRoutePrefix, path)
-
+		path = pathutil.Join(rootRoutePrefix, path)
 	} else if strings.Contains(path, "/:repo/") {
-		hasRepoPrefix := strings.HasPrefix(path, "/:repo/")
-
 		var a []string
-		for i := 1; i <= depth; i++ {
+		for i := 1; i <= router.Depth; i++ {
 			a = append(a, fmt.Sprintf(":arg%d", i))
 		}
 		dynamicParamsPath := "/" + strings.Join(a, "/")
 		path = strings.Replace(path, "/:repo", dynamicParamsPath, 1)
-
-		if hasRepoPrefix {
-			prefix = pathutil.Join(repoRoutePrefix, path)
+		if strings.HasPrefix(path, "/api/") {
+			path = pathutil.Join(apiRoutePrefix, path)
+		} else {
+			path = pathutil.Join(repoRoutePrefix, path)
 		}
 	}
-
-	if strings.HasPrefix(path, "/api/") {
-		prefix = pathutil.Join(apiRoutePrefix, path)
-	}
-
-	return prefix
+	return path
 }
 
 /*
@@ -153,7 +175,6 @@ func getRandPathPrefix() string {
 // incoming requests with these prefixes will not be treated properly
 func init() {
 	rootRoutePrefix = getRandPathPrefix()
-	systemRoutePrefix = getRandPathPrefix()
 	apiRoutePrefix = getRandPathPrefix()
 	repoRoutePrefix = getRandPathPrefix()
 }

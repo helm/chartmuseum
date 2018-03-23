@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -32,6 +31,9 @@ type MultiTenantServerTestSuite struct {
 	TestTarballFilename  string
 	TestProvfileFilename string
 	StorageDirectory     map[string]map[string][]string
+	LastCrashMessage     string
+	LastPrinted          string
+	LastExitCode         int
 }
 
 func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string) gin.ResponseWriter {
@@ -95,6 +97,16 @@ func (suite *MultiTenantServerTestSuite) populateOrgTeamRepoDirectory(org string
 }
 
 func (suite *MultiTenantServerTestSuite) SetupSuite() {
+	echo = func(v ...interface{}) (int, error) {
+		suite.LastPrinted = fmt.Sprint(v...)
+		return 0, nil
+	}
+
+	exit = func(code int) {
+		suite.LastExitCode = code
+		suite.LastCrashMessage = fmt.Sprintf("exited %d", code)
+	}
+
 	timestamp := time.Now().Format("20060102150405")
 	suite.TempDirectory = fmt.Sprintf("../../../../.test/chartmuseum-multitenant-server/%s", timestamp)
 	os.MkdirAll(suite.TempDirectory, os.ModePerm)
@@ -135,60 +147,52 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.Nil(err, "no error creating logger")
 
 	router := cm_router.NewRouter(cm_router.RouterOptions{
-		Logger:     logger,
-		Depth:      0,
+		Logger: logger,
+		Depth:  0,
 	})
 	server, err := NewMultiTenantServer(MultiTenantServerOptions{
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		Cache:          cache.NewInMemoryStore(),
-		Depth:          0,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=0) server")
 	suite.Depth0Server = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger:     logger,
-		Depth:      1,
+		Logger: logger,
+		Depth:  1,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		Cache:          cache.NewInMemoryStore(),
-		Depth:          1,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=1) server")
 	suite.Depth1Server = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger:     logger,
-		Depth:      2,
+		Logger: logger,
+		Depth:  2,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		Cache:          cache.NewInMemoryStore(),
-		Depth:          2,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=2) server")
 	suite.Depth2Server = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger:     logger,
-		Depth:      3,
+		Logger: logger,
+		Depth:  3,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		Cache:          cache.NewInMemoryStore(),
-		Depth:          3,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=3) server")
@@ -198,6 +202,28 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
 	err := os.RemoveAll(suite.TempDirectory)
 	suite.Nil(err, "no error deleting temp directory for local storage")
+}
+
+func (suite *MultiTenantServerTestSuite) TestGenIndex() {
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug:   true,
+		LogJSON: true,
+	})
+	suite.Nil(err, "no error creating logger")
+
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger: logger,
+	})
+
+	NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: suite.Depth0Server.StorageBackend,
+		GenIndex:       true,
+	})
+	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
+	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
+	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
 }
 
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
@@ -223,8 +249,8 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(prefix string, depth int)
 	suite.Equal(200, res.Status(), "200 GET /")
 
 	// GET /system/health
-	res = suite.doRequest(stype, "GET", "/system/health", nil, "")
-	suite.Equal(200, res.Status(), "200 GET /system/health")
+	res = suite.doRequest(stype, "GET", "/health", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /health")
 
 	// GET /:repo/index.yaml
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/index.yaml", prefix), nil, "")

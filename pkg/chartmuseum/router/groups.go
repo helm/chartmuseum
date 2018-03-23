@@ -27,14 +27,13 @@ type (
 
 // NewRouterGroups creates a new RouterGroups instance
 func NewRouterGroups(options RouterGroupsOptions) *RouterGroups {
-	baseGroup := options.Router.Group(options.ContextPath)
-	sysInfoGroup := baseGroup
-	readAccessGroup := baseGroup
-	writeAccessGroup := baseGroup
+	sysInfoGroup := &options.Router.RouterGroup
+	readAccessGroup := &options.Router.RouterGroup
+	writeAccessGroup := &options.Router.RouterGroup
 
 	// Reconfigure read-access, write-access groups if basic auth is enabled
 	if options.Username != "" && options.Password != "" {
-		basicAuthGroup := options.Router.Group(options.ContextPath)
+		basicAuthGroup := options.Router.Group("")
 		users := make(map[string]string)
 		users[options.Username] = options.Password
 		basicAuthGroup.Use(gin.BasicAuthForRealm(users, "ChartMuseum"))

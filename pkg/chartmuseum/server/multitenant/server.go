@@ -1,12 +1,18 @@
 package multitenant
 
 import (
+	"fmt"
+	"os"
 	"sync"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+)
+
+var (
+	echo = fmt.Print
+	exit = os.Exit
 )
 
 type (
@@ -15,10 +21,8 @@ type (
 		Logger            *cm_logger.Logger
 		Router            *cm_router.Router
 		StorageBackend    storage.Backend
-		Cache             cache.Store
-		APIEnabled        bool
-		Depth             int
 		IndexLimit        int
+		Limiter           chan struct{}
 		IndexCache        map[string]*cachedIndexFile
 		IndexCacheKeyLock *sync.Mutex
 	}
@@ -28,9 +32,8 @@ type (
 		Logger         *cm_logger.Logger
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
-		Cache          cache.Store
-		EnableAPI      bool
-		Depth          int
+		IndexLimit     int
+		GenIndex       bool
 	}
 )
 
@@ -40,16 +43,20 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:            options.Logger,
 		Router:            options.Router,
 		StorageBackend:    options.StorageBackend,
-		Cache:             options.Cache,
-		APIEnabled:        options.EnableAPI,
-		Depth:             options.Depth,
+		IndexLimit:        options.IndexLimit,
+		Limiter:           make(chan struct{}, options.IndexLimit),
 		IndexCache:        map[string]*cachedIndexFile{},
 		IndexCacheKeyLock: &sync.Mutex{},
 	}
 
-	server.setRoutes()
+	server.Router.SetRoutes(server.Routes())
+	err := server.primeCache()
 
-	return server, nil
+	if options.GenIndex && server.Router.Depth == 0 {
+		server.genIndex()
+	}
+
+	return server, err
 }
 
 // Listen TODO
@@ -57,7 +64,7 @@ func (server *MultiTenantServer) Listen(port int) {
 	server.Router.Start(port)
 }
 
-// simple helper to modify route definitions
-func (server *MultiTenantServer) p(path string) string {
-	return cm_router.PrefixRouteDefinition(path, server.Depth)
+func (server *MultiTenantServer) genIndex() {
+	echo(string(server.IndexCache[""].RepositoryIndex.Raw[:]))
+	exit(0)
 }

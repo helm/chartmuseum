@@ -18,6 +18,7 @@ _.-'  \        ( \___
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -26,6 +27,7 @@ import (
 	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	helm_repo "k8s.io/helm/pkg/repo"
+	"github.com/gin-gonic/gin"
 )
 
 type (
@@ -48,6 +50,18 @@ type (
 		err   error
 	}
 )
+
+func (server *MultiTenantServer) primeCache() error {
+	// only prime the cache if this is a single tenant setup
+	if server.Router.Depth == 0 {
+		log := server.Logger.ContextLoggingFn(&gin.Context{})
+		_, err := server.getIndexFile(log, "")
+		if err != nil {
+			return errors.New(err.Message)
+		}
+	}
+	return nil
+}
 
 // getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
 func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo string) <-chan fetchedObjects {
@@ -213,15 +227,14 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Limit parallelism to the index-limit parameter value
-	limiter := make(chan bool, server.IndexLimit)
 	for _, object := range objects {
-		if server.IndexLimit != 0 {
-			limiter <- true
-		}
 		go func(o cm_storage.Object) {
 			if server.IndexLimit != 0 {
-				<-limiter
+				// Limit parallelism to the index-limit parameter value
+				// if there are more than IndexLimit concurrent fetches, this send will block
+				server.Limiter <- struct{}{}
+				// once work is over, read one Limiter channel item to allow other workers to continue
+				defer func() { <-server.Limiter }()
 			}
 			select {
 			case <-ctx.Done():
@@ -237,12 +250,6 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 				cvChan <- cvResult{chartVersion, err}
 			}
 		}(object)
-	}
-	// Wait for remaining func() calls to terminate
-	if server.IndexLimit != 0 {
-		for i := 0; i < cap(limiter); i++ {
-			limiter <- true
-		}
 	}
 
 	for validCount := 0; validCount < numObjects; validCount++ {

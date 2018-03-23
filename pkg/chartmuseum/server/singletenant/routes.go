@@ -1,21 +1,37 @@
 package singletenant
 
-func (s *SingleTenantServer) setRoutes() {
-	// Server Info
-	s.Router.Groups.ReadAccess.GET(s.p("/"), s.getWelcomePageHandler)
-	s.Router.Groups.SysInfo.GET(s.p("/health"), s.getHealthCheckHandler)
+import (
+	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
+)
 
-	// Helm Chart Repository
-	s.Router.Groups.ReadAccess.GET(s.p("/:repo/index.yaml"), s.getIndexFileRequestHandler)
-	s.Router.Groups.ReadAccess.GET(s.p("/:repo/charts/:filename"), s.getStorageObjectRequestHandler)
+func (s *SingleTenantServer) Routes() []cm_router.Route {
+	var routes []cm_router.Route
 
-	// Chart Manipulation
-	if s.APIEnabled {
-		s.Router.Groups.ReadAccess.GET(s.p("/api/:repo/charts"), s.getAllChartsRequestHandler)
-		s.Router.Groups.ReadAccess.GET(s.p("/api/:repo/charts/:name"), s.getChartRequestHandler)
-		s.Router.Groups.ReadAccess.GET(s.p("/api/:repo/charts/:name/:version"), s.getChartVersionRequestHandler)
-		s.Router.Groups.WriteAccess.POST(s.p("/api/:repo/charts"), s.postRequestHandler)
-		s.Router.Groups.WriteAccess.POST(s.p("/api/:repo/prov"), s.postProvenanceFileRequestHandler)
-		s.Router.Groups.WriteAccess.DELETE(s.p("/api/:repo/charts/:name/:version"), s.deleteChartVersionRequestHandler)
+	serverInfoRoutes := []cm_router.Route{
+		{"READ", "GET", "/", s.getWelcomePageHandler},
+		{"SYSTEM", "GET", "/health", s.getHealthCheckHandler},
 	}
+
+	helmChartRepositoryRoutes := []cm_router.Route{
+		{"READ", "GET", "/:repo/index.yaml", s.getIndexFileRequestHandler},
+		{"READ", "GET", "/:repo/charts/:filename", s.getStorageObjectRequestHandler},
+	}
+
+	chartManipulationRoutes := []cm_router.Route{
+		{"READ", "GET", "/api/:repo/charts", s.getAllChartsRequestHandler},
+		{"READ", "GET", "/api/:repo/charts/:name", s.getChartRequestHandler},
+		{"READ", "GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler},
+		{"WRITE", "POST", "/api/:repo/charts", s.postRequestHandler},
+		{"WRITE", "POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler},
+		{"WRITE", "DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler},
+	}
+
+	routes = append(routes, serverInfoRoutes...)
+	routes = append(routes, helmChartRepositoryRoutes...)
+
+	if s.APIEnabled {
+		routes = append(routes, chartManipulationRoutes...)
+	}
+
+	return routes
 }

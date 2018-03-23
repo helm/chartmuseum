@@ -71,16 +71,14 @@ func NewServer(options ServerOptions) (Server, error) {
 			Logger:         logger,
 			Router:         router,
 			StorageBackend: options.StorageBackend,
-			Cache:          options.Cache,
-			EnableAPI:      options.EnableAPI,
-			Depth:          options.Depth,
+			IndexLimit:     options.IndexLimit,
+			GenIndex:       options.GenIndex,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{
 			Logger:                 logger,
 			Router:                 router,
 			StorageBackend:         options.StorageBackend,
-			Cache:                  options.Cache,
 			EnableAPI:              options.EnableAPI,
 			AllowOverwrite:         options.AllowOverwrite,
 			GenIndex:               options.GenIndex,

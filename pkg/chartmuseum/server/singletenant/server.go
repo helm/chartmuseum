@@ -2,11 +2,9 @@ package singletenant
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"sync"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
@@ -27,7 +25,6 @@ type (
 		Router                  *cm_router.Router
 		RepositoryIndex         *repo.Index
 		StorageBackend          storage.Backend
-		Cache                   cache.Store
 		StorageCache            []storage.Object
 		AllowOverwrite          bool
 		APIEnabled              bool
@@ -45,7 +42,6 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
-		Cache                  cache.Store
 		EnableAPI              bool
 		AllowOverwrite         bool
 		GenIndex               bool
@@ -63,7 +59,6 @@ func NewSingleTenantServer(options SingleTenantServerOptions) (*SingleTenantServ
 		Router:                 options.Router,
 		RepositoryIndex:        repo.NewIndex(options.ChartURL),
 		StorageBackend:         options.StorageBackend,
-		Cache:                  options.Cache,
 		StorageCache:           []storage.Object{},
 		APIEnabled:             options.EnableAPI,
 		AllowOverwrite:         options.AllowOverwrite,
@@ -74,10 +69,10 @@ func NewSingleTenantServer(options SingleTenantServerOptions) (*SingleTenantServ
 		fetchedObjectsLock:     &sync.Mutex{},
 	}
 
-	server.setRoutes()
+	server.Router.SetRoutes(server.Routes())
 
 	// prime the cache
-	log := server.Logger.ContextLoggingFn(&gin.Context{Request: &http.Request{Header: http.Header{}}})
+	log := server.Logger.ContextLoggingFn(&gin.Context{})
 	_, err := server.syncRepositoryIndex(log)
 
 	if options.GenIndex {
@@ -95,9 +90,4 @@ func (server *SingleTenantServer) Listen(port int) {
 func (server *SingleTenantServer) genIndex() {
 	echo(string(server.RepositoryIndex.Raw[:]))
 	exit(0)
-}
-
-// simple helper to modify route definitions
-func (server *SingleTenantServer) p(path string) string {
-	return cm_router.PrefixRouteDefinition(path, 0)
 }

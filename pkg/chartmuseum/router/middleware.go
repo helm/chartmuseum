@@ -90,7 +90,9 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 	// - if present in request URL, remove it
 	// - if missing in request URL, send 404
 	if contextPath != "" {
-		if strings.HasPrefix(reqPath, contextPath) {
+		if reqPath == contextPath {
+			reqPath = "/"
+		} else if strings.HasPrefix(reqPath, contextPath) {
 			reqPath = strings.Replace(reqPath, contextPath, "", 1)
 		} else {
 			c.AbortWithStatus(404)
@@ -99,44 +101,31 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 	}
 
 	// If root route, prefix with rootRoutePrefix
-	// TODO: remove check of /health once singletenant goes away
 	if reqPath == "/" || reqPath == "/health" {
 		c.Request.URL.Path = pathutil.Join(rootRoutePrefix, reqPath)
 		return
 	}
 
-	var alreadyPrefixed bool
+	startIndex := 1
 	pathSplit := strings.Split(reqPath, "/")
 	numParts := len(pathSplit)
 
-	if numParts >= 2 {
-		// If prefixed with /system, prefix with defaultPrefix
-		if pathSplit[1] == "system" {
-			c.Request.URL.Path = pathutil.Join(systemRoutePrefix, reqPath)
-			return
-		}
-
-		// If prefixed with /api, prefix with apiPrefix
-		if pathSplit[1] == "api" {
-			c.Request.URL.Path = pathutil.Join(apiRoutePrefix, reqPath)
-			alreadyPrefixed = true
-			pathSplit = pathSplit[1:]
-			numParts--
-		}
+	if numParts >= 2 && pathSplit[1] == "api" {
+		startIndex++
+		c.Request.URL.Path = pathutil.Join(apiRoutePrefix, reqPath)
+	} else {
+		// Assume this is a repo route, prefix the route with repoRoutePrefix
+		c.Request.URL.Path = pathutil.Join(repoRoutePrefix, reqPath)
 	}
 
 	// set "repo" in c.Request.Response.Header (if appropriate)
-	if numParts > depth {
+	stopIndex := depth+startIndex
+	if numParts > stopIndex {
 		var a []string
-		for i := 1; i <= depth; i++ {
+		for i := startIndex; i < stopIndex; i++ {
 			a = append(a, pathSplit[i])
 		}
 		cmRepoHeader := strings.Join(a, "/")
 		c.Request.Response.Header.Set("repo", cmRepoHeader)
-	}
-
-	// Assume this is a repo route, prefix the route with repoRoutePrefix
-	if !alreadyPrefixed {
-		c.Request.URL.Path = pathutil.Join(repoRoutePrefix, reqPath)
 	}
 }
