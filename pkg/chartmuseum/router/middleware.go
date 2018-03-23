@@ -104,13 +104,14 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 		return
 	}
 
-	var alreadyPrefixed bool
 	pathSplit := strings.Split(reqPath, "/")
 	numParts := len(pathSplit)
 
 	if numParts >= 2 && pathSplit[1] == "api" {
 		c.Request.URL.Path = pathutil.Join(apiRoutePrefix, reqPath)
-		alreadyPrefixed = true
+	} else {
+		// Assume this is a repo route, prefix the route with repoRoutePrefix
+		c.Request.URL.Path = pathutil.Join(repoRoutePrefix, reqPath)
 	}
 
 	// set "repo" in c.Request.Response.Header (if appropriate)
@@ -121,10 +122,5 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 		}
 		cmRepoHeader := strings.Join(a, "/")
 		c.Request.Response.Header.Set("repo", cmRepoHeader)
-	}
-
-	// Assume this is a repo route, prefix the route with repoRoutePrefix
-	if !alreadyPrefixed {
-		c.Request.URL.Path = pathutil.Join(repoRoutePrefix, reqPath)
 	}
 }

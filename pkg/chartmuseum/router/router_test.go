@@ -42,23 +42,29 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(404, testContext.Writer.Status())
 
-	prefixed200Path := routerMetricsEnabled.transformRoutePath("/system/giveme200")
+	prefixed200Path := routerMetricsEnabled.transformRoutePath("/health")
 	routerMetricsEnabled.GET(prefixed200Path, func(c *gin.Context) {
 		c.Data(200, "text/html", []byte("200"))
 	})
 
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
-	testContext.Request, _ = http.NewRequest("GET", "/system/giveme200", nil)
+	testContext.Request, _ = http.NewRequest("GET", "/health", nil)
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
 
-	prefixed500Path := routerMetricsEnabled.transformRoutePath("/system/giveme500")
+	// have to re-instanmtiate as the /health route already added
+	routerMetricsEnabled = NewRouter(RouterOptions{
+		Logger:        log,
+		EnableMetrics: true,
+	})
+
+	prefixed500Path := routerMetricsEnabled.transformRoutePath("/health")
 	routerMetricsEnabled.GET(prefixed500Path, func(c *gin.Context) {
 		c.Data(500, "text/html", []byte("500"))
 	})
 
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
-	testContext.Request, _ = http.NewRequest("GET", "/system/giveme500", nil)
+	testContext.Request, _ = http.NewRequest("GET", "/health", nil)
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(500, testContext.Writer.Status())
 }
