@@ -71,7 +71,6 @@ func NewServer(options ServerOptions) (Server, error) {
 			Logger:         logger,
 			Router:         router,
 			StorageBackend: options.StorageBackend,
-			Depth:          options.Depth,
 			IndexLimit:     options.IndexLimit,
 		})
 	} else {

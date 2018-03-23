@@ -14,7 +14,6 @@ type (
 		Logger            *cm_logger.Logger
 		Router            *cm_router.Router
 		StorageBackend    storage.Backend
-		Depth             int
 		IndexLimit        int
 		Limiter           chan struct{}
 		IndexCache        map[string]*cachedIndexFile
@@ -26,7 +25,6 @@ type (
 		Logger         *cm_logger.Logger
 		Router         *cm_router.Router
 		StorageBackend storage.Backend
-		Depth          int
 		IndexLimit     int
 	}
 )
@@ -37,7 +35,6 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:            options.Logger,
 		Router:            options.Router,
 		StorageBackend:    options.StorageBackend,
-		Depth:             options.Depth,
 		IndexCache:        map[string]*cachedIndexFile{},
 		IndexCacheKeyLock: &sync.Mutex{},
 	}
