@@ -72,6 +72,7 @@ func NewServer(options ServerOptions) (Server, error) {
 			Router:         router,
 			StorageBackend: options.StorageBackend,
 			IndexLimit:     options.IndexLimit,
+			GenIndex:       options.GenIndex,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{
