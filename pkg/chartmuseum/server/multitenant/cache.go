@@ -18,6 +18,7 @@ _.-'  \        ( \___
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -26,6 +27,7 @@ import (
 	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	helm_repo "k8s.io/helm/pkg/repo"
+	"github.com/gin-gonic/gin"
 )
 
 type (
@@ -48,6 +50,18 @@ type (
 		err   error
 	}
 )
+
+func (server *MultiTenantServer) primeCache() error {
+	// only prime the cache if this is a single tenant setup
+	if server.Router.Depth == 0 {
+		log := server.Logger.ContextLoggingFn(&gin.Context{})
+		_, err := server.getIndexFile(log, "")
+		if err != nil {
+			return errors.New(err.Message)
+		}
+	}
+	return nil
+}
 
 // getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
 func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo string) <-chan fetchedObjects {

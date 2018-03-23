@@ -35,17 +35,14 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:            options.Logger,
 		Router:            options.Router,
 		StorageBackend:    options.StorageBackend,
+		IndexLimit:        options.IndexLimit,
+		Limiter:           make(chan struct{}, options.IndexLimit),
 		IndexCache:        map[string]*cachedIndexFile{},
 		IndexCacheKeyLock: &sync.Mutex{},
 	}
-
-	if options.IndexLimit != 0 {
-		server.Limiter = make(chan struct{}, options.IndexLimit)
-	}
-
 	server.Router.SetRoutes(server.Routes())
-
-	return server, nil
+	err := server.primeCache()
+	return server, err
 }
 
 // Listen TODO
