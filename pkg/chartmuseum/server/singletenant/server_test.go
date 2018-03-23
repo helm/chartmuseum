@@ -523,9 +523,6 @@ func (suite *SingleTenantServerTestSuite) TestRoutes() {
 }
 
 func (suite *SingleTenantServerTestSuite) TestRoutesCustomBasePath() {
-	// TODO: renable this
-	suite.T().Skip()
-
 	var res gin.ResponseWriter
 
 	// GET <contextpath>/charts/<filename>

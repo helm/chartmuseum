@@ -90,7 +90,9 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 	// - if present in request URL, remove it
 	// - if missing in request URL, send 404
 	if contextPath != "" {
-		if strings.HasPrefix(reqPath, contextPath) {
+		if reqPath == contextPath {
+			reqPath = "/"
+		} else if strings.HasPrefix(reqPath, contextPath) {
 			reqPath = strings.Replace(reqPath, contextPath, "", 1)
 		} else {
 			c.AbortWithStatus(404)
@@ -104,10 +106,12 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 		return
 	}
 
+	startIndex := 1
 	pathSplit := strings.Split(reqPath, "/")
 	numParts := len(pathSplit)
 
 	if numParts >= 2 && pathSplit[1] == "api" {
+		startIndex++
 		c.Request.URL.Path = pathutil.Join(apiRoutePrefix, reqPath)
 	} else {
 		// Assume this is a repo route, prefix the route with repoRoutePrefix
@@ -115,9 +119,10 @@ func populateContext(c *gin.Context, contextPath string, depth int) {
 	}
 
 	// set "repo" in c.Request.Response.Header (if appropriate)
-	if numParts > depth {
+	stopIndex := depth+startIndex
+	if numParts > stopIndex {
 		var a []string
-		for i := 1; i <= depth; i++ {
+		for i := startIndex; i < stopIndex; i++ {
 			a = append(a, pathSplit[i])
 		}
 		cmRepoHeader := strings.Join(a, "/")

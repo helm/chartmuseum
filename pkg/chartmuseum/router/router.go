@@ -129,7 +129,7 @@ func (router *Router) SetRoutes(routes []Route) {
 
 func (router *Router) transformRoutePath(path string) string {
 	if path == "/" || path == "/health" {
-		path = pathutil.Join(rootRoutePrefix, router.ContextPath, path)
+		path = pathutil.Join(rootRoutePrefix, path)
 	} else if strings.Contains(path, "/:repo/") {
 		var a []string
 		for i := 1; i <= router.Depth; i++ {
@@ -138,9 +138,9 @@ func (router *Router) transformRoutePath(path string) string {
 		dynamicParamsPath := "/" + strings.Join(a, "/")
 		path = strings.Replace(path, "/:repo", dynamicParamsPath, 1)
 		if strings.HasPrefix(path, "/api/") {
-			path = pathutil.Join(apiRoutePrefix, router.ContextPath, path)
+			path = pathutil.Join(apiRoutePrefix, path)
 		} else {
-			path = pathutil.Join(repoRoutePrefix, router.ContextPath, path)
+			path = pathutil.Join(repoRoutePrefix, path)
 		}
 	}
 	return path
