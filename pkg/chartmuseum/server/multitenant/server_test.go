@@ -154,6 +154,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
+		EnableAPI:      true,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=0) server")
@@ -167,6 +168,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
+		EnableAPI:      true,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=1) server")
@@ -180,6 +182,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
+		EnableAPI:      true,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=2) server")
@@ -193,6 +196,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
+		EnableAPI:      true,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=3) server")

@@ -22,6 +22,7 @@ type (
 		Router            *cm_router.Router
 		StorageBackend    storage.Backend
 		IndexLimit        int
+		APIEnabled        bool
 		Limiter           chan struct{}
 		IndexCache        map[string]*cachedIndexFile
 		IndexCacheKeyLock *sync.Mutex
@@ -34,6 +35,7 @@ type (
 		StorageBackend storage.Backend
 		IndexLimit     int
 		GenIndex       bool
+		EnableAPI      bool
 	}
 )
 
