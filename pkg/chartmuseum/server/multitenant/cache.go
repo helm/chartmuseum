@@ -300,14 +300,14 @@ func (server *MultiTenantServer) checkInvalidChartPackageError(log cm_logger.Log
 }
 
 func (server *MultiTenantServer) initCachedIndexFile(log cm_logger.LoggingFn, repo string) {
+	server.IndexCacheKeyLock.Lock()
+	defer server.IndexCacheKeyLock.Unlock()
 	if _, ok := server.IndexCache[repo]; !ok {
-		server.IndexCacheKeyLock.Lock()
 		server.IndexCache[repo] = &cachedIndexFile{
 			RepositoryIndex:    cm_repo.NewIndex(""),
 			StorageCache:       []cm_storage.Object{},
 			fetchedObjectsLock: &sync.Mutex{},
 			regenerationLock:   &sync.Mutex{},
 		}
-		server.IndexCacheKeyLock.Unlock()
 	}
 }
