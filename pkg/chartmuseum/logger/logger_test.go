@@ -40,8 +40,8 @@ func (suite *LoggerTestSuite) SetupSuite() {
 	suite.Logger = logger
 
 	context := &gin.Context{}
-	context.Set("RequestCount", "1")
-	context.Set("RequestId", "xyz")
+	context.Set("requestcount", "1")
+	context.Set("requestid", "xyz")
 	suite.Context = context
 }
 

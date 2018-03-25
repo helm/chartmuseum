@@ -9,7 +9,6 @@ import (
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 
-	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +19,7 @@ var (
 	badExtensionErrorResponse  = gin.H{"error": "unsupported file extension"}
 	alreadyExistsErrorResponse = gin.H{"error": "file already exists"}
 	healthCheckResponse        = gin.H{"healthy": true}
-	welcomePageHTMLTemplate    = `<!DOCTYPE html>
+	welcomePageHTML            = []byte(`<!DOCTYPE html>
 <html>
 <head>
 <title>Welcome to ChartMuseum!</title>
@@ -38,7 +37,7 @@ var (
 working.</p>
 
 <p>To add this as a local chart repository, please run the following command:</p>
-<pre>helm repo add chartmuseum %s</pre>
+<pre>helm repo add chartmuseum <script>document.write(window.location.href)</script></pre>
 
 <p>For online documentation and support please refer to the
 <a href="https://github.com/kubernetes-helm/chartmuseum">GitHub project</a>.<br/>
@@ -46,7 +45,7 @@ working.</p>
 <p><em>Thank you for using ChartMuseum.</em></p>
 </body>
 </html>
-	`
+	`)
 )
 
 type (
@@ -59,8 +58,7 @@ type (
 )
 
 func (server *SingleTenantServer) getWelcomePageHandler(c *gin.Context) {
-	url := location.Get(c)
-	c.Data(200, "text/html", []byte(fmt.Sprintf(welcomePageHTMLTemplate, url)))
+	c.Data(200, "text/html", welcomePageHTML)
 }
 
 func (server *SingleTenantServer) getHealthCheckHandler(c *gin.Context) {

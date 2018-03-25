@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
+	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
 
 var (
-	chartPackageContentType = "application/x-tar"
+	chartPackageContentType   = "application/x-tar"
 	provenanceFileContentType = "application/pgp-signature"
 )
 
@@ -20,17 +21,27 @@ type (
 	}
 )
 
-func (server *MultiTenantServer) getStorageObject(prefix string, filename string) (*StorageObject, *HTTPError) {
-	isChartPackage := strings.HasSuffix(filename, repo.ChartPackageFileExtension)
-	isProvenanceFile := strings.HasSuffix(filename, repo.ProvenanceFileExtension)
+func (server *MultiTenantServer) getStorageObject(log cm_logger.LoggingFn, repo string, filename string) (*StorageObject, *HTTPError) {
+	isChartPackage := strings.HasSuffix(filename, cm_repo.ChartPackageFileExtension)
+	isProvenanceFile := strings.HasSuffix(filename, cm_repo.ProvenanceFileExtension)
 	if !isChartPackage && !isProvenanceFile {
+		log(cm_logger.WarnLevel, "unsupported file extension",
+			"repo", repo,
+			"filename", filename,
+		)
 		return nil, &HTTPError{500, "unsupported file extension"}
 	}
 
-	objectPath := fmt.Sprintf("%s/%s", prefix, filename)
+	objectPath := fmt.Sprintf("%s/%s", repo, filename)
 
 	object, err := server.StorageBackend.GetObject(objectPath)
 	if err != nil {
+		errStr := err.Error()
+		log(cm_logger.WarnLevel, errStr,
+			"repo", repo,
+			"filename", filename,
+		)
+		// TODO determine if this is true 404
 		return nil, &HTTPError{404, "object not found"}
 	}
 
@@ -42,7 +53,7 @@ func (server *MultiTenantServer) getStorageObject(prefix string, filename string
 	}
 
 	storageObject := &StorageObject{
-		Object: &object,
+		Object:      &object,
 		ContentType: contentType,
 	}
 

@@ -60,9 +60,6 @@ func NewServer(options ServerOptions) (Server, error) {
 		AnonymousGet:  options.AnonymousGet,
 		Depth:         options.Depth,
 	}
-	if options.EnableMultiTenancy {
-		routerOptions.PathPrefix = mt.PathPrefix
-	}
 
 	router := cm_router.NewRouter(routerOptions)
 
@@ -74,15 +71,14 @@ func NewServer(options ServerOptions) (Server, error) {
 			Logger:         logger,
 			Router:         router,
 			StorageBackend: options.StorageBackend,
-			Cache:          options.Cache,
-			Depth:          options.Depth,
+			IndexLimit:     options.IndexLimit,
+			GenIndex:       options.GenIndex,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{
 			Logger:                 logger,
 			Router:                 router,
 			StorageBackend:         options.StorageBackend,
-			Cache:                  options.Cache,
 			EnableAPI:              options.EnableAPI,
 			AllowOverwrite:         options.AllowOverwrite,
 			GenIndex:               options.GenIndex,
