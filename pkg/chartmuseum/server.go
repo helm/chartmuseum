@@ -68,12 +68,14 @@ func NewServer(options ServerOptions) (Server, error) {
 	if options.EnableMultiTenancy {
 		logger.Debug("Multitenancy enabled")
 		server, err = mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
-			Logger:         logger,
-			Router:         router,
-			StorageBackend: options.StorageBackend,
-			IndexLimit:     options.IndexLimit,
-			GenIndex:       options.GenIndex,
-			EnableAPI:      options.EnableAPI,
+			Logger:                 logger,
+			Router:                 router,
+			StorageBackend:         options.StorageBackend,
+			ChartPostFormFieldName: options.ChartPostFormFieldName,
+			ProvPostFormFieldName:  options.ProvPostFormFieldName,
+			IndexLimit:             options.IndexLimit,
+			GenIndex:               options.GenIndex,
+			EnableAPI:              options.EnableAPI,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{

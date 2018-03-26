@@ -30,7 +30,7 @@ func requestWrapper(logger *cm_logger.Logger, engine *gin.Engine, contextPath st
 		// key-values in c.Request.Response.Header in the populateContext() method, then afterwards
 		// once the augmented request is being handled, we convert them to ordinary context keys
 		if c.Request.Response == nil {
-			populateContext(c, contextPath, depth)
+			populateContext(logger, c, contextPath, depth)
 			engine.HandleContext(c)
 			return
 		}
@@ -67,7 +67,7 @@ func requestWrapper(logger *cm_logger.Logger, engine *gin.Engine, contextPath st
 	}
 }
 
-func populateContext(c *gin.Context, contextPath string, depth int) {
+func populateContext(logger *cm_logger.Logger, c *gin.Context, contextPath string, depth int) {
 	c.Request.Response = &http.Response{
 		Header: http.Header{},
 	}

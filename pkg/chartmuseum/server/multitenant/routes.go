@@ -21,9 +21,9 @@ func (s *MultiTenantServer) Routes() []cm_router.Route {
 		{"READ", "GET", "/api/:repo/charts", s.getAllChartsRequestHandler},
 		{"READ", "GET", "/api/:repo/charts/:name", s.getChartRequestHandler},
 		{"READ", "GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler},
-		//{"WRITE", "POST", "/api/:repo/charts", s.postRequestHandler},
-		//{"WRITE", "POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler},
-		//{"WRITE", "DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler},
+		{"WRITE", "POST", "/api/:repo/charts", s.postRequestHandler},
+		{"WRITE", "POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler},
+		{"WRITE", "DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler},
 	}
 
 	routes = append(routes, serverInfoRoutes...)
