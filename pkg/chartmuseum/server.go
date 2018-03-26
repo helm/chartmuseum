@@ -76,6 +76,7 @@ func NewServer(options ServerOptions) (Server, error) {
 			IndexLimit:             options.IndexLimit,
 			GenIndex:               options.GenIndex,
 			EnableAPI:              options.EnableAPI,
+			AllowOverwrite:         options.AllowOverwrite,
 		})
 	} else {
 		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{

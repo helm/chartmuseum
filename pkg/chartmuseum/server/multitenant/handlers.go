@@ -156,7 +156,7 @@ func (server *MultiTenantServer) postRequestHandler(c *gin.Context) {
 	}
 }
 
-func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, field string, fnFromContent filenameFromContentFn) (*packageOrProvenanceFile, int, error) {
+func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, repo string, field string, fnFromContent filenameFromContentFn) (*packageOrProvenanceFile, int, error) {
 	file, header, _ := req.FormFile(field)
 	var ppf *packageOrProvenanceFile
 	if file == nil || header == nil {
@@ -172,10 +172,16 @@ func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, f
 	if err != nil {
 		return ppf, 400, err // validation error (bad request)
 	}
+	var f string
+	if repo == "" {
+		f = filename
+	} else {
+		f = repo + "/" + filename
+	}
 	if !server.AllowOverwrite {
-		_, err = server.StorageBackend.GetObject(filename)
+		_, err = server.StorageBackend.GetObject(f)
 		if err == nil {
-			return ppf, 409, fmt.Errorf("%s already exists", filename) // conflict
+			return ppf, 409, fmt.Errorf("%s already exists", f) // conflict
 		}
 	}
 	return &packageOrProvenanceFile{filename, content, field}, 200, nil
@@ -196,7 +202,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	}
 
 	for _, ff := range ffp {
-		ppf, status, err := server.extractAndValidateFormFile(c.Request, ff.field, ff.fn)
+		ppf, status, err := server.extractAndValidateFormFile(c.Request, repo, ff.field, ff.fn)
 		if err != nil {
 			c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
 			return
