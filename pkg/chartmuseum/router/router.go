@@ -86,7 +86,6 @@ func (router *Router) Start(port int) {
 // SetRoutes applies list of routes
 func (router *Router) SetRoutes(routes []*Route) {
 	router.Routes = routes
-
 }
 
 func (router *Router) globalHandler(c *gin.Context) {
