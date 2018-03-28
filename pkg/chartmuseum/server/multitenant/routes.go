@@ -4,26 +4,26 @@ import (
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 )
 
-func (s *MultiTenantServer) Routes() []cm_router.Route {
-	var routes []cm_router.Route
+func (s *MultiTenantServer) Routes() []*cm_router.Route {
+	var routes []*cm_router.Route
 
-	serverInfoRoutes := []cm_router.Route{
-		{"READ", "GET", "/", s.defaultHandler},
-		{"SYSTEM", "GET", "/health", s.getHealthCheckHandler},
+	serverInfoRoutes := []*cm_router.Route{
+		{"GET", "/", s.defaultHandler},
+		{"GET", "/health", s.getHealthCheckHandler},
 	}
 
-	helmChartRepositoryRoutes := []cm_router.Route{
-		{"READ", "GET", "/:repo/index.yaml", s.getIndexFileRequestHandler},
-		{"READ", "GET", "/:repo/charts/:filename", s.getStorageObjectRequestHandler},
+	helmChartRepositoryRoutes := []*cm_router.Route{
+		{"GET", "/:repo/index.yaml", s.getIndexFileRequestHandler},
+		{"GET", "/:repo/charts/:filename", s.getStorageObjectRequestHandler},
 	}
 
-	chartManipulationRoutes := []cm_router.Route{
-		{"READ", "GET", "/api/:repo/charts", s.getAllChartsRequestHandler},
-		{"READ", "GET", "/api/:repo/charts/:name", s.getChartRequestHandler},
-		{"READ", "GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler},
-		{"WRITE", "POST", "/api/:repo/charts", s.postRequestHandler},
-		{"WRITE", "POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler},
-		{"WRITE", "DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler},
+	chartManipulationRoutes := []*cm_router.Route{
+		{"GET", "/api/:repo/charts", s.getAllChartsRequestHandler},
+		{"GET", "/api/:repo/charts/:name", s.getChartRequestHandler},
+		{"GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler},
+		{"POST", "/api/:repo/charts", s.postRequestHandler},
+		{"POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler},
+		{"DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler},
 	}
 
 	routes = append(routes, serverInfoRoutes...)
