@@ -15,7 +15,6 @@ var (
 	objectSavedResponse        = gin.H{"saved": true}
 	objectDeletedResponse      = gin.H{"deleted": true}
 	notFoundErrorResponse      = gin.H{"error": "not found"}
-	badExtensionErrorResponse  = gin.H{"error": "unsupported file extension"}
 	alreadyExistsErrorResponse = gin.H{"error": "file already exists"}
 	healthCheckResponse        = gin.H{"healthy": true}
 	warningHTML                = []byte(`<!DOCTYPE html>
@@ -83,26 +82,21 @@ func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) 
 func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	log := server.Logger.ContextLoggingFn(c)
-	indexFile, err := server.getIndexFile(log, repo)
+	allCharts, err := server.getAllCharts(log, repo)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
-	c.JSON(200, indexFile.Entries)
+	c.JSON(200, allCharts)
 }
 
 func (server *MultiTenantServer) getChartRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
 	log := server.Logger.ContextLoggingFn(c)
-	indexFile, err := server.getIndexFile(log, repo)
+	chart, err := server.getChart(log, repo, name)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
-		return
-	}
-	chart := indexFile.Entries[name]
-	if chart == nil {
-		c.JSON(404, gin.H{"error": "not found"})
 		return
 	}
 	c.JSON(200, chart)
@@ -112,18 +106,10 @@ func (server *MultiTenantServer) getChartVersionRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
 	version := c.Param("version")
-	if version == "latest" {
-		version = ""
-	}
 	log := server.Logger.ContextLoggingFn(c)
-	indexFile, err := server.getIndexFile(log, repo)
+	chartVersion, err := server.getChartVersion(log, repo, name, version)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
-		return
-	}
-	chartVersion, getErr := indexFile.Get(name, version)
-	if getErr != nil {
-		c.JSON(404, gin.H{"error": "not found"})
 		return
 	}
 	c.JSON(200, chartVersion)
@@ -134,18 +120,13 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 	repo := c.Param("repo")
 	name := c.Param("name")
 	version := c.Param("version")
-	filename := pathutil.Join(repo, cm_repo.ChartPackageFilenameFromNameVersion(name, version))
-	server.Logger.Debugc(c, "Deleting package from storage",
-		"package", filename,
-	)
-	err := server.StorageBackend.DeleteObject(filename)
+	log := server.Logger.ContextLoggingFn(c)
+	err := server.deleteChartVersion(log, repo, name, version)
 	if err != nil {
-		c.JSON(404, gin.H{"error": "not found"})
+		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
-	provFilename := pathutil.Join(repo, cm_repo.ProvenanceFilenameFromNameVersion(name, version))
-	server.StorageBackend.DeleteObject(provFilename) // ignore error here, may be no prov file
-	c.JSON(200, gin.H{"deleted": true})
+	c.JSON(200, objectDeletedResponse)
 }
 
 func (server *MultiTenantServer) postRequestHandler(c *gin.Context) {
@@ -156,37 +137,39 @@ func (server *MultiTenantServer) postRequestHandler(c *gin.Context) {
 	}
 }
 
-func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, repo string, field string, fnFromContent filenameFromContentFn) (*packageOrProvenanceFile, int, error) {
-	file, header, _ := req.FormFile(field)
-	var ppf *packageOrProvenanceFile
-	if file == nil || header == nil {
-		return ppf, 200, nil // field is not present
+func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	content, getContentErr := c.GetRawData()
+	if getContentErr != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", getContentErr)})
+		return
 	}
-	buf := bytes.NewBuffer(nil)
-	_, err := io.Copy(buf, file)
+	log := server.Logger.ContextLoggingFn(c)
+	err := server.uploadChartPackage(log, repo, content)
 	if err != nil {
-		return ppf, 500, err // IO error
+		c.JSON(err.Status, gin.H{"error": err.Message})
+		return
 	}
-	content := buf.Bytes()
-	filename, err := fnFromContent(content)
-	if err != nil {
-		return ppf, 400, err // validation error (bad request)
-	}
-	var f string
-	if repo == "" {
-		f = filename
-	} else {
-		f = repo + "/" + filename
-	}
-	if !server.AllowOverwrite {
-		_, err = server.StorageBackend.GetObject(f)
-		if err == nil {
-			return ppf, 409, fmt.Errorf("%s already exists", f) // conflict
-		}
-	}
-	return &packageOrProvenanceFile{filename, content, field}, 200, nil
+	c.JSON(201, objectSavedResponse)
 }
 
+func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	content, getContentErr := c.GetRawData()
+	if getContentErr != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", getContentErr)})
+		return
+	}
+	log := server.Logger.ContextLoggingFn(c)
+	err := server.uploadProvenanceFile(log, repo, content)
+	if err != nil {
+		c.JSON(err.Status, gin.H{"error": err.Message})
+		return
+	}
+	c.JSON(201, objectSavedResponse)
+}
+
+// TODO: cleanup, cleanup
 func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	var ppFiles []*packageOrProvenanceFile
@@ -242,62 +225,33 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	c.JSON(201, objectSavedResponse)
 }
 
-func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
-	repo := c.Param("repo")
-	content, err := c.GetRawData()
-	if err != nil {
-		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
-		return
+func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, repo string, field string, fnFromContent filenameFromContentFn) (*packageOrProvenanceFile, int, error) {
+	file, header, _ := req.FormFile(field)
+	var ppf *packageOrProvenanceFile
+	if file == nil || header == nil {
+		return ppf, 200, nil // field is not present
 	}
-	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
+	buf := bytes.NewBuffer(nil)
+	_, err := io.Copy(buf, file)
 	if err != nil {
-		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
-		return
+		return ppf, 500, err // IO error
+	}
+	content := buf.Bytes()
+	filename, err := fnFromContent(content)
+	if err != nil {
+		return ppf, 400, err // validation error (bad request)
+	}
+	var f string
+	if repo == "" {
+		f = filename
+	} else {
+		f = repo + "/" + filename
 	}
 	if !server.AllowOverwrite {
-		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
+		_, err = server.StorageBackend.GetObject(f)
 		if err == nil {
-			c.JSON(409, alreadyExistsErrorResponse)
-			return
+			return ppf, 409, fmt.Errorf("%s already exists", f) // conflict
 		}
 	}
-	server.Logger.Debugc(c,"Adding package to storage",
-		"package", filename,
-	)
-	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
-	if err != nil {
-		c.JSON(500, gin.H{"error": fmt.Sprintf("%s",err)})
-		return
-	}
-	c.JSON(201, objectSavedResponse)
-}
-
-func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context) {
-	repo := c.Param("repo")
-	content, err := c.GetRawData()
-	if err != nil {
-		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
-		return
-	}
-	filename, err := cm_repo.ProvenanceFilenameFromContent(content)
-	if err != nil {
-		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
-		return
-	}
-	if !server.AllowOverwrite {
-		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
-		if err == nil {
-			c.JSON(409, alreadyExistsErrorResponse)
-			return
-		}
-	}
-	server.Logger.Debugc(c,"Adding provenance file to storage",
-		"provenance_file", filename,
-	)
-	err = server.StorageBackend.PutObject(filename, content)
-	if err != nil {
-		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
-		return
-	}
-	c.JSON(201, objectSavedResponse)
+	return &packageOrProvenanceFile{filename, content, field}, 200, nil
 }
