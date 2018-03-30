@@ -84,13 +84,13 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testContext.Request, _ = http.NewRequest("GET", "/x/y/z/whatsmyrepo", nil)
 	router.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
-	suite.Equal("x/y/z", testContext.GetString("repo"))
+	suite.Equal("x/y/z", testContext.Param("repo"))
 
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
 	testContext.Request, _ = http.NewRequest("GET", "/api/x/y/z/whatsmyrepo", nil)
 	router.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
-	suite.Equal("x/y/z", testContext.GetString("repo"))
+	suite.Equal("x/y/z", testContext.Param("repo"))
 
 	// Test custom context path
 	customContextPathRouter := NewRouter(RouterOptions{
@@ -119,13 +119,13 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testContext.Request, _ = http.NewRequest("GET", "/my/crazy/path/x/y/z/whatsmyrepo", nil)
 	customContextPathRouter.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
-	suite.Equal("x/y/z", testContext.GetString("repo"))
+	suite.Equal("x/y/z", testContext.Param("repo"))
 
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
 	testContext.Request, _ = http.NewRequest("GET", "/my/crazy/path/api/x/y/z/whatsmyrepo", nil)
 	customContextPathRouter.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
-	suite.Equal("x/y/z", testContext.GetString("repo"))
+	suite.Equal("x/y/z", testContext.Param("repo"))
 }
 
 func (suite *RouterTestSuite) TestMapURLWithParamsBackToRouteTemplate() {
@@ -164,5 +164,5 @@ func (suite *RouterTestSuite) TestMapURLWithParamsBackToRouteTemplate() {
 }
 
 func TestRouterTestSuite(t *testing.T) {
-	//suite.Run(t, new(RouterTestSuite))
+	suite.Run(t, new(RouterTestSuite))
 }

@@ -58,7 +58,7 @@ func (server *MultiTenantServer) getHealthCheckHandler(c *gin.Context) {
 }
 
 func (server *MultiTenantServer) getIndexFileRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	log := server.Logger.ContextLoggingFn(c)
 	indexFile, err := server.getIndexFile(log, repo)
 	if err != nil {
@@ -69,7 +69,7 @@ func (server *MultiTenantServer) getIndexFileRequestHandler(c *gin.Context) {
 }
 
 func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	filename := c.Param("filename")
 	log := server.Logger.ContextLoggingFn(c)
 	storageObject, err := server.getStorageObject(log, repo, filename)
@@ -81,7 +81,7 @@ func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) 
 }
 
 func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	log := server.Logger.ContextLoggingFn(c)
 	indexFile, err := server.getIndexFile(log, repo)
 	if err != nil {
@@ -92,7 +92,7 @@ func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 }
 
 func (server *MultiTenantServer) getChartRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	name := c.Param("name")
 	log := server.Logger.ContextLoggingFn(c)
 	indexFile, err := server.getIndexFile(log, repo)
@@ -109,7 +109,7 @@ func (server *MultiTenantServer) getChartRequestHandler(c *gin.Context) {
 }
 
 func (server *MultiTenantServer) getChartVersionRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	name := c.Param("name")
 	version := c.Param("version")
 	if version == "latest" {
@@ -131,7 +131,7 @@ func (server *MultiTenantServer) getChartVersionRequestHandler(c *gin.Context) {
 
 
 func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	name := c.Param("name")
 	version := c.Param("version")
 	filename := pathutil.Join(repo, cm_repo.ChartPackageFilenameFromNameVersion(name, version))
@@ -188,7 +188,7 @@ func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, r
 }
 
 func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	var ppFiles []*packageOrProvenanceFile
 
 	type fieldFuncPair struct {
@@ -243,7 +243,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 }
 
 func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	content, err := c.GetRawData()
 	if err != nil {
 		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
@@ -273,7 +273,7 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 }
 
 func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context) {
-	repo := c.GetString("repo")
+	repo := c.Param("repo")
 	content, err := c.GetRawData()
 	if err != nil {
 		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
