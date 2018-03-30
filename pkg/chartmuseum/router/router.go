@@ -88,10 +88,6 @@ func (router *Router) SetRoutes(routes []*Route) {
 	router.Routes = routes
 }
 
-func (router *Router) globalHandler(c *gin.Context) {
-	c.JSON(200, gin.H{"msg": "test"})
-}
-
 /*
 mapURLWithParamsBackToRouteTemplate is a valid ginprometheus ReqCntURLLabelMappingFn.
 For every route containing parameters (e.g. `/charts/:filename`, `/api/charts/:name/:version`, etc)
