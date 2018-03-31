@@ -303,8 +303,12 @@ func (server *MultiTenantServer) initCachedIndexFile(log cm_logger.LoggingFn, re
 	server.IndexCacheKeyLock.Lock()
 	defer server.IndexCacheKeyLock.Unlock()
 	if _, ok := server.IndexCache[repo]; !ok {
+		var chartURL string
+		if server.ChartURL != "" {
+			chartURL = server.ChartURL + "/" + repo
+		}
 		server.IndexCache[repo] = &cachedIndexFile{
-			RepositoryIndex:    cm_repo.NewIndex(server.ChartURL + "/" + repo),
+			RepositoryIndex:    cm_repo.NewIndex(chartURL),
 			StorageCache:       []cm_storage.Object{},
 			fetchedObjectsLock: &sync.Mutex{},
 			regenerationLock:   &sync.Mutex{},
