@@ -46,7 +46,7 @@ func (server *MultiTenantServer) getChartVersion(log cm_logger.LoggingFn, repo s
 
 func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, repo string, name string, version string) *HTTPError {
 	filename := pathutil.Join(repo, cm_repo.ChartPackageFilenameFromNameVersion(name, version))
-	log("Deleting package from storage",
+	log(cm_logger.DebugLevel, "Deleting package from storage",
 		"package", filename,
 	)
 	deleteObjErr := server.StorageBackend.DeleteObject(filename)
@@ -69,7 +69,7 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 			return &HTTPError{409, "file already exists"}
 		}
 	}
-	log("Adding package to storage",
+	log(cm_logger.DebugLevel,"Adding package to storage",
 		"package", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
@@ -90,7 +90,7 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 			return &HTTPError{409, "file already exists"}
 		}
 	}
-	log("Adding provenance file to storage",
+	log(cm_logger.DebugLevel,"Adding provenance file to storage",
 		"provenance_file", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
