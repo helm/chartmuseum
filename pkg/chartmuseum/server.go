@@ -69,6 +69,7 @@ func NewServer(options ServerOptions) (Server, error) {
 			Logger:                 logger,
 			Router:                 router,
 			StorageBackend:         options.StorageBackend,
+			ChartURL:               options.ChartURL,
 			ChartPostFormFieldName: options.ChartPostFormFieldName,
 			ProvPostFormFieldName:  options.ProvPostFormFieldName,
 			IndexLimit:             options.IndexLimit,

@@ -3,6 +3,7 @@ package multitenant
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
@@ -24,6 +25,7 @@ type (
 		IndexLimit             int
 		AllowOverwrite         bool
 		APIEnabled             bool
+		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 		Limiter                chan struct{}
@@ -36,6 +38,7 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
+		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 		IndexLimit             int
@@ -47,11 +50,17 @@ type (
 
 // NewMultiTenantServer creates a new MultiTenantServer instance
 func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer, error) {
+	var chartURL string
+	if options.ChartURL != "" {
+		chartURL = strings.TrimSuffix(options.ChartURL, "/") + options.Router.ContextPath
+	}
+
 	server := &MultiTenantServer{
 		Logger:                 options.Logger,
 		Router:                 options.Router,
 		StorageBackend:         options.StorageBackend,
 		IndexLimit:             options.IndexLimit,
+		ChartURL:               chartURL,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
 		AllowOverwrite:         options.AllowOverwrite,
