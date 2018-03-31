@@ -8,7 +8,7 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 	var routes []*cm_router.Route
 
 	serverInfoRoutes := []*cm_router.Route{
-		{"GET", "/", s.defaultHandler},
+		{"GET", "/", s.getWelcomePageHandler},
 		{"GET", "/health", s.getHealthCheckHandler},
 	}
 

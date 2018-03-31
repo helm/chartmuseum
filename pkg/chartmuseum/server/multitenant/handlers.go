@@ -14,19 +14,31 @@ import (
 var (
 	objectSavedResponse        = gin.H{"saved": true}
 	objectDeletedResponse      = gin.H{"deleted": true}
-	notFoundErrorResponse      = gin.H{"error": "not found"}
-	alreadyExistsErrorResponse = gin.H{"error": "file already exists"}
 	healthCheckResponse        = gin.H{"healthy": true}
-	warningHTML                = []byte(`<!DOCTYPE html>
+	welcomePageHTML            = []byte(`<!DOCTYPE html>
 <html>
 <head>
-<title>WARNING</title>
+<title>Welcome to ChartMuseum!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
 </head>
 <body>
-<h1>WARNING</h1>
-<p>This ChartMuseum install is running in multitenancy mode.</p>
-<p>This feature is still a work in progress, and is not considered stable.</p>
-<p>Please run without the --multitenant flag to disable this.</p>
+<h1>Welcome to ChartMuseum!</h1>
+<p>If you see this page, the ChartMuseum web server is successfully installed and
+working.</p>
+
+<p>To add this as a local chart repository, please run the following command:</p>
+<pre>helm repo add chartmuseum <script>document.write(window.location.href)</script></pre>
+
+<p>For online documentation and support please refer to the
+<a href="https://github.com/kubernetes-helm/chartmuseum">GitHub project</a>.<br/>
+
+<p><em>Thank you for using ChartMuseum.</em></p>
 </body>
 </html>
 	`)
@@ -48,8 +60,8 @@ type (
 	filenameFromContentFn func([]byte) (string, error)
 )
 
-func (server *MultiTenantServer) defaultHandler(c *gin.Context) {
-	c.Data(200, "text/html", warningHTML)
+func (server *MultiTenantServer) getWelcomePageHandler(c *gin.Context) {
+	c.Data(200, "text/html", welcomePageHTML)
 }
 
 func (server *MultiTenantServer) getHealthCheckHandler(c *gin.Context) {
