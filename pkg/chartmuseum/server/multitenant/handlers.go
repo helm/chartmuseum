@@ -32,9 +32,6 @@ var (
 <p>If you see this page, the ChartMuseum web server is successfully installed and
 working.</p>
 
-<p>To add this as a local chart repository, please run the following command:</p>
-<pre>helm repo add chartmuseum <script>document.write(window.location.href)</script></pre>
-
 <p>For online documentation and support please refer to the
 <a href="https://github.com/kubernetes-helm/chartmuseum">GitHub project</a>.<br/>
 
