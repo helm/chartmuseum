@@ -1,7 +1,6 @@
 package chartmuseum
 
 import (
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	mt "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/multitenant"
@@ -13,7 +12,6 @@ type (
 	// ServerOptions are options for constructing a Server
 	ServerOptions struct {
 		StorageBackend         storage.Backend
-		Cache                  cache.Store
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
