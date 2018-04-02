@@ -55,33 +55,35 @@ func (suite *MatchTestSuite) TestMatch() {
 		for _, contextPath := range []string{"", "/x", "/x/y", "/x/y/z"} {
 
 			// GET /
-			handle, params := match(routes, "GET", pathutil.Join("/", contextPath), contextPath, 0)
-			suite.NotNil(handle)
+			r := pathutil.Join("/", contextPath)
+			route, params := match(routes, "GET", r, contextPath, 0)
+			suite.NotNil(route)
 			suite.Nil(params)
-			if handle != nil {
-				handle(c)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists := c.Get("index")
 			suite.True(exists)
 			suite.Equal(0, val)
 
 			// GET /health
-			handle, params = match(routes, "GET", pathutil.Join("/", contextPath, "health"), contextPath, 0)
-			suite.NotNil(handle)
+			r = pathutil.Join("/", contextPath, "health")
+			route, params = match(routes, "GET", r, contextPath, 0)
+			suite.NotNil(route)
 			suite.Nil(params)
-			if handle != nil {
-				handle(c)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(1, val)
 
 			// GET /index.yaml
-			route := pathutil.Join("/", contextPath, repo, "index.yaml")
-			handle, params = match(routes, "GET", route, contextPath, depth)
-			suite.NotNil(handle)
-			if handle != nil {
-				handle(c)
+			r = pathutil.Join("/", contextPath, repo, "index.yaml")
+			route, params = match(routes, "GET", r, contextPath, depth)
+			suite.NotNil(route)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
@@ -89,11 +91,11 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.Equal([]gin.Param{{"repo", repo}}, params)
 
 			// GET /charts/mychart-0.1.0.tgz
-			route = pathutil.Join("/", contextPath, repo, "charts/mychart-0.1.0.tgz")
-			handle, params = match(routes, "GET", route, contextPath, depth)
-			suite.NotNil(handle)
-			if handle != nil {
-				handle(c)
+			r = pathutil.Join("/", contextPath, repo, "charts/mychart-0.1.0.tgz")
+			route, params = match(routes, "GET", r, contextPath, depth)
+			suite.NotNil(route)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
@@ -101,11 +103,11 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", repo}}, params)
 
 			// GET /api/charts
-			route = pathutil.Join("/", contextPath, "api", repo, "charts")
-			handle, params = match(routes, "GET", route, contextPath, depth)
-			suite.NotNil(handle)
-			if handle != nil {
-				handle(c)
+			r = pathutil.Join("/", contextPath, "api", repo, "charts")
+			route, params = match(routes, "GET", r, contextPath, depth)
+			suite.NotNil(route)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
@@ -113,11 +115,11 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.Equal([]gin.Param{{"repo", repo}}, params)
 
 			// GET /api/charts/mychart
-			route = pathutil.Join("/", contextPath, "api", repo, "charts/mychart")
-			handle, params = match(routes, "GET", route, contextPath, depth)
-			suite.NotNil(handle)
-			if handle != nil {
-				handle(c)
+			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart")
+			route, params = match(routes, "GET", r, contextPath, depth)
+			suite.NotNil(route)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
@@ -125,11 +127,11 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.Equal([]gin.Param{{"name", "mychart"}, {"repo", repo}}, params)
 
 			// GET /api/charts/mychart/0.1.0
-			route = pathutil.Join("/", contextPath, "api", repo, "charts/mychart/0.1.0")
-			handle, params = match(routes, "GET", route, contextPath, depth)
-			suite.NotNil(handle)
-			if handle != nil {
-				handle(c)
+			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart/0.1.0")
+			route, params = match(routes, "GET", r, contextPath, depth)
+			suite.NotNil(route)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
@@ -137,11 +139,11 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.Equal([]gin.Param{{"name", "mychart"}, {"version", "0.1.0"}, {"repo", repo}}, params)
 
 			// POST /api/charts
-			route = pathutil.Join("/", contextPath, "api", repo, "charts")
-			handle, params = match(routes, "POST", route, contextPath, depth)
-			suite.NotNil(handle)
-			if handle != nil {
-				handle(c)
+			r = pathutil.Join("/", contextPath, "api", repo, "charts")
+			route, params = match(routes, "POST", r, contextPath, depth)
+			suite.NotNil(route)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
@@ -149,11 +151,11 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.Equal([]gin.Param{{"repo", repo}}, params)
 
 			// POST /api/prov
-			route = pathutil.Join("/", contextPath, "api", repo, "prov")
-			handle, params = match(routes, "POST", route, contextPath, depth)
-			suite.NotNil(handle)
-			if handle != nil {
-				handle(c)
+			r = pathutil.Join("/", contextPath, "api", repo, "prov")
+			route, params = match(routes, "POST", r, contextPath, depth)
+			suite.NotNil(route)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
@@ -161,11 +163,11 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.Equal([]gin.Param{{"repo", repo}}, params)
 
 			// DELETE /api/charts/mychart/0.1.0
-			route = pathutil.Join("/", contextPath, "api", repo, "charts/mychart/0.1.0")
-			handle, params = match(routes, "DELETE", route, contextPath, depth)
-			suite.NotNil(handle)
-			if handle != nil {
-				handle(c)
+			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart/0.1.0")
+			route, params = match(routes, "DELETE", r, contextPath, depth)
+			suite.NotNil(route)
+			if route != nil {
+				route.Handler(c)
 			}
 			val, exists = c.Get("index")
 			suite.True(exists)
