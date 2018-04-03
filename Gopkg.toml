@@ -21,10 +21,6 @@
   version = "1.2.0"
 
 [[constraint]]
-  name = "github.com/go-redis/redis"
-  version = "6.10.0"
-
-[[constraint]]
   name = "github.com/prometheus/client_golang"
   version = "0.8.0"
 
