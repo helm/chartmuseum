@@ -1,5 +1,5 @@
 # Change this and commit to create new release
-VERSION=0.4.2
+VERSION=0.5.0
 REVISION := $(shell git rev-parse --short HEAD;)
 
 HAS_DEP := $(shell command -v dep;)
