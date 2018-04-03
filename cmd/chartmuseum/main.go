@@ -319,7 +319,7 @@ var cliFlags = []cli.Flag{
 	cli.IntFlag{
 		Name:   "depth",
 		Value:  0,
-		Usage:  "levels of nested repos for multitenancy (WARNING: experimental)",
+		Usage:  "levels of nested repos for multitenancy",
 		EnvVar: "DEPTH",
 	},
 }
