@@ -6,28 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (router *Router) matchRoute(c *gin.Context) {
-	route, params := match(router.Routes, c.Request.Method, c.Request.URL.Path, router.ContextPath, router.Depth)
-	if route == nil {
-		c.JSON(404, gin.H{"error": "not found"})
-		return
-	}
-	c.Params = params
-
-	if isRepoAction(route.Action) {
-		authorized, responseHeaders := router.authorizeRequest(c.Request)
-		for key, value := range responseHeaders {
-			c.Header(key, value)
-		}
-		if !authorized {
-			c.JSON(401, gin.H{"error": "unauthorized"})
-			return
-		}
-	}
-
-	route.Handler(c)
-}
-
 /*
 In order to allow params at the top level using gin (e.g. /:repo/...), this lengthy method is
 unfortunately necessary. For more info, please see the "panic: wildcard route" error described
@@ -81,7 +59,7 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 	numParts := len(pathSplit)
 
 	if numParts >= depth+startIndex {
-		repoParts := pathSplit[startIndex:depth+startIndex]
+		repoParts := pathSplit[startIndex : depth+startIndex]
 		if len(repoParts) == depth {
 			tryRepoRoutes = true
 			repo = strings.Join(repoParts, "/")

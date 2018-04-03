@@ -83,7 +83,7 @@ func NewRouter(options RouterOptions) *Router {
 		router.BasicAuthHeader = generateBasicAuthHeader(options.Username, options.Password)
 	}
 
-	router.NoRoute(router.matchRoute)
+	router.NoRoute(router.masterHandler)
 
 	return router
 }
@@ -102,6 +102,29 @@ func (router *Router) Start(port int) {
 // SetRoutes applies list of routes
 func (router *Router) SetRoutes(routes []*Route) {
 	router.Routes = routes
+}
+
+// all incoming requests are passed through this handler
+func (router *Router) masterHandler(c *gin.Context) {
+	route, params := match(router.Routes, c.Request.Method, c.Request.URL.Path, router.ContextPath, router.Depth)
+	if route == nil {
+		c.JSON(404, gin.H{"error": "not found"})
+		return
+	}
+	c.Params = params
+
+	if isRepoAction(route.Action) {
+		authorized, responseHeaders := router.authorizeRequest(c.Request)
+		for key, value := range responseHeaders {
+			c.Header(key, value)
+		}
+		if !authorized {
+			c.JSON(401, gin.H{"error": "unauthorized"})
+			return
+		}
+	}
+
+	route.Handler(c)
 }
 
 /*
