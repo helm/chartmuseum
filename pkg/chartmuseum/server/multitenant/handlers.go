@@ -1,14 +1,14 @@
 package multitenant
 
 import (
-	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
-
 	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	pathutil "path"
+
+	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 )
 
 var (

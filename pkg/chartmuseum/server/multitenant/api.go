@@ -61,7 +61,7 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte) *HTTPError {
 	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
 	if err != nil {
-		return &HTTPError{404, err.Error()}
+		return &HTTPError{500, err.Error()}
 	}
 	if !server.AllowOverwrite {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
@@ -82,7 +82,7 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, repo string, content []byte) *HTTPError {
 	filename, err := cm_repo.ProvenanceFilenameFromContent(content)
 	if err != nil {
-		return &HTTPError{404, err.Error()}
+		return &HTTPError{500, err.Error()}
 	}
 	if !server.AllowOverwrite {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
