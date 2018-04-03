@@ -31,11 +31,8 @@ For example, the route GET /:repo/index.yaml will be matched differently dependi
 */
 func match(routes []*Route, method string, url string, contextPath string, depth int) (*Route, []gin.Param) {
 	var noRepoPathSplit []string
-	var repo string
-	var repoPath string
-	var noRepoPath string
-	var startIndex int
-	var numNoRepoPathParts int
+	var repo, repoPath, noRepoPath string
+	var startIndex, numNoRepoPathParts int
 	var tryRepoRoutes bool
 
 	if contextPath != "" {

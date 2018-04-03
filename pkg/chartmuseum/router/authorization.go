@@ -16,9 +16,11 @@ func generateBasicAuthHeader(username string, password string) string {
 }
 
 func (router *Router) authorizeRequest(request *http.Request) (bool, map[string]string) {
-	var authorized bool
+	authorized := false
 	responseHeaders := map[string]string{}
 
+	// BasicAuthHeader is only set on the router if ChartMuseum is configured to use
+	// basic auth protection. If not set, the server and all its routes are wide open.
 	if router.BasicAuthHeader != "" {
 		if router.AnonymousGet && request.Method == "GET" {
 			authorized = true
