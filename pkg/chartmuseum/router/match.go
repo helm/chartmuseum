@@ -13,6 +13,18 @@ func (router *Router) matchRoute(c *gin.Context) {
 		return
 	}
 	c.Params = params
+
+	if isRepoAction(route.Action) {
+		authorized, responseHeaders := router.authorizeRequest(c.Request)
+		for key, value := range responseHeaders {
+			c.Header(key, value)
+		}
+		if !authorized {
+			c.JSON(401, gin.H{"error": "unauthorized"})
+			return
+		}
+	}
+
 	route.Handler(c)
 }
 

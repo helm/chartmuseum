@@ -28,16 +28,16 @@ func (suite *MatchTestSuite) TestMatch() {
 	}
 
 	routes := []*Route{
-		{"GET", "/", handlers[0]},
-		{"GET", "/health", handlers[1]},
-		{"GET", "/:repo/index.yaml", handlers[2]},
-		{"GET", "/:repo/charts/:filename", handlers[3]},
-		{"GET", "/api/:repo/charts", handlers[4]},
-		{"GET", "/api/:repo/charts/:name", handlers[5]},
-		{"GET", "/api/:repo/charts/:name/:version", handlers[6]},
-		{"POST", "/api/:repo/charts", handlers[7]},
-		{"POST", "/api/:repo/prov", handlers[8]},
-		{"DELETE", "/api/:repo/charts/:name/:version", handlers[9]},
+		{"GET", "/", handlers[0], RepoPullAction},
+		{"GET", "/health", handlers[1], SystemInfoAction},
+		{"GET", "/:repo/index.yaml", handlers[2], RepoPullAction},
+		{"GET", "/:repo/charts/:filename", handlers[3], RepoPullAction},
+		{"GET", "/api/:repo/charts", handlers[4], RepoPullAction},
+		{"GET", "/api/:repo/charts/:name", handlers[5], RepoPullAction},
+		{"GET", "/api/:repo/charts/:name/:version", handlers[6], RepoPullAction},
+		{"POST", "/api/:repo/charts", handlers[7], RepoPushAction},
+		{"POST", "/api/:repo/prov", handlers[8], RepoPushAction},
+		{"DELETE", "/api/:repo/charts/:name/:version", handlers[9], RepoPushAction},
 	}
 
 	for depth := 0; depth <= 3; depth++ {

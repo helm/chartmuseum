@@ -14,12 +14,14 @@ type (
 	// Router handles all incoming HTTP requests
 	Router struct {
 		*gin.Engine
-		Logger      *cm_logger.Logger
-		Routes      []*Route
-		TlsCert     string
-		TlsKey      string
-		ContextPath string
-		Depth       int
+		Logger          *cm_logger.Logger
+		Routes          []*Route
+		TlsCert         string
+		TlsKey          string
+		ContextPath     string
+		BasicAuthHeader string
+		AnonymousGet    bool
+		Depth           int
 	}
 
 	// RouterOptions TODO
@@ -41,7 +43,16 @@ type (
 		Method  string
 		Path    string
 		Handler gin.HandlerFunc
+		Action  action
 	}
+
+	action string
+)
+
+var (
+	RepoPullAction   action = "pull"
+	RepoPushAction   action = "push"
+	SystemInfoAction action = "sysinfo"
 )
 
 // NewRouter creates a new Router instance
@@ -58,13 +69,18 @@ func NewRouter(options RouterOptions) *Router {
 	}
 
 	router := &Router{
-		Engine:      engine,
-		Routes:      []*Route{},
-		Logger:      options.Logger,
-		TlsCert:     options.TlsCert,
-		TlsKey:      options.TlsKey,
-		ContextPath: options.ContextPath,
-		Depth:       options.Depth,
+		Engine:       engine,
+		Routes:       []*Route{},
+		Logger:       options.Logger,
+		TlsCert:      options.TlsCert,
+		TlsKey:       options.TlsKey,
+		ContextPath:  options.ContextPath,
+		AnonymousGet: options.AnonymousGet,
+		Depth:        options.Depth,
+	}
+
+	if options.Username != "" && options.Password != "" {
+		router.BasicAuthHeader = generateBasicAuthHeader(options.Username, options.Password)
 	}
 
 	router.NoRoute(router.matchRoute)

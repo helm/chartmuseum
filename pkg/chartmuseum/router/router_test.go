@@ -45,22 +45,22 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testRoutes := []*Route{
 		{"GET", "/", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte("200"))
-		}},
+		}, RepoPullAction},
 		{"GET", "/health", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte("200"))
-		}},
+		}, SystemInfoAction},
 		{"GET", "/:repo/whatsmyrepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}},
+		}, RepoPullAction},
 		{"GET", "/api/:repo/whatsmyrepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}},
+		}, RepoPullAction},
 		{"POST", "/api/:repo/writetorepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}},
+		}, RepoPushAction},
 		{"GET", "/api/:repo/systemstats", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}},
+		}, RepoPullAction},
 	}
 
 	// Test route transformations
