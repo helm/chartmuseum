@@ -4,7 +4,6 @@ import (
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	mt "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/multitenant"
-	st "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/singletenant"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
 
@@ -25,7 +24,6 @@ type (
 		EnableAPI              bool
 		AllowOverwrite         bool
 		EnableMetrics          bool
-		EnableMultiTenancy     bool
 		AnonymousGet           bool
 		GenIndex               bool
 		IndexLimit             int
@@ -48,7 +46,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		return nil, err
 	}
 
-	routerOptions := cm_router.RouterOptions{
+	router := cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:        logger,
 		Username:      options.Username,
 		Password:      options.Password,
@@ -58,40 +56,20 @@ func NewServer(options ServerOptions) (Server, error) {
 		EnableMetrics: options.EnableMetrics,
 		AnonymousGet:  options.AnonymousGet,
 		Depth:         options.Depth,
-	}
+	})
 
-	router := cm_router.NewRouter(routerOptions)
-
-	var server Server
-
-	if options.EnableMultiTenancy {
-		logger.Debug("Multitenancy enabled")
-		server, err = mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
-			Logger:                 logger,
-			Router:                 router,
-			StorageBackend:         options.StorageBackend,
-			ChartURL:               options.ChartURL,
-			ChartPostFormFieldName: options.ChartPostFormFieldName,
-			ProvPostFormFieldName:  options.ProvPostFormFieldName,
-			IndexLimit:             options.IndexLimit,
-			GenIndex:               options.GenIndex,
-			EnableAPI:              options.EnableAPI,
-			AllowOverwrite:         options.AllowOverwrite,
-		})
-	} else {
-		server, err = st.NewSingleTenantServer(st.SingleTenantServerOptions{
-			Logger:                 logger,
-			Router:                 router,
-			StorageBackend:         options.StorageBackend,
-			EnableAPI:              options.EnableAPI,
-			AllowOverwrite:         options.AllowOverwrite,
-			GenIndex:               options.GenIndex,
-			ChartURL:               options.ChartURL,
-			ChartPostFormFieldName: options.ChartPostFormFieldName,
-			ProvPostFormFieldName:  options.ProvPostFormFieldName,
-			IndexLimit:             options.IndexLimit,
-		})
-	}
+	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         options.StorageBackend,
+		ChartURL:               options.ChartURL,
+		ChartPostFormFieldName: options.ChartPostFormFieldName,
+		ProvPostFormFieldName:  options.ProvPostFormFieldName,
+		IndexLimit:             options.IndexLimit,
+		GenIndex:               options.GenIndex,
+		EnableAPI:              options.EnableAPI,
+		AllowOverwrite:         options.AllowOverwrite,
+	})
 
 	return server, err
 }

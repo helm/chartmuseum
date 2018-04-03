@@ -52,7 +52,6 @@ func cliHandler(c *cli.Context) {
 		EnableAPI:              !c.Bool("disable-api"),
 		AllowOverwrite:         c.Bool("allow-overwrite"),
 		EnableMetrics:          !c.Bool("disable-metrics"),
-		EnableMultiTenancy:     c.Bool("multitenant"),
 		AnonymousGet:           c.Bool("auth-anonymous-get"),
 		GenIndex:               c.Bool("gen-index"),
 		IndexLimit:             c.Int("index-limit"),
@@ -316,11 +315,6 @@ var cliFlags = []cli.Flag{
 		Value:  "",
 		Usage:  "base context path",
 		EnvVar: "CONTEXT_PATH",
-	},
-	cli.BoolFlag{
-		Name:   "multitenant",
-		Usage:  "enable multitenancy (WARNING: experimental)",
-		EnvVar: "MULTITENANT",
 	},
 	cli.IntFlag{
 		Name:   "depth",
