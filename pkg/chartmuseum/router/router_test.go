@@ -33,7 +33,7 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testContext.Request, _ = http.NewRequest("GET", "/", nil)
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(404, testContext.Writer.Status())
-	prefixed500Path := routerMetricsEnabled.transformRoutePath("/health")
+	prefixed500Path := "/health"
 	routerMetricsEnabled.GET(prefixed500Path, func(c *gin.Context) {
 		c.Data(500, "text/html", []byte("500"))
 	})
@@ -42,31 +42,31 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	routerMetricsEnabled.HandleContext(testContext)
 	suite.Equal(500, testContext.Writer.Status())
 
-	testRoutes := []Route{
-		{"READ", "GET", "/", func(c *gin.Context) {
+	testRoutes := []*Route{
+		{"GET", "/", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte("200"))
-		}},
-		{"READ", "GET", "/health", func(c *gin.Context) {
+		}, RepoPullAction},
+		{"GET", "/health", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte("200"))
-		}},
-		{"READ", "GET", "/:repo/whatsmyrepo", func(c *gin.Context) {
+		}, SystemInfoAction},
+		{"GET", "/:repo/whatsmyrepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}},
-		{"READ", "GET", "/api/:repo/whatsmyrepo", func(c *gin.Context) {
+		}, RepoPullAction},
+		{"GET", "/api/:repo/whatsmyrepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}},
-		{"WRITE", "POST", "/api/:repo/writetorepo", func(c *gin.Context) {
+		}, RepoPullAction},
+		{"POST", "/api/:repo/writetorepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}},
-		{"SYSTEM", "GET", "/api/:repo/systemstats", func(c *gin.Context) {
+		}, RepoPushAction},
+		{"GET", "/api/:repo/systemstats", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}},
+		}, RepoPullAction},
 	}
 
 	// Test route transformations
 	router := NewRouter(RouterOptions{
 		Logger: log,
-		Depth: 3,
+		Depth:  3,
 	})
 	router.SetRoutes(testRoutes)
 
@@ -84,18 +84,18 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testContext.Request, _ = http.NewRequest("GET", "/x/y/z/whatsmyrepo", nil)
 	router.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
-	suite.Equal("x/y/z", testContext.GetString("repo"))
+	suite.Equal("x/y/z", testContext.Param("repo"))
 
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
 	testContext.Request, _ = http.NewRequest("GET", "/api/x/y/z/whatsmyrepo", nil)
 	router.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
-	suite.Equal("x/y/z", testContext.GetString("repo"))
+	suite.Equal("x/y/z", testContext.Param("repo"))
 
 	// Test custom context path
 	customContextPathRouter := NewRouter(RouterOptions{
-		Logger: log,
-		Depth: 3,
+		Logger:      log,
+		Depth:       3,
 		ContextPath: "/my/crazy/path",
 	})
 	customContextPathRouter.SetRoutes(testRoutes)
@@ -119,13 +119,59 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testContext.Request, _ = http.NewRequest("GET", "/my/crazy/path/x/y/z/whatsmyrepo", nil)
 	customContextPathRouter.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
-	suite.Equal("x/y/z", testContext.GetString("repo"))
+	suite.Equal("x/y/z", testContext.Param("repo"))
 
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
 	testContext.Request, _ = http.NewRequest("GET", "/my/crazy/path/api/x/y/z/whatsmyrepo", nil)
 	customContextPathRouter.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
-	suite.Equal("x/y/z", testContext.GetString("repo"))
+	suite.Equal("x/y/z", testContext.Param("repo"))
+
+	// Test basic auth
+	basicAuthRouter := NewRouter(RouterOptions{
+		Logger:   log,
+		Depth:    0,
+		Username: "testuser",
+		Password: "testpass",
+	})
+	basicAuthRouter.SetRoutes(testRoutes)
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/health", nil)
+	basicAuthRouter.HandleContext(testContext)
+	suite.Equal(200, testContext.Writer.Status())
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	basicAuthRouter.HandleContext(testContext)
+	suite.Equal(401, testContext.Writer.Status())
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	testContext.Request.SetBasicAuth("baduser", "badpass")
+	basicAuthRouter.HandleContext(testContext)
+	suite.Equal(401, testContext.Writer.Status())
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	testContext.Request.SetBasicAuth("testuser", "testpass")
+	basicAuthRouter.HandleContext(testContext)
+	suite.Equal(200, testContext.Writer.Status())
+
+	// Test basic auth (anonymous get)
+	basicAuthRouterAnonGet := NewRouter(RouterOptions{
+		Logger:       log,
+		Depth:        0,
+		Username:     "testuser",
+		Password:     "testpass",
+		AnonymousGet: true,
+	})
+	basicAuthRouterAnonGet.SetRoutes(testRoutes)
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	basicAuthRouterAnonGet.HandleContext(testContext)
+	suite.Equal(200, testContext.Writer.Status())
 }
 
 func (suite *RouterTestSuite) TestMapURLWithParamsBackToRouteTemplate() {

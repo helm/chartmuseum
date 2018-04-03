@@ -226,7 +226,7 @@ If both of the following options are provided, the server will listen and serve 
 - `--tls-key=<key>` - path to tls key file
 
 #### Just generating index.yaml
-You can specify the `--gen-index` option if you only wish to use _ChartMuseum_ to generate your index.yaml file.
+You can specify the `--gen-index` option if you only wish to use _ChartMuseum_ to generate your index.yaml file. Note that this will only work with `--depth=0`.
 
 The contents of index.yaml will be printed to stdout and the program will exit. This is useful if you are satisfied with your current Helm CI/CD process and/or don't want to monitor another webservice.
 
@@ -241,6 +241,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--prov-post-form-field-name=<field>` - form field which will be queried for the provenance file content
 - `--index-limit=<number>` - limit the number of parallel indexers
 - `--context-path=<path>` - base context path (new root for application routes)
+- `--depth=<number>` - levels of nested repos for multitenancy
 
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
 
@@ -272,9 +273,7 @@ helm install incubator/chartmuseum
 If interested in making changes, please submit a PR to kubernetes/charts. Before doing any work, please check for any [currently open pull requests](https://github.com/kubernetes/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
 
 ## Multitenancy
-Multitenant support is currently under active development and is considered **experimental**.
-
-Please note that all "Chart Manipulation" routes are currently disabled.
+Multitenancy is supported with the `--depth` flag.
 
 To begin, start with a directory structure such as
 ```
@@ -287,11 +286,11 @@ charts
 │   │   └── chartmuseum-0.4.0.tgz
 ```
 
-This represents a storage layout appropriate for `--depth=2`. The organization level can be eliminated by using `--depth=1`. Technically, you could even use `--depth=0` to get a singletenant server.
+This represents a storage layout appropriate for `--depth=2`. The organization level can be eliminated by using `--depth=1`. The default depth is 0 (singletenant server).
 
-Start the server with the `--multitenant` and `--depth=2` options, pointing to the `charts/` directory:
+Start the server with `--depth=2`, pointing to the `charts/` directory:
 ```
-chartmuseum --debug --multitenant --depth=2 --storage="local" --storage-local-rootdir=./charts
+chartmuseum --debug --depth=2 --storage="local" --storage-local-rootdir=./charts
 ```
 
 This example will provide two separate Helm Chart Repositories at the following locations:
@@ -299,6 +298,13 @@ This example will provide two separate Helm Chart Repositories at the following 
 - `http://localhost:8080/org2/repob`
 
 This should work with all supported storage backends.
+
+To use the chart manipulation routes, simply place the name of the repo directly after "/api" in the route:
+
+```bash
+curl -F "chart=@mychart-0.1.0.tgz" http://localhost:8080/api/org1/repoa/charts
+```
+
 
 ## Notes on index.yaml
 The repository index (index.yaml) is dynamically generated based on packages found in storage. If you store your own version of index.yaml, it will be completely ignored.
