@@ -66,7 +66,7 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	// Test route transformations
 	router := NewRouter(RouterOptions{
 		Logger: log,
-		Depth: 3,
+		Depth:  3,
 	})
 	router.SetRoutes(testRoutes)
 
@@ -94,8 +94,8 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 
 	// Test custom context path
 	customContextPathRouter := NewRouter(RouterOptions{
-		Logger: log,
-		Depth: 3,
+		Logger:      log,
+		Depth:       3,
 		ContextPath: "/my/crazy/path",
 	})
 	customContextPathRouter.SetRoutes(testRoutes)
@@ -126,6 +126,52 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	customContextPathRouter.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
 	suite.Equal("x/y/z", testContext.Param("repo"))
+
+	// Test basic auth
+	basicAuthRouter := NewRouter(RouterOptions{
+		Logger:   log,
+		Depth:    0,
+		Username: "testuser",
+		Password: "testpass",
+	})
+	basicAuthRouter.SetRoutes(testRoutes)
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/health", nil)
+	basicAuthRouter.HandleContext(testContext)
+	suite.Equal(200, testContext.Writer.Status())
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	basicAuthRouter.HandleContext(testContext)
+	suite.Equal(401, testContext.Writer.Status())
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	testContext.Request.SetBasicAuth("baduser", "badpass")
+	basicAuthRouter.HandleContext(testContext)
+	suite.Equal(401, testContext.Writer.Status())
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	testContext.Request.SetBasicAuth("testuser", "testpass")
+	basicAuthRouter.HandleContext(testContext)
+	suite.Equal(200, testContext.Writer.Status())
+
+	// Test basic auth (anonymous get)
+	basicAuthRouterAnonGet := NewRouter(RouterOptions{
+		Logger:       log,
+		Depth:        0,
+		Username:     "testuser",
+		Password:     "testpass",
+		AnonymousGet: true,
+	})
+	basicAuthRouterAnonGet.SetRoutes(testRoutes)
+
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	basicAuthRouterAnonGet.HandleContext(testContext)
+	suite.Equal(200, testContext.Writer.Status())
 }
 
 func (suite *RouterTestSuite) TestMapURLWithParamsBackToRouteTemplate() {
