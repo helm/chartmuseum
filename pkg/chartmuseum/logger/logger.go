@@ -15,13 +15,13 @@ type (
 		*zap.SugaredLogger
 	}
 
-	// LoggerOptions TODO
+	// LoggerOptions are options for constructing a Logger
 	LoggerOptions struct {
 		Debug   bool
 		LogJSON bool
 	}
 
-	// LoggingFn is TODO
+	// LoggingFn is generic logging function with some additonal context
 	LoggingFn func(level logLevel, msg string, keysAndValues ...interface{})
 
 	logLevel string

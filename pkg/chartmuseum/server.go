@@ -32,6 +32,7 @@ type (
 		Depth                  int
 	}
 
+	// Server is a generic interface for web servers
 	Server interface {
 		Listen(port int)
 	}

@@ -82,7 +82,7 @@ func NewSingleTenantServer(options SingleTenantServerOptions) (*SingleTenantServ
 	return server, err
 }
 
-// Listen TODO
+// Listen starts the router on a given port
 func (server *SingleTenantServer) Listen(port int) {
 	server.Router.Start(port)
 }

@@ -80,7 +80,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 	return server, err
 }
 
-// Listen TODO
+// Listen starts the router on a given port
 func (server *MultiTenantServer) Listen(port int) {
 	server.Router.Start(port)
 }

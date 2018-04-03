@@ -28,6 +28,29 @@ func (router *Router) matchRoute(c *gin.Context) {
 	route.Handler(c)
 }
 
+/*
+In order to allow params at the top level using gin (e.g. /:repo/...), this lengthy method is
+unfortunately necessary. For more info, please see the "panic: wildcard route" error described
+here: https://github.com/gin-gonic/gin/issues/388
+
+This also adds the ability to accept a ":repo" param in the route containing a slash ("/"), so
+that routes can be reused for different levels of multitenancy.
+
+For example, the route GET /:repo/index.yaml will be matched differently depending on value used for --depth:
+
+--depth=0:
+	Path: "/index.yaml"
+	Repo: ""
+--depth=1:
+	Path: "/myrepo/index.yaml"
+	Repo: "myrepo"
+--depth=2:
+	Path: "/myorg/myrepo/index.yaml"
+	Repo: "myorg/myrepo"
+--depth=3:
+	Path: "/myorg/myteam/myrepo/index.yaml"
+	Repo: "myorg/myteam/myrepo"
+*/
 func match(routes []*Route, method string, url string, contextPath string, depth int) (*Route, []gin.Param) {
 	var noRepoPathSplit []string
 	var repo string

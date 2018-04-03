@@ -24,7 +24,7 @@ type (
 		Depth           int
 	}
 
-	// RouterOptions TODO
+	// RouterOptions are options for constructing a Router
 	RouterOptions struct {
 		Logger        *cm_logger.Logger
 		Username      string
@@ -38,7 +38,7 @@ type (
 		Depth         int
 	}
 
-	// Route TODO
+	// Route represents an application route
 	Route struct {
 		Method  string
 		Path    string
