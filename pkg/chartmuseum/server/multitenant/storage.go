@@ -1,7 +1,7 @@
 package multitenant
 
 import (
-	"fmt"
+	pathutil "path"
 	"strings"
 
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
@@ -32,7 +32,7 @@ func (server *MultiTenantServer) getStorageObject(log cm_logger.LoggingFn, repo 
 		return nil, &HTTPError{500, "unsupported file extension"}
 	}
 
-	objectPath := fmt.Sprintf("%s/%s", repo, filename)
+	objectPath := pathutil.Join(repo, filename)
 
 	object, err := server.StorageBackend.GetObject(objectPath)
 	if err != nil {
