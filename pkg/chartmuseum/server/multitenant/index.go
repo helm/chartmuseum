@@ -33,7 +33,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 	ir := <-server.regenerateRepositoryIndex(log, repo, diff, fo.objects)
 
 	if ir.err != nil {
-		errStr := fo.err.Error()
+		errStr := ir.err.Error()
 		log(cm_logger.ErrorLevel, errStr,
 			"repo", repo,
 		)
