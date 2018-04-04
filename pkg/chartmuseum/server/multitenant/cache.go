@@ -19,7 +19,7 @@ _.-'  \        ( \___
 import (
 	"context"
 	"errors"
-	"fmt"
+	pathutil "path"
 	"sync"
 
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
@@ -275,7 +275,7 @@ func (server *MultiTenantServer) getObjectChartVersion(repo string, object cm_st
 	op := object.Path
 	if load {
 		var err error
-		objectPath := fmt.Sprintf("%s/%s", repo, op)
+		objectPath := pathutil.Join(repo, op)
 		object, err = server.StorageBackend.GetObject(objectPath)
 		if err != nil {
 			return nil, err
