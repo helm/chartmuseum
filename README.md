@@ -266,8 +266,8 @@ You can also view it on [Kubeapps Hub](https://hub.kubeapps.com/charts/stable/ch
 
 To install:
 ```bash
-helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
-helm install incubator/chartmuseum
+helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm install stable/chartmuseum
 ```
 
 If interested in making changes, please submit a PR to kubernetes/charts. Before doing any work, please check for any [currently open pull requests](https://github.com/kubernetes/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
