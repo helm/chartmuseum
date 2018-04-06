@@ -260,9 +260,9 @@ docker run --rm -it \
 ```
 
 ### Helm Chart
-There is a [Helm chart for *ChartMuseum*](https://github.com/kubernetes/charts/tree/master/incubator/chartmuseum) itself which can be found in the official Kubernetes Charts repository.
+There is a [Helm chart for *ChartMuseum*](https://github.com/kubernetes/charts/tree/master/stable/chartmuseum) itself which can be found in the official Kubernetes Charts repository.
 
-You can also view it on [Kubeapps Hub](https://hub.kubeapps.com/charts/incubator/chartmuseum).
+You can also view it on [Kubeapps Hub](https://hub.kubeapps.com/charts/stable/chartmuseum).
 
 To install:
 ```bash
