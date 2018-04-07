@@ -27,6 +27,10 @@ func (suite *MainTestSuite) SetupSuite() {
 }
 
 func (suite *MainTestSuite) TestMain() {
+	os.Args = []string{"chartmuseum", "--config", "blahblahblah.yaml"}
+	suite.Panics(main, "bad config")
+	suite.Equal("config file \"blahblahblah.yaml\" does not exist", suite.LastCrashMessage, "crashes with bad config")
+
 	os.Args = []string{"chartmuseum"}
 	suite.Panics(main, "no storage")
 	suite.Equal("Missing required flags(s): --storage", suite.LastCrashMessage, "crashes with no storage")
