@@ -243,6 +243,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--context-path=<path>` - base context path (new root for application routes)
 - `--depth=<number>` - levels of nested repos for multitenancy
 
+### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
 
 Example usage (S3):
