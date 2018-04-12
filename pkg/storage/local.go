@@ -62,7 +62,19 @@ func (b LocalFilesystemBackend) GetObject(path string) (Object, error) {
 // PutObject puts an object in root directory
 func (b LocalFilesystemBackend) PutObject(path string, content []byte) error {
 	fullpath := pathutil.Join(b.RootDirectory, path)
-	err := ioutil.WriteFile(fullpath, content, 0644)
+	folderPath := pathutil.Dir(fullpath)
+	_, err := os.Stat(folderPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(folderPath, 0777)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+	err = ioutil.WriteFile(fullpath, content, 0644)
 	return err
 }
 
