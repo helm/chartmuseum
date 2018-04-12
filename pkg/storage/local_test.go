@@ -33,6 +33,11 @@ func (suite *LocalTestSuite) TestGetObject() {
 	suite.NotNil(err, "cannot get objects with bad path")
 }
 
+func (suite *LocalTestSuite) TestPutObjectWithNonExistentPath() {
+	err := suite.LocalFilesystemBackend.PutObject("testdir/test/test.tgz", []byte("test content"))
+	suite.Nil(err)
+}
+
 func TestLocalStorageTestSuite(t *testing.T) {
 	suite.Run(t, new(LocalTestSuite))
 }
