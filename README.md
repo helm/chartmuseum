@@ -81,6 +81,11 @@ Both files can also be uploaded at once (or one at a time) on the `/api/charts` 
 curl -F "chart=@mychart-0.1.0.tgz" -F "prov=@mychart-0.1.0.tgz.prov" http://localhost:8080/api/charts
 ```
 
+You can also use the [helm-push plugin](https://github.com/chartmuseum/helm-push):
+```
+helm push mychart/ chartmuseum
+```
+
 ## Installing Charts into Kubernetes
 Add the URL to your *ChartMuseum* installation to the local repository list:
 ```bash
