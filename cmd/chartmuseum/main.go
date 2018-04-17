@@ -67,6 +67,7 @@ func cliHandler(c *cli.Context) {
 		IndexLimit:             conf.GetInt("indexlimit"),
 		Depth:                  conf.GetInt("depth"),
 		EventEmitter:           event.NewEventEmitter(),
+		IntegrationAPIEnabled:  !conf.GetBool("integration.disable"),
 	}
 
 	server, err := newServer(options)

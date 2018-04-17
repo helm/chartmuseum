@@ -30,6 +30,7 @@ type (
 		IndexLimit             int
 		Depth                  int
 		EventEmitter           *event.EventEmitter
+		IntegrationAPIEnabled  bool
 	}
 
 	// Server is a generic interface for web servers
@@ -72,6 +73,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		EnableAPI:              options.EnableAPI,
 		AllowOverwrite:         options.AllowOverwrite,
 		EventEmitter:           options.EventEmitter,
+		IntegrationAPIEnabled:  options.IntegrationAPIEnabled,
 	})
 
 	return server, err

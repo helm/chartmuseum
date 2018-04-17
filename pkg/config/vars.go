@@ -321,6 +321,15 @@ var configVars = map[string]configVar{
 			EnvVar: "DEPTH",
 		},
 	},
+	"integration.disable": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "disable-integration",
+			Usage:  "Set true to disable integration endpoints",
+			EnvVar: "DISABLE_INTEGRATION",
+		},
+	},
 }
 
 func populateCLIFlags() {

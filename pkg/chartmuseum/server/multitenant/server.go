@@ -34,6 +34,7 @@ type (
 		IndexCache             map[string]*cachedIndexFile
 		IndexCacheKeyLock      *sync.Mutex
 		EventEmitter           *event.EventEmitter
+		IntegrationAPIEnabled  bool
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -49,6 +50,7 @@ type (
 		AllowOverwrite         bool
 		EnableAPI              bool
 		EventEmitter           *event.EventEmitter
+		IntegrationAPIEnabled  bool
 	}
 )
 
@@ -73,6 +75,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		IndexCache:             map[string]*cachedIndexFile{},
 		IndexCacheKeyLock:      &sync.Mutex{},
 		EventEmitter:           options.EventEmitter,
+		IntegrationAPIEnabled:  options.IntegrationAPIEnabled,
 	}
 
 	server.Router.SetRoutes(server.Routes())

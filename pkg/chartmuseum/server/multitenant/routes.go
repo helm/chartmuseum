@@ -24,6 +24,9 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 		{"POST", "/api/:repo/charts", s.postRequestHandler, cm_router.RepoPushAction},
 		{"POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler, cm_router.RepoPushAction},
 		{"DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler, cm_router.RepoPushAction},
+	}
+
+	integrationManipulationRoutes := []*cm_router.Route{
 		{"GET", "/api/:repo/integrations", s.getAllIntegrations, cm_router.APIIntegrationAction},
 		{"POST", "/api/:repo/integrations", s.createIntegration, cm_router.APIIntegrationAction},
 		{"DELETE", "/api/:repo/integrations/:name", s.deleteIntegration, cm_router.APIIntegrationAction},
@@ -34,6 +37,9 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 
 	if s.APIEnabled {
 		routes = append(routes, chartManipulationRoutes...)
+	}
+	if s.IntegrationAPIEnabled {
+		routes = append(routes, integrationManipulationRoutes...)
 	}
 
 	return routes
