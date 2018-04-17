@@ -209,7 +209,7 @@ chartmuseum --debug --port=8080 \
 ```
 
 #### Using with local filesystem storage
-Make sure you have read-write access to `./chartstorage` (will create if doesn't exist)
+Make sure you have read-write access to `./chartstorage` (will create if doesn't exist on first upload)
 ```bash
 chartmuseum --debug --port=8080 \
   --storage="local" \
