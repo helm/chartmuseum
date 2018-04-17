@@ -6,11 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/integration"
-
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
 	"github.com/kubernetes-helm/chartmuseum/pkg/config"
 	"github.com/kubernetes-helm/chartmuseum/pkg/event"
+	"github.com/kubernetes-helm/chartmuseum/pkg/integration"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 	"github.com/urfave/cli"
 )
