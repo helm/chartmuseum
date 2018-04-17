@@ -169,6 +169,23 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/gophercloud/gophercloud"
+  packages = [
+    ".",
+    "openstack",
+    "openstack/identity/v2/tenants",
+    "openstack/identity/v2/tokens",
+    "openstack/identity/v3/tokens",
+    "openstack/objectstorage/v1/accounts",
+    "openstack/objectstorage/v1/containers",
+    "openstack/objectstorage/v1/objects",
+    "openstack/utils",
+    "pagination"
+  ]
+  revision = "1ad03b8e6d59290f9287ae5217b415f5280afac7"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
@@ -527,6 +544,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e3aad15b95dd121c85e6d2750069d14083975ccdb2b70012e02c0138c9ac0576"
+  inputs-digest = "e9a6e8347465b27c82fc82b86f0cd1ba0a91e27a3869990e0dfe61aae1501cf1"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -276,6 +276,42 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_ALIBABA_SSE",
 		},
 	},
+	"storage.openstack.container": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-openstack-container",
+			Usage:  "container to store charts for openstack storage backend",
+			EnvVar: "STORAGE_OPENSTACK_CONTAINER",
+		},
+	},
+	"storage.openstack.prefix": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-openstack-prefix",
+			Usage:  "prefix to store charts for --storage-openstack-prefix",
+			EnvVar: "STORAGE_OPENSTACK_PREFIX",
+		},
+	},
+	"storage.openstack.region": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-openstack-region",
+			Usage:  "region of --storage-openstack-container",
+			EnvVar: "STORAGE_OPENSTACK_REGION",
+		},
+	},
+	"storage.openstack.cacert": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-openstack-cacert",
+			Usage:  "region of --storage-openstack-cacert",
+			EnvVar: "STORAGE_OPENSTACK_CACERT",
+		},
+	},
 	"chartpostformfieldname": {
 		Type:    stringType,
 		Default: "chart",

@@ -90,6 +90,8 @@ func backendFromConfig(conf *config.Config) storage.Backend {
 		backend = microsoftBackendFromConfig(conf)
 	case "alibaba":
 		backend = alibabaBackendFromConfig(conf)
+	case "openstack":
+		backend = openstackBackendFromConfig(conf)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -142,6 +144,16 @@ func alibabaBackendFromConfig(conf *config.Config) storage.Backend {
 		conf.GetString("storage.alibaba.prefix"),
 		conf.GetString("storage.alibaba.endpoint"),
 		conf.GetString("storage.alibaba.sse"),
+	))
+}
+
+func openstackBackendFromConfig(conf *config.Config) storage.Backend {
+	crashIfConfigMissingVars(conf, []string{"storage.openstack.container", "storage.openstack.region"})
+	return storage.Backend(storage.NewOpenstackOSBackend(
+		conf.GetString("storage.openstack.container"),
+		conf.GetString("storage.openstack.prefix"),
+		conf.GetString("storage.openstack.region"),
+		conf.GetString("storage.openstack.cacert"),
 	))
 }
 

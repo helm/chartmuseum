@@ -12,6 +12,11 @@
   name = "github.com/aliyun/aliyun-oss-go-sdk"
   version = "1.8.0"
 
+# Used by Openstack Object Storage backend
+[[constraint]]
+  name = "github.com/gophercloud/gophercloud"
+  branch = "master"
+
 [[constraint]]
   name = "github.com/aws/aws-sdk-go"
   version = "1.10.18"

@@ -14,6 +14,7 @@
 .stable.txt
 .test/
 .venv/
+.vscode/
 bin/
 goviz.png
 index.yaml
