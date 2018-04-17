@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/kubernetes-helm/chartmuseum/pkg/event"
+
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -31,6 +33,7 @@ type (
 		Limiter                chan struct{}
 		IndexCache             map[string]*cachedIndexFile
 		IndexCacheKeyLock      *sync.Mutex
+		EventEmitter           *event.EventEmitter
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -45,6 +48,7 @@ type (
 		GenIndex               bool
 		AllowOverwrite         bool
 		EnableAPI              bool
+		EventEmitter           *event.EventEmitter
 	}
 )
 
@@ -68,6 +72,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Limiter:                make(chan struct{}, options.IndexLimit),
 		IndexCache:             map[string]*cachedIndexFile{},
 		IndexCacheKeyLock:      &sync.Mutex{},
+		EventEmitter:           options.EventEmitter,
 	}
 
 	server.Router.SetRoutes(server.Routes())

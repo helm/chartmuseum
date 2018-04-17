@@ -4,6 +4,7 @@ import (
 	pathutil "path/filepath"
 
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	"github.com/kubernetes-helm/chartmuseum/pkg/event"
 	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 
 	helm_repo "k8s.io/helm/pkg/repo"
@@ -55,6 +56,19 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 	}
 	provFilename := pathutil.Join(repo, cm_repo.ProvenanceFilenameFromNameVersion(name, version))
 	server.StorageBackend.DeleteObject(provFilename) // ignore error here, may be no prov file
+	go server.EventEmitter.Emit(
+		&event.Event{
+			Action: event.ChartDeletedEventName,
+			Logger: log,
+			Data: map[string]interface{}{
+				"repo":         repo,
+				"name":         name,
+				"version":      version,
+				"filename":     filename,
+				"provFilename": provFilename,
+			},
+		},
+	)
 	return nil
 }
 
@@ -63,19 +77,34 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	if err != nil {
 		return &HTTPError{500, err.Error()}
 	}
+	path := pathutil.Join(repo, filename)
 	if !server.AllowOverwrite {
-		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
+		_, err = server.StorageBackend.GetObject(path)
 		if err == nil {
 			return &HTTPError{409, "file already exists"}
 		}
 	}
-	log(cm_logger.DebugLevel,"Adding package to storage",
+	log(cm_logger.DebugLevel, "Adding package to storage",
 		"package", filename,
 	)
-	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
+	err = server.StorageBackend.PutObject(path, content)
 	if err != nil {
 		return &HTTPError{500, err.Error()}
 	}
+	chart, _ := cm_repo.ChartFromContent(content)
+	go server.EventEmitter.Emit(
+		&event.Event{
+			Action: event.ChartPushedEventName,
+			Logger: log,
+			Data: map[string]interface{}{
+				"repo":     repo,
+				"filename": filename,
+				"fullpath": path,
+				"version":  chart.Metadata.Version,
+				"name":     chart.Metadata.Name,
+			},
+		},
+	)
 	return nil
 }
 
@@ -90,7 +119,7 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 			return &HTTPError{409, "file already exists"}
 		}
 	}
-	log(cm_logger.DebugLevel,"Adding provenance file to storage",
+	log(cm_logger.DebugLevel, "Adding provenance file to storage",
 		"provenance_file", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)

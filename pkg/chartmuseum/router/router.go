@@ -50,9 +50,10 @@ type (
 )
 
 var (
-	RepoPullAction   action = "pull"
-	RepoPushAction   action = "push"
-	SystemInfoAction action = "sysinfo"
+	RepoPullAction       action = "pull"
+	RepoPushAction       action = "push"
+	SystemInfoAction     action = "sysinfo"
+	APIIntegrationAction action = "chartmuseum:api:integration"
 )
 
 // NewRouter creates a new Router instance

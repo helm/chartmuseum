@@ -4,6 +4,7 @@ import (
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	mt "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/multitenant"
+	"github.com/kubernetes-helm/chartmuseum/pkg/event"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
 
@@ -28,6 +29,7 @@ type (
 		GenIndex               bool
 		IndexLimit             int
 		Depth                  int
+		EventEmitter           *event.EventEmitter
 	}
 
 	// Server is a generic interface for web servers
@@ -69,6 +71,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		GenIndex:               options.GenIndex,
 		EnableAPI:              options.EnableAPI,
 		AllowOverwrite:         options.AllowOverwrite,
+		EventEmitter:           options.EventEmitter,
 	})
 
 	return server, err
