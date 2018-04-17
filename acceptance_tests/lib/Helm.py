@@ -23,5 +23,7 @@ class Helm(common.CommandRunner):
 
     def fetch_and_verify_chart(self, chart):
         os.chdir(self.rootdir)
+        if not os.path.exists(common.ACCEPTANCE_DIR):
+            os.makedirs(common.ACCEPTANCE_DIR)
         os.chdir(common.ACCEPTANCE_DIR)
         self.run_command('helm fetch --verify --keyring ../%s %s/%s' % (common.KEYRING, common.HELM_REPO_NAME, chart))
