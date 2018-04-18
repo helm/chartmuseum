@@ -290,7 +290,7 @@ var configVars = map[string]configVar{
 		Default: "",
 		CLIFlag: cli.StringFlag{
 			Name:   "storage-openstack-prefix",
-			Usage:  "prefix to store charts for --storage-openstack-prefix",
+			Usage:  "prefix to store charts for --storage-openstack-container",
 			EnvVar: "STORAGE_OPENSTACK_PREFIX",
 		},
 	},
@@ -308,7 +308,7 @@ var configVars = map[string]configVar{
 		Default: "",
 		CLIFlag: cli.StringFlag{
 			Name:   "storage-openstack-cacert",
-			Usage:  "region of --storage-openstack-cacert",
+			Usage:  "path to a CA cert bundle for your openstack endpoint",
 			EnvVar: "STORAGE_OPENSTACK_CACERT",
 		},
 	},
