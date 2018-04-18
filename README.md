@@ -6,7 +6,7 @@
 [![GoDoc](https://godoc.org/github.com/kubernetes-helm/chartmuseum?status.svg)](https://godoc.org/github.com/kubernetes-helm/chartmuseum)
 <sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
 
-*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md)** written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), and [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss).
+*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md)** written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss) and [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/).
 
 Works as a valid Helm Chart Repository, and also provides an API for uploading new chart packages to storage etc.
 
@@ -206,6 +206,25 @@ chartmuseum --debug --port=8080 \
   --storage-alibaba-bucket="my-oss-bucket" \
   --storage-alibaba-prefix="" \
   --storage-alibaba-endpoint="oss-cn-beijing.aliyuncs.com"
+```
+
+#### Using with Openstack Object Storage
+
+Make sure your environment is properly setup to access `mycontainer`.
+
+To do so, you must set the following env vars (depending on your openstack version):
+- `OS_AUTH_URL`
+- either `OS_PROJECT_NAME` or `OS_TENANT_NAME` or `OS_PROJECT_ID` or `OS_TENANT_ID`
+- either `OS_DOMAIN_NAME` or `OS_DOMAIN_ID`
+- either `OS_USERNAME` or `OS_USERID`
+- `OS_PASSWORD`
+
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="openstack" \
+  --storage-openstack-container="mycontainer" \
+  --storage-openstack-prefix="" \
+  --storage-openstack-region="myregion"
 ```
 
 #### Using with local filesystem storage
