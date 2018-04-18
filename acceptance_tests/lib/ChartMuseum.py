@@ -32,8 +32,8 @@ class ChartMuseum(common.CommandRunner):
             cmd += '--storage-alibaba-bucket="%s" --storage-alibaba-prefix="%s" --storage-alibaba-endpoint="%s" >> %s 2>&1' \
                   % (common.STORAGE_ALIBABA_BUCKET, common.STORAGE_ALIBABA_PREFIX, common.STORAGE_ALIBABA_ENDPOINT, common.LOGFILE)
         elif storage == 'openstack':
-            cmd += '--storage-openstack-container="%s" --storage-openstack-prefix="%s" >> %s 2>&1' \
-                  % (common.STORAGE_OPENSTACK_CONTAINER, common.STORAGE_OPENSTACK_PREFIX, common.LOGFILE)
+            cmd += '--storage-openstack-container="%s" --storage-openstack-prefix="%s" --storage-openstack-region="%s >> %s 2>&1' \
+                  % (common.STORAGE_OPENSTACK_CONTAINER, common.STORAGE_OPENSTACK_PREFIX, common.STORAGE_OPENSTACK_REGION, common.LOGFILE)
         print(cmd)
         self.run_command(cmd, detach=True)
 

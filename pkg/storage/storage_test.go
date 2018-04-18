@@ -33,6 +33,8 @@ func (suite *StorageTestSuite) setupStorageBackends() {
 		blobContainer := os.Getenv("TEST_STORAGE_MICROSOFT_CONTAINER")
 		ossBucket := os.Getenv("TEST_STORAGE_ALIBABA_BUCKET")
 		ossEndpoint := os.Getenv("TEST_STORAGE_ALIBABA_ENDPOINT")
+		osContainer := os.Getenv("TEST_STORAGE_OPENSTACK_CONTAINER")
+		osRegion := os.Getenv("TEST_STORAGE_OPENSTACK_REGION")
 		if s3Bucket != "" && s3Region != "" {
 			suite.StorageBackends["AmazonS3"] = Backend(NewAmazonS3Backend(s3Bucket, prefix, s3Region, "", ""))
 		}
@@ -44,6 +46,9 @@ func (suite *StorageTestSuite) setupStorageBackends() {
 		}
 		if ossBucket != "" {
 			suite.StorageBackends["AlibabaCloudOSS"] = Backend(NewAlibabaCloudOSSBackend(ossBucket, prefix, ossEndpoint, ""))
+		}
+		if osContainer != "" {
+			suite.StorageBackends["OpenStackOS"] = Backend(NewOpenstackOSBackend(osContainer, prefix, osRegion, ""))
 		}
 	}
 }

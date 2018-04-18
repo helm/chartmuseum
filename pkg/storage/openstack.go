@@ -12,7 +12,6 @@ import (
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
-	osContainers "github.com/gophercloud/gophercloud/openstack/objectstorage/v1/containers"
 	osObjects "github.com/gophercloud/gophercloud/openstack/objectstorage/v1/objects"
 )
 
@@ -99,12 +98,6 @@ func NewOpenstackOSBackend(container string, prefix string, region string, caCer
 		panic(fmt.Sprintf("Openstack (object storage): %s", err))
 	}
 
-	// Create the container
-	_, err = osContainers.Create(client, container, nil).Extract()
-	if err != nil {
-		panic(fmt.Sprintf("Openstack (container): %s", err))
-	}
-
 	b := &OpenstackOSBackend{
 		Container: container,
 		Prefix:    prefix,
@@ -157,7 +150,7 @@ func (b OpenstackOSBackend) GetObject(path string) (Object, error) {
 	var object Object
 	object.Path = path
 
-	result := osObjects.Download(b.Client, b.Container, path, nil)
+	result := osObjects.Download(b.Client, b.Container, pathutil.Join(b.Prefix, path), nil)
 	headers, err := result.Extract()
 	if err != nil {
 		return object, err
@@ -178,12 +171,12 @@ func (b OpenstackOSBackend) PutObject(path string, content []byte) error {
 	createOpts := osObjects.CreateOpts{
 		Content: reader,
 	}
-	_, err := osObjects.Create(b.Client, b.Container, path, createOpts).Extract()
+	_, err := osObjects.Create(b.Client, b.Container, pathutil.Join(b.Prefix, path), createOpts).Extract()
 	return err
 }
 
 // DeleteObject removes an object from an Openstack container, at prefix
 func (b OpenstackOSBackend) DeleteObject(path string) error {
-	_, err := osObjects.Delete(b.Client, b.Container, path, nil).Extract()
+	_, err := osObjects.Delete(b.Client, b.Container, pathutil.Join(b.Prefix, path), nil).Extract()
 	return err
 }

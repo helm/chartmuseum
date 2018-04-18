@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation     Tests to verify that ChartMuseum is able to work with
 ...               Helm CLI and act as a valid Helm Chart Repository using
-...               all supported storage backends (local, s3, gcs).
+...               all supported storage backends (local, s3, gcs, openstack).
 Library           String
 Library           OperatingSystem
 Library           lib/ChartMuseum.py
@@ -24,6 +24,9 @@ ChartMuseum works with Helm using Microsoft cloud storage
 
 ChartMuseum works with Helm using Alibaba cloud storage
     Test Helm integration   alibaba
+
+ChartMuseum works with Helm using Openstack cloud storage
+    Test Helm integration   openstack
 
 *** Keyword ***
 Test Helm integration

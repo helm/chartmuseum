@@ -29,7 +29,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "ChartMuseum"
 	app.Version = fmt.Sprintf("%s (build %s)", Version, Revision)
-	app.Usage = "Helm Chart Repository with support for Amazon S3 and Google Cloud Storage"
+	app.Usage = "Helm Chart Repository with support for Amazon S3, Google Cloud Storage and Openstack"
 	app.Action = cliHandler
 	app.Flags = config.CLIFlags
 	app.Run(os.Args)

@@ -47,10 +47,6 @@ func (suite *MainTestSuite) TestMain() {
 	suite.Panics(main, "amazon storage")
 	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with amazon backend")
 
-	os.Args = []string{"chartmuseum", "--storage", "amazon", "--storage-amazon-bucket", "x", "--storage-amazon-endpoint", "http://localhost:9000"}
-	suite.Panics(main, "amazon storage, alt endpoint")
-	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with amazon backend, alt endpoint")
-
 	os.Args = []string{"chartmuseum", "--storage", "google", "--storage-google-bucket", "x"}
 	suite.Panics(main, "google storage")
 	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with google backend")
@@ -62,6 +58,10 @@ func (suite *MainTestSuite) TestMain() {
 	os.Args = []string{"chartmuseum", "--storage", "alibaba", "--storage-alibaba-bucket", "x", "--storage-alibaba-endpoint", "oss-cn-beijing.aliyuncs.com"}
 	suite.Panics(main, "alibaba storage")
 	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with alibaba backend")
+
+	os.Args = []string{"chartmuseum", "--storage", "openstack", "--storage-openstack-container", "x", "--storage-openstack-region", "x"}
+	suite.Panics(main, "openstack storage")
+	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with openstack backend")
 }
 
 func TestMainTestSuite(t *testing.T) {

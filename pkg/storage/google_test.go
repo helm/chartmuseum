@@ -51,7 +51,8 @@ func (suite *GoogleTestSuite) TestPutObject() {
 }
 
 func TestGoogleStorageTestSuite(t *testing.T) {
-	if os.Getenv("TEST_CLOUD_STORAGE") == "1" {
+	if os.Getenv("TEST_CLOUD_STORAGE") == "1" &&
+		os.Getenv("TEST_STORAGE_GOOGLE_BUCKET") != "" {
 		suite.Run(t, new(GoogleTestSuite))
 	}
 }
