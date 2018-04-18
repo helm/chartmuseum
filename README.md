@@ -81,6 +81,11 @@ Both files can also be uploaded at once (or one at a time) on the `/api/charts` 
 curl -F "chart=@mychart-0.1.0.tgz" -F "prov=@mychart-0.1.0.tgz.prov" http://localhost:8080/api/charts
 ```
 
+You can also use the [helm-push plugin](https://github.com/chartmuseum/helm-push):
+```
+helm push mychart/ chartmuseum
+```
+
 ## Installing Charts into Kubernetes
 Add the URL to your *ChartMuseum* installation to the local repository list:
 ```bash
@@ -116,7 +121,7 @@ mv ./chartmuseum /usr/local/bin
 ```
 Using `latest` in URLs above will get the latest binary (built from master branch).
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.5.1`).
+Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.5.2`).
 
 Determine your version with `chartmuseum --version`.
 
@@ -204,7 +209,7 @@ chartmuseum --debug --port=8080 \
 ```
 
 #### Using with local filesystem storage
-Make sure you have read-write access to `./chartstorage` (will create if doesn't exist)
+Make sure you have read-write access to `./chartstorage` (will create if doesn't exist on first upload)
 ```bash
 chartmuseum --debug --port=8080 \
   --storage="local" \

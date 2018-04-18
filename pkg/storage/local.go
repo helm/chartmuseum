@@ -14,12 +14,6 @@ type LocalFilesystemBackend struct {
 
 // NewLocalFilesystemBackend creates a new instance of LocalFilesystemBackend
 func NewLocalFilesystemBackend(rootDirectory string) *LocalFilesystemBackend {
-	if _, err := os.Stat(rootDirectory); os.IsNotExist(err) {
-		err := os.MkdirAll(rootDirectory, 0777)
-		if err != nil {
-			panic(err)
-		}
-	}
 	b := &LocalFilesystemBackend{RootDirectory: rootDirectory}
 	return b
 }
@@ -29,6 +23,9 @@ func (b LocalFilesystemBackend) ListObjects(prefix string) ([]Object, error) {
 	var objects []Object
 	files, err := ioutil.ReadDir(pathutil.Join(b.RootDirectory, prefix))
 	if err != nil {
+		if os.IsNotExist(err) {  // OK if the directory doesnt exist yet
+			err = nil
+		}
 		return objects, err
 	}
 	for _, f := range files {

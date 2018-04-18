@@ -33,7 +33,6 @@ type MultiTenantServerTestSuite struct {
 	DisabledAPIServer    *MultiTenantServer
 	OverwriteServer      *MultiTenantServer
 	ChartURLServer       *MultiTenantServer
-	BrokenServer         *MultiTenantServer
 	TempDirectory        string
 	TestTarballFilename  string
 	TestProvfileFilename string
@@ -65,8 +64,6 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.OverwriteServer.Router.HandleContext(c)
 	case "charturl":
 		suite.ChartURLServer.Router.HandleContext(c)
-	case "broken":
-		suite.BrokenServer.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -289,27 +286,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new custom chart URL server")
 	suite.ChartURLServer = server
-
-	brokenTempDirectory := fmt.Sprintf("../../../../.test/chartmuseum-server/%s-broken", timestamp)
-	defer os.RemoveAll(brokenTempDirectory)
-
-	brokenBackend := storage.Backend(storage.NewLocalFilesystemBackend(brokenTempDirectory))
-
-	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  0,
-	})
-	server, err = NewMultiTenantServer(MultiTenantServerOptions{
-		Logger:                 logger,
-		Router:                 router,
-		StorageBackend:         brokenBackend,
-		EnableAPI:              true,
-		ChartPostFormFieldName: "chart",
-		ProvPostFormFieldName:  "prov",
-	})
-	suite.NotNil(server)
-	suite.Nil(err, "no error creating new broken server")
-	suite.BrokenServer = server
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -436,20 +412,6 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 func (suite *MultiTenantServerTestSuite) TestCustomChartURLServer() {
 	res := suite.doRequest("charturl", "GET", "/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /index.yaml")
-}
-
-func (suite *MultiTenantServerTestSuite) TestBrokenServer() {
-	res := suite.doRequest("broken", "GET", "/index.yaml", nil, "")
-	suite.Equal(500, res.Status(), "500 GET /index.yaml")
-
-	res = suite.doRequest("broken", "GET", "/api/charts", nil, "")
-	suite.Equal(500, res.Status(), "500 GET /api/charts")
-
-	res = suite.doRequest("broken", "GET", "/api/charts/mychart", nil, "")
-	suite.Equal(500, res.Status(), "500 GET /api/charts/mychart")
-
-	res = suite.doRequest("broken", "GET", "/api/charts/mychart/0.1.0", nil, "")
-	suite.Equal(500, res.Status(), "500 GET /api/charts/mychart/0.1.0")
 }
 
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
