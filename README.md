@@ -261,6 +261,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--chart-url=<url>` - absolute url for .tgzs in index.yaml
 - `--storage-amazon-endpoint=<endpoint>` - alternative s3 endpoint
 - `--storage-amazon-sse=<algorithm>` - s3 server side encryption algorithm
+- `--storage-openstack-cacert=<path>` - path to a custom ca certificates bundle for openstack
 - `--chart-post-form-field-name=<field>` - form field which will be queried for the chart file content
 - `--prov-post-form-field-name=<field>` - form field which will be queried for the provenance file content
 - `--index-limit=<number>` - limit the number of parallel indexers

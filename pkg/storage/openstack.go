@@ -13,6 +13,7 @@ import (
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	osObjects "github.com/gophercloud/gophercloud/openstack/objectstorage/v1/objects"
+	"github.com/gophercloud/gophercloud/pagination"
 )
 
 // ReauthRoundTripper satisfies the http.RoundTripper interface and is used to
@@ -65,7 +66,9 @@ func NewOpenstackOSBackend(container string, prefix string, region string, caCer
 		}
 
 		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			panic(fmt.Sprintf("Openstack (ca certificates): unable to read certificate bundle"))
+		}
 
 		transport := &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -119,30 +122,28 @@ func (b OpenstackOSBackend) ListObjects(prefix string) ([]Object, error) {
 	}
 
 	pager := osObjects.List(b.Client, b.Container, opts)
-	page, err := pager.AllPages()
-	if err != nil {
-		return objects, err
-	}
-
-	objectList, err := osObjects.ExtractInfo(page)
-	if err != nil {
-		return objects, err
-	}
-
-	for _, openStackObject := range objectList {
-		path := removePrefixFromObjectPath(prefix, openStackObject.Name)
-		if objectPathIsInvalid(path) {
-			continue
+	err := pager.EachPage(func(page pagination.Page) (bool, error) {
+		objectList, err := osObjects.ExtractInfo(page)
+		if err != nil {
+			return false, err
 		}
-		object := Object{
-			Path:         path,
-			Content:      []byte{},
-			LastModified: openStackObject.LastModified,
-		}
-		objects = append(objects, object)
-	}
 
-	return objects, nil
+		for _, openStackObject := range objectList {
+			path := removePrefixFromObjectPath(prefix, openStackObject.Name)
+			if objectPathIsInvalid(path) {
+				continue
+			}
+			object := Object{
+				Path:         path,
+				Content:      []byte{},
+				LastModified: openStackObject.LastModified,
+			}
+			objects = append(objects, object)
+		}
+		return true, nil
+	})
+
+	return objects, err
 }
 
 // GetObject retrieves an object from an Openstack container, at prefix
