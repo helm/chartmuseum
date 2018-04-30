@@ -26,6 +26,7 @@ type (
 		EnableMetrics          bool
 		AnonymousGet           bool
 		GenIndex               bool
+		MaxStorageObjects      int
 		IndexLimit             int
 		Depth                  int
 	}
@@ -65,6 +66,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		ChartURL:               options.ChartURL,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
+		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
 		GenIndex:               options.GenIndex,
 		EnableAPI:              options.EnableAPI,

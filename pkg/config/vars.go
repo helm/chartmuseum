@@ -294,6 +294,15 @@ var configVars = map[string]configVar{
 			EnvVar: "PROV_POST_FORM_FIELD_NAME",
 		},
 	},
+	"maxstorageobjects": {
+		Type:    intType,
+		Default: 0,
+		CLIFlag: cli.IntFlag{
+			Name:   "max-storage-objects",
+			Usage:  "maximum number of objects allowed in storage (per tenant)",
+			EnvVar: "MAX_STORAGE_OBJECTS",
+		},
+	},
 	"indexlimit": {
 		Type:    intType,
 		Default: 0,

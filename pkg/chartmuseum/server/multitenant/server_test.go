@@ -23,6 +23,8 @@ import (
 
 var testTarballPath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz"
 var testProvfilePath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.prov"
+var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz"
+var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
@@ -33,6 +35,7 @@ type MultiTenantServerTestSuite struct {
 	DisabledAPIServer    *MultiTenantServer
 	OverwriteServer      *MultiTenantServer
 	ChartURLServer       *MultiTenantServer
+	MaxObjectsServer     *MultiTenantServer
 	TempDirectory        string
 	TestTarballFilename  string
 	TestProvfileFilename string
@@ -64,6 +67,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.OverwriteServer.Router.HandleContext(c)
 	case "charturl":
 		suite.ChartURLServer.Router.HandleContext(c)
+	case "maxobjects":
+		suite.MaxObjectsServer.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -286,6 +291,24 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new custom chart URL server")
 	suite.ChartURLServer = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger: logger,
+		Depth:  0,
+	})
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		EnableAPI:              true,
+		AllowOverwrite:         true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+		MaxStorageObjects:      1,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new max objects server")
+	suite.MaxObjectsServer = server
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -412,6 +435,34 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 func (suite *MultiTenantServerTestSuite) TestCustomChartURLServer() {
 	res := suite.doRequest("charturl", "GET", "/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /index.yaml")
+}
+
+func (suite *MultiTenantServerTestSuite) TestMaxObjectsServer() {
+	// Overwrites should still be allowed if limit is reached
+	content, err := ioutil.ReadFile(testTarballPath)
+	suite.Nil(err, "no error opening test tarball")
+	body := bytes.NewBuffer(content)
+	res := suite.doRequest("maxobjects", "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	content, err = ioutil.ReadFile(testProvfilePath)
+	suite.Nil(err, "no error opening test provenance file")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("maxobjects", "POST", "/api/prov", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/prov")
+
+	// trigger error, reached max
+	content, err = ioutil.ReadFile(otherTestTarballPath)
+	suite.Nil(err, "no error opening other test tarball")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("maxobjects", "POST", "/api/charts", body, "")
+	suite.Equal(400, res.Status(), "400 POST /api/charts")
+
+	content, err = ioutil.ReadFile(otherTestProvfilePath)
+	suite.Nil(err, "no error opening other test provenance file")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("maxobjects", "POST", "/api/prov", body, "")
+	suite.Equal(400, res.Status(), "400 POST /api/prov")
 }
 
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
