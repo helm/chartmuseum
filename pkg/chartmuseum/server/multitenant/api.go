@@ -74,7 +74,7 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 		return &HTTPError{500, err.Error()}
 	}
 	if limitReached {
-		return &HTTPError{400, "repo has reached storage limit"}
+		return &HTTPError{507, "repo has reached storage limit"}
 	}
 	log(cm_logger.DebugLevel,"Adding package to storage",
 		"package", filename,
@@ -102,7 +102,7 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 		return &HTTPError{500, err.Error()}
 	}
 	if limitReached {
-		return &HTTPError{400, "repo has reached storage limit"}
+		return &HTTPError{507, "repo has reached storage limit"}
 	}
 	log(cm_logger.DebugLevel,"Adding provenance file to storage",
 		"provenance_file", filename,

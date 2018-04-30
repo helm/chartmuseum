@@ -456,13 +456,13 @@ func (suite *MultiTenantServerTestSuite) TestMaxObjectsServer() {
 	suite.Nil(err, "no error opening other test tarball")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("maxobjects", "POST", "/api/charts", body, "")
-	suite.Equal(400, res.Status(), "400 POST /api/charts")
+	suite.Equal(507, res.Status(), "507 POST /api/charts")
 
 	content, err = ioutil.ReadFile(otherTestProvfilePath)
 	suite.Nil(err, "no error opening other test provenance file")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("maxobjects", "POST", "/api/prov", body, "")
-	suite.Equal(400, res.Status(), "400 POST /api/prov")
+	suite.Equal(507, res.Status(), "507 POST /api/prov")
 }
 
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
