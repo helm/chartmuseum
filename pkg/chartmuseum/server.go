@@ -29,6 +29,7 @@ type (
 		MaxStorageObjects      int
 		IndexLimit             int
 		Depth                  int
+		MaxUploadSize          int
 	}
 
 	// Server is a generic interface for web servers
@@ -57,6 +58,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		EnableMetrics: options.EnableMetrics,
 		AnonymousGet:  options.AnonymousGet,
 		Depth:         options.Depth,
+		MaxUploadSize: options.MaxUploadSize,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{

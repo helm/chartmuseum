@@ -64,6 +64,7 @@ func cliHandler(c *cli.Context) {
 		MaxStorageObjects:      conf.GetInt("maxstorageobjects"),
 		IndexLimit:             conf.GetInt("indexlimit"),
 		Depth:                  conf.GetInt("depth"),
+		MaxUploadSize:          conf.GetInt("maxuploadsize"),
 	}
 
 	server, err := newServer(options)

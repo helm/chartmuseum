@@ -150,6 +150,9 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	content, getContentErr := c.GetRawData()
 	if getContentErr != nil {
+		if len(c.Errors) > 0 {
+			return // this is a "request too large"
+		}
 		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", getContentErr)})
 		return
 	}
@@ -166,6 +169,9 @@ func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context
 	repo := c.Param("repo")
 	content, getContentErr := c.GetRawData()
 	if getContentErr != nil {
+		if len(c.Errors) > 0 {
+			return // this is a "request too large"
+		}
 		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", getContentErr)})
 		return
 	}
@@ -205,6 +211,9 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	}
 
 	if len(ppFiles) == 0 {
+		if len(c.Errors) > 0 {
+			return // this is a "request too large"
+		}
 		c.JSON(400, gin.H{"error": fmt.Sprintf(
 			"no package or provenance file found in form fields %s and %s",
 			server.ChartPostFormFieldName, server.ProvPostFormFieldName),

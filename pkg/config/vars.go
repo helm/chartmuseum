@@ -303,6 +303,16 @@ var configVars = map[string]configVar{
 			EnvVar: "MAX_STORAGE_OBJECTS",
 		},
 	},
+	"maxuploadsize": {
+		Type:    intType,
+		Default: 1024 * 1024 * 20, // 20MB, per Helm's limit
+		CLIFlag: cli.IntFlag{
+			Name:   "max-upload-size",
+			Usage:  "max size of post body (in bytes)",
+			EnvVar: "MAX_UPLOAD_SIZE",
+			Value: 1024 * 1024 * 20,
+		},
+	},
 	"indexlimit": {
 		Type:    intType,
 		Default: 0,
