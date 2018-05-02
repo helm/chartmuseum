@@ -22,6 +22,7 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
+		MaxStorageObjects      int
 		IndexLimit             int
 		AllowOverwrite         bool
 		APIEnabled             bool
@@ -41,6 +42,7 @@ type (
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
+		MaxStorageObjects      int
 		IndexLimit             int
 		GenIndex               bool
 		AllowOverwrite         bool
@@ -59,6 +61,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:                 options.Logger,
 		Router:                 options.Router,
 		StorageBackend:         options.StorageBackend,
+		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
 		ChartURL:               chartURL,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,

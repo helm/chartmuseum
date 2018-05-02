@@ -69,6 +69,13 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 			return &HTTPError{409, "file already exists"}
 		}
 	}
+	limitReached, err := server.checkStorageLimit(repo, filename)
+	if err != nil {
+		return &HTTPError{500, err.Error()}
+	}
+	if limitReached {
+		return &HTTPError{507, "repo has reached storage limit"}
+	}
 	log(cm_logger.DebugLevel,"Adding package to storage",
 		"package", filename,
 	)
@@ -90,6 +97,13 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 			return &HTTPError{409, "file already exists"}
 		}
 	}
+	limitReached, err := server.checkStorageLimit(repo, filename)
+	if err != nil {
+		return &HTTPError{500, err.Error()}
+	}
+	if limitReached {
+		return &HTTPError{507, "repo has reached storage limit"}
+	}
 	log(cm_logger.DebugLevel,"Adding provenance file to storage",
 		"provenance_file", filename,
 	)
@@ -98,4 +112,28 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 		return &HTTPError{500, err.Error()}
 	}
 	return nil
+}
+
+func (server *MultiTenantServer) checkStorageLimit(repo string, filename string) (bool, error) {
+	if server.MaxStorageObjects > 0 {
+		allObjects, err := server.StorageBackend.ListObjects(repo)
+		if err != nil {
+			return false, err
+		}
+		if len(allObjects) >= server.MaxStorageObjects {
+			limitReached := true
+			if server.AllowOverwrite {
+				// if the max has been reached, we should still allow
+				// user to overwrite an existing file
+				for _, object := range allObjects {
+					if object.Path == filename {
+						limitReached = false
+						break
+					}
+				}
+			}
+			return limitReached, nil
+		}
+	}
+	return false, nil
 }
