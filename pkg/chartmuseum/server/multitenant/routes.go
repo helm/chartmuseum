@@ -26,11 +26,20 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 		{"DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler, cm_router.RepoPushAction},
 	}
 
+	integrationManipulationRoutes := []*cm_router.Route{
+		{"GET", "/api/:repo/integrations", s.getAllIntegrations, cm_router.APIIntegrationAction},
+		{"POST", "/api/:repo/integrations", s.createIntegration, cm_router.APIIntegrationAction},
+		{"DELETE", "/api/:repo/integrations/:name", s.deleteIntegration, cm_router.APIIntegrationAction},
+	}
+
 	routes = append(routes, serverInfoRoutes...)
 	routes = append(routes, helmChartRepositoryRoutes...)
 
 	if s.APIEnabled {
 		routes = append(routes, chartManipulationRoutes...)
+	}
+	if s.IntegrationAPIEnabled {
+		routes = append(routes, integrationManipulationRoutes...)
 	}
 
 	return routes

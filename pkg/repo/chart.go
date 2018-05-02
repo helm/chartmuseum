@@ -69,6 +69,14 @@ func ChartVersionFromStorageObject(object storage.Object) (*helm_repo.ChartVersi
 	return chartVersion, nil
 }
 
+func ChartFromContent(content []byte) (*helm_chart.Chart, error) {
+	chart, err := chartFromContent(content)
+	if err != nil {
+		return nil, err
+	}
+	return chart, nil
+}
+
 func chartFromContent(content []byte) (*helm_chart.Chart, error) {
 	chart, err := chartutil.LoadArchive(bytes.NewBuffer(content))
 	return chart, err

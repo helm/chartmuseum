@@ -3,19 +3,20 @@ package multitenant
 import (
 	"bytes"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	pathutil "path"
 
+	"github.com/gin-gonic/gin"
+	"github.com/kubernetes-helm/chartmuseum/pkg/integration"
 	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 )
 
 var (
-	objectSavedResponse        = gin.H{"saved": true}
-	objectDeletedResponse      = gin.H{"deleted": true}
-	healthCheckResponse        = gin.H{"healthy": true}
-	welcomePageHTML            = []byte(`<!DOCTYPE html>
+	objectSavedResponse   = gin.H{"saved": true}
+	objectDeletedResponse = gin.H{"deleted": true}
+	healthCheckResponse   = gin.H{"healthy": true}
+	welcomePageHTML       = []byte(`<!DOCTYPE html>
 <html>
 <head>
 <title>Welcome to ChartMuseum!</title>
@@ -124,7 +125,6 @@ func (server *MultiTenantServer) getChartVersionRequestHandler(c *gin.Context) {
 	c.JSON(200, chartVersion)
 }
 
-
 func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
@@ -135,6 +135,8 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
+	provFilename := pathutil.Join(repo, cm_repo.ProvenanceFilenameFromNameVersion(name, version))
+	server.StorageBackend.DeleteObject(provFilename) // ignore error here, may be no prov file
 	c.JSON(200, objectDeletedResponse)
 }
 
@@ -159,6 +161,7 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
+
 	c.JSON(201, objectSavedResponse)
 }
 
@@ -263,4 +266,46 @@ func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, r
 		}
 	}
 	return &packageOrProvenanceFile{filename, content, field}, 200, nil
+}
+
+// do it with regex or wildcard
+func (server *MultiTenantServer) getAllIntegrations(c *gin.Context) {
+	repo := c.Param("repo")
+	log := server.Logger.ContextLoggingFn(c)
+	res, err := integration.DAL.GetIntegrationsByResourceName(repo, log)
+	if err != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
+		return
+	}
+	c.JSON(200, res)
+}
+
+func (server *MultiTenantServer) createIntegration(c *gin.Context) {
+	repo := c.Param("repo")
+	var body *integration.IntegrationOptions
+	log := server.Logger.ContextLoggingFn(c)
+	err := c.BindJSON(&body)
+	if err != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
+		return
+	}
+	body.Repo = repo
+	newIntegration := integration.NewIntegrationFromOptions(body)
+	err = integration.DAL.Insert(newIntegration, log)
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
+		return
+	}
+	c.JSON(201, objectSavedResponse)
+}
+
+func (server *MultiTenantServer) deleteIntegration(c *gin.Context) {
+	name := c.Param("name")
+	log := server.Logger.ContextLoggingFn(c)
+	err := integration.DAL.Remove(name, log)
+	if err != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
+	}
+	c.JSON(200, objectDeletedResponse)
 }

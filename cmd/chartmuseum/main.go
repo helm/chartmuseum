@@ -8,8 +8,9 @@ import (
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
 	"github.com/kubernetes-helm/chartmuseum/pkg/config"
+	"github.com/kubernetes-helm/chartmuseum/pkg/event"
+	"github.com/kubernetes-helm/chartmuseum/pkg/integration"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
-
 	"github.com/urfave/cli"
 )
 
@@ -44,6 +45,8 @@ func cliHandler(c *cli.Context) {
 
 	backend := backendFromConfig(conf)
 
+	initIntegrationStorage()
+
 	options := chartmuseum.ServerOptions{
 		StorageBackend:         backend,
 		ChartURL:               conf.GetString("charturl"),
@@ -63,6 +66,8 @@ func cliHandler(c *cli.Context) {
 		GenIndex:               conf.GetBool("genindex"),
 		IndexLimit:             conf.GetInt("indexlimit"),
 		Depth:                  conf.GetInt("depth"),
+		EventEmitter:           event.NewEventEmitter(),
+		IntegrationAPIEnabled:  !conf.GetBool("integration.disable"),
 	}
 
 	server, err := newServer(options)
@@ -71,6 +76,10 @@ func cliHandler(c *cli.Context) {
 	}
 
 	server.Listen(conf.GetInt("port"))
+}
+
+func initIntegrationStorage() {
+	integration.InitStorage()
 }
 
 func backendFromConfig(conf *config.Config) storage.Backend {
