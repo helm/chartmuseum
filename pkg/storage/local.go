@@ -5,6 +5,7 @@ import (
 	"os"
 
 	pathutil "path"
+	"path/filepath"
 )
 
 // LocalFilesystemBackend is a storage backend for local filesystem storage
@@ -14,7 +15,11 @@ type LocalFilesystemBackend struct {
 
 // NewLocalFilesystemBackend creates a new instance of LocalFilesystemBackend
 func NewLocalFilesystemBackend(rootDirectory string) *LocalFilesystemBackend {
-	b := &LocalFilesystemBackend{RootDirectory: rootDirectory}
+	absPath, err := filepath.Abs(rootDirectory)
+	if err != nil {
+		panic(err)
+	}
+	b := &LocalFilesystemBackend{RootDirectory: absPath}
 	return b
 }
 
