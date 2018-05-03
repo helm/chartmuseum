@@ -35,9 +35,9 @@ Test Helm integration
     # return fast if we cannot find a bucket/container in an environment variable.
     ${USTORAGE}=  Convert To Uppercase  ${storage}
     ${ENV_STORAGE_BUCKET_SET}=  Get Environment variable  TEST_STORAGE_${USTORAGE}_BUCKET  ${EMPTY}
-    Return from Keyword if  '${ENV_STORAGE_BUCKET_SET}'=='${EMPTY}' and '${storage}'!='local' and '${storage}'!='microsoft'
+    Return from Keyword if  '${ENV_STORAGE_BUCKET_SET}'=='${EMPTY}' and '${storage}'!='local' and '${storage}'!='microsoft' and '${storage}'!='openstack'
     ${ENV_STORAGE_CONTAINER_SET}=  Get Environment variable  TEST_STORAGE_${USTORAGE}_CONTAINER  ${EMPTY}
-    Return from Keyword if  '${ENV_STORAGE_CONTAINER_SET}'=='${EMPTY}' and '${storage}'=='microsoft'
+    Return from Keyword if  '${ENV_STORAGE_CONTAINER_SET}'=='${EMPTY}' and ('${storage}'=='microsoft' or '${storage}'=='openstack')
     ${ENV_STORAGE_CONTAINER_SET}=  Get Environment variable  TEST_STORAGE_${USTORAGE}_CONTAINER  ${EMPTY}
 
     Start ChartMuseum server with storage backend  ${storage}
@@ -57,7 +57,7 @@ Test Helm integration
 Start ChartMuseum server with storage backend
     [Arguments]    ${storage}
     ChartMuseum.start chartmuseum  ${storage}
-    Sleep  2
+    Sleep  3
 
 Upload test charts to ChartMuseum
     ChartMuseum.upload test charts
