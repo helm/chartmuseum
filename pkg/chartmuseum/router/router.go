@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"
+	"github.com/gin-contrib/size"
 )
 
 type (
@@ -36,6 +37,7 @@ type (
 		EnableMetrics bool
 		AnonymousGet  bool
 		Depth         int
+		MaxUploadSize int
 	}
 
 	// Route represents an application route
@@ -61,6 +63,7 @@ func NewRouter(options RouterOptions) *Router {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(requestWrapper(options.Logger))
+	engine.Use(limits.RequestSizeLimiter(int64(options.MaxUploadSize)))
 
 	if options.EnableMetrics {
 		p := ginprometheus.NewPrometheus("chartmuseum")

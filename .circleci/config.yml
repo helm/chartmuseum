@@ -29,18 +29,14 @@ jobs:
 
       # Archive artifacts
       - store_artifacts:
-          when: always
           path: .cover/
           destination: .cover/
       - store_artifacts:
-          when: always
           path: goviz.png
           destination: goviz.png
       - store_artifacts:
-          when: always
           path: bin/
           destination: bin/
       - store_artifacts:
-          when: always
           path: .robot/
           destination: .robot/

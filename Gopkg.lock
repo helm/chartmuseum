@@ -115,6 +115,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/gin-contrib/size"
+  packages = ["."]
+  revision = "8b00cafb5d06ece57c2cac65efa7ddacbbee0ead"
+
+[[projects]]
+  branch = "master"
   name = "github.com/gin-contrib/sse"
   packages = ["."]
   revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
@@ -538,12 +544,12 @@
     "pkg/urlutil",
     "pkg/version"
   ]
-  revision = "a80231648a1473929271764b920a8e346f6de844"
-  version = "v2.8.2"
+  revision = "f6025bb9ee7daf9fee0026541c90a6f557a3e0bc"
+  version = "v2.9.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e9a6e8347465b27c82fc82b86f0cd1ba0a91e27a3869990e0dfe61aae1501cf1"
+  inputs-digest = "823353ce8c541b79f489c6cc036012a8bef121600177b03740ea4b0ff44a775f"
   solver-name = "gps-cdcl"
   solver-version = 1

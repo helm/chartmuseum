@@ -26,8 +26,10 @@ type (
 		EnableMetrics          bool
 		AnonymousGet           bool
 		GenIndex               bool
+		MaxStorageObjects      int
 		IndexLimit             int
 		Depth                  int
+		MaxUploadSize          int
 	}
 
 	// Server is a generic interface for web servers
@@ -56,6 +58,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		EnableMetrics: options.EnableMetrics,
 		AnonymousGet:  options.AnonymousGet,
 		Depth:         options.Depth,
+		MaxUploadSize: options.MaxUploadSize,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
@@ -65,6 +68,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		ChartURL:               options.ChartURL,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
+		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
 		GenIndex:               options.GenIndex,
 		EnableAPI:              options.EnableAPI,

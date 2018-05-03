@@ -61,8 +61,10 @@ func cliHandler(c *cli.Context) {
 		EnableMetrics:          !conf.GetBool("disablemetrics"),
 		AnonymousGet:           conf.GetBool("authanonymousget"),
 		GenIndex:               conf.GetBool("genindex"),
+		MaxStorageObjects:      conf.GetInt("maxstorageobjects"),
 		IndexLimit:             conf.GetInt("indexlimit"),
 		Depth:                  conf.GetInt("depth"),
+		MaxUploadSize:          conf.GetInt("maxuploadsize"),
 	}
 
 	server, err := newServer(options)
