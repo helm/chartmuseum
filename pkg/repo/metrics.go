@@ -6,23 +6,25 @@ import (
 
 var (
 	// Number of distinct charts
-	chartTotalGauge = prometheus.NewGauge(
+	chartTotalGaugeVec = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "chartmuseum",
-			Name:      "total_charts_served",
+			Name:      "charts_served_total",
 			Help:      "Current number of charts served",
 		},
+		[]string{"repo"},
 	)
 	// Sum of of the number of versions per chart
-	chartVersionTotalGauge = prometheus.NewGauge(
+	chartVersionTotalGaugeVec = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "chartmuseum",
-			Name:      "total_chart_versions_served",
+			Name:      "chart_versions_served_total",
 			Help:      "Current number of chart versions served",
 		},
+		[]string{"repo"},
 	)
 )
 
 func init() {
-	prometheus.MustRegister(chartTotalGauge, chartVersionTotalGauge)
+	prometheus.MustRegister(chartTotalGaugeVec, chartVersionTotalGaugeVec)
 }

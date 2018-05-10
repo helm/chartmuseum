@@ -332,6 +332,37 @@ To use the chart manipulation routes, simply place the name of the repo directly
 curl -F "chart=@mychart-0.1.0.tgz" http://localhost:8080/api/org1/repoa/charts
 ```
 
+## Prometheus Metrics
+
+ChartMuseum exposes its [Prometheus metrics](https://prometheus.io/docs/concepts/metric_types/) at the `/metrics` route on the main port. This can be disabled with the `--disable-metrics` command-line flag or the `DISABLE_METRICS` environment variable.
+
+> Note that the Kubernetes chart currently disables metrics by default (`DISABLE_METRICS=true` is set in the chart).
+
+Below are the current application metrics exposed. Note that there is a per tenant (repo) label. The repo label corresponds to the depth parameter, so a depth=2 as the example above would
+have repo labels named `org1/repoa` and `org2/repob`.
+
+| Metric                                   | Type           | Labels     | Description                              |
+| ---------------------------------------- | -------------- | ---------- | ---------------------------------------- |
+| chartmuseum_charts_served_total          | Guage          | {repo="*"} | Total number of charts                   |
+| chartmuseum_charts_versions_served_total | Guage          | {repo="*"} | Total number of chart versions available |
+
+*: see above for repo label
+
+There are other general global metrics harvested (per process, hence for all tenants). You can get the complete list by using the `/metrics` route.
+
+| Metric                                       | Type    | Labels                                                | Description                               |
+| -------------------------------------------- | ------- | ----------------------------------------------------- | ----------------------------------------- |
+| chartmuseum_request_duration_seconds         | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP request latencies in seconds     |
+| chartmuseum_request_duration_seconds_sum     |         |                                                       |                                           |
+| chartmuseum_request_duration_seconds_count   |         |                                                       |                                           |
+| chartmuseum_request_size_bytes               | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP request sizes in bytes           |
+| chartmuseum_request_size_bytes_sum           |         |                                                       |                                           |
+| chartmuseum_request_size_bytes_count         |         |                                                       |                                           |
+| chartmuseum_response_size_bytes              | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP response sizes in bytes          |
+| chartmuseum_response_size_bytes_sum          |         |                                                       |                                           |
+| chartmuseum_response_size_bytes_count        |         |                                                       |                                           |
+| go_goroutines                                | Guage   |                                                       | Number of goroutines that currently exist |
+
 
 ## Notes on index.yaml
 The repository index (index.yaml) is dynamically generated based on packages found in storage. If you store your own version of index.yaml, it will be completely ignored.

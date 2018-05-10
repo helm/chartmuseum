@@ -32,7 +32,7 @@ func getChartVersion(name string, patch int, created time.Time) *helm_repo.Chart
 }
 
 func (suite *IndexTestSuite) SetupSuite() {
-	suite.Index = NewIndex("")
+	suite.Index = NewIndex("", "")
 	now := time.Now()
 	for _, name := range []string{"a", "b", "c"} {
 		for i := 0; i < 10; i++ {
@@ -75,13 +75,13 @@ func (suite *IndexTestSuite) TestRemove() {
 }
 
 func (suite *IndexTestSuite) TestChartURLs() {
-	index := NewIndex("")
+	index := NewIndex("", "")
 	chartVersion := getChartVersion("a", 0, time.Now())
 	index.AddEntry(chartVersion)
 	suite.Equal("charts/a-1.0.0.tgz",
 		index.Entries["a"][0].URLs[0], "relative chart url")
 
-	index = NewIndex("http://mysite.com:8080/")
+	index = NewIndex("http://mysite.com:8080/", "")
 	chartVersion = getChartVersion("a", 0, time.Now())
 	index.AddEntry(chartVersion)
 	suite.Equal("http://mysite.com:8080/charts/a-1.0.0.tgz",

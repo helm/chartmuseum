@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	pathutil "path"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +24,9 @@ import (
 
 var maxUploadSize = 1024 * 1024 * 20
 var testTarballPath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz"
+
+// generated with: cd testdata/charts/mychart && helm package --version 0.2.0 .
+var testTarballPathV2 = "../../../../testdata/charts/mychart/mychart-0.2.0.tgz"
 var testProvfilePath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.prov"
 var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz"
 var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
@@ -47,8 +51,12 @@ type MultiTenantServerTestSuite struct {
 	LastExitCode         int
 }
 
-func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string) gin.ResponseWriter {
-	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string, output ...*bytes.Buffer) gin.ResponseWriter {
+	recorder := httptest.NewRecorder()
+	if len(output) > 0 {
+		recorder.Body = output[0]
+	}
+	c, _ := gin.CreateTestContext(recorder)
 	c.Request, _ = http.NewRequest(method, urlStr, body)
 	if contentType != "" {
 		c.Request.Header.Set("Content-Type", contentType)
@@ -183,8 +191,9 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.Nil(err, "no error creating logger")
 
 	router := cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  0,
+		Logger:        logger,
+		Depth:         0,
+		EnableMetrics: true,
 		MaxUploadSize: maxUploadSize,
 	})
 	server, err := NewMultiTenantServer(MultiTenantServerOptions{
@@ -201,8 +210,9 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.Depth0Server = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  1,
+		Logger:        logger,
+		Depth:         1,
+		EnableMetrics: true,
 		MaxUploadSize: maxUploadSize,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -218,8 +228,8 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.Depth1Server = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  2,
+		Logger:        logger,
+		Depth:         2,
 		MaxUploadSize: maxUploadSize,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -235,8 +245,8 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.Depth2Server = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  3,
+		Logger:        logger,
+		Depth:         3,
 		MaxUploadSize: maxUploadSize,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -252,8 +262,8 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.Depth3Server = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  0,
+		Logger:        logger,
+		Depth:         0,
 		MaxUploadSize: maxUploadSize,
 	})
 
@@ -268,8 +278,8 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.DisabledAPIServer = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  0,
+		Logger:        logger,
+		Depth:         0,
 		MaxUploadSize: maxUploadSize,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -286,8 +296,8 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.OverwriteServer = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  0,
+		Logger:        logger,
+		Depth:         0,
 		MaxUploadSize: maxUploadSize,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -304,8 +314,8 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.ChartURLServer = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  0,
+		Logger:        logger,
+		Depth:         0,
 		MaxUploadSize: maxUploadSize,
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -323,8 +333,8 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.MaxObjectsServer = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
-		Logger: logger,
-		Depth:  0,
+		Logger:        logger,
+		Depth:         0,
 		MaxUploadSize: 1, // intentionally small
 	})
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
@@ -512,6 +522,51 @@ func (suite *MultiTenantServerTestSuite) TestMaxUploadSizeServer() {
 	buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
 	res = suite.doRequest("maxuploadsize", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(413, res.Status(), "413 POST /api/charts")
+}
+
+func (suite *MultiTenantServerTestSuite) TestMetrics() {
+
+	apiPrefix := pathutil.Join("/api", "a")
+
+	content, err := ioutil.ReadFile(testTarballPath)
+	suite.Nil(err, "error opening test tarball")
+
+	body := bytes.NewBuffer(content)
+	res := suite.doRequest("depth1", "POST", fmt.Sprintf("%s/charts", apiPrefix), body, "")
+	suite.Equal(201, res.Status(), fmt.Sprintf("201 post %s/charts", apiPrefix))
+
+	otherChart, err := ioutil.ReadFile(testTarballPathV2)
+	suite.Nil(err, "error opening test tarball")
+
+	body = bytes.NewBuffer(otherChart)
+	res = suite.doRequest("depth1", "POST", fmt.Sprintf("%s/charts", apiPrefix), body, "")
+	suite.Equal(201, res.Status(), fmt.Sprintf("201 POST %s/charts", apiPrefix))
+
+	// GET /a/index.yaml to regenerate index (and metrics)
+	res = suite.doRequest("depth1", "GET", "/a/index.yaml", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /a/index.yaml")
+
+	// GET /b/index.yaml to regenerate b index (and metrics)
+	res = suite.doRequest("depth1", "GET", "/b/index.yaml", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /b/index.yaml")
+
+	// Get metrics
+	buffer := bytes.NewBufferString("")
+	res = suite.doRequest("depth1", "GET", "/metrics", nil, "", buffer)
+	suite.Equal(200, res.Status(), "200 GET /metrics")
+
+	metrics := buffer.String()
+	//fmt.Print(metrics) // observe the metric output
+
+	// Ensure that we have the Guages as documented
+	suite.True(strings.Contains(metrics, "# TYPE chartmuseum_chart_versions_served_total gauge"))
+	suite.True(strings.Contains(metrics, "# TYPE chartmuseum_charts_served_total gauge"))
+
+	suite.True(strings.Contains(metrics, "chartmuseum_charts_served_total{repo=\"a\"} 1"))
+	suite.True(strings.Contains(metrics, "chartmuseum_chart_versions_served_total{repo=\"a\"} 2"))
+
+	// Ensure that the b repo has no charts
+	suite.True(strings.Contains(metrics, "chartmuseum_chart_versions_served_total{repo=\"b\"} 0"))
 }
 
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
