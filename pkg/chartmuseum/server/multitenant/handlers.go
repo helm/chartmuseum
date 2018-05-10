@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	objectSavedResponse        = gin.H{"saved": true}
-	objectDeletedResponse      = gin.H{"deleted": true}
-	healthCheckResponse        = gin.H{"healthy": true}
-	welcomePageHTML            = []byte(`<!DOCTYPE html>
+	objectSavedResponse   = gin.H{"saved": true}
+	objectDeletedResponse = gin.H{"deleted": true}
+	healthCheckResponse   = gin.H{"healthy": true}
+	welcomePageHTML       = []byte(`<!DOCTYPE html>
 <html>
 <head>
 <title>Welcome to ChartMuseum!</title>
@@ -124,7 +124,6 @@ func (server *MultiTenantServer) getChartVersionRequestHandler(c *gin.Context) {
 	c.JSON(200, chartVersion)
 }
 
-
 func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
@@ -195,7 +194,9 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	}
 
 	ffp := []fieldFuncPair{
+		{defaultFormField, cm_repo.ChartPackageFilenameFromContent},
 		{server.ChartPostFormFieldName, cm_repo.ChartPackageFilenameFromContent},
+		{defaultProvField, cm_repo.ProvenanceFilenameFromContent},
 		{server.ProvPostFormFieldName, cm_repo.ProvenanceFilenameFromContent},
 	}
 
