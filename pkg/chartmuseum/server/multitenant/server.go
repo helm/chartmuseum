@@ -16,6 +16,11 @@ var (
 	exit = os.Exit
 )
 
+const (
+	defaultFormField = "chart"
+	defaultProvField = "prov"
+)
+
 type (
 	// MultiTenantServer contains a Logger, Router, storage backend and object cache
 	MultiTenantServer struct {
