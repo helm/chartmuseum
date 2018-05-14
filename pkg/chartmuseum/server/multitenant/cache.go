@@ -33,7 +33,6 @@ import (
 type (
 	cachedIndexFile struct {
 		RepositoryIndex         *cm_repo.Index
-		StorageCache            []cm_storage.Object
 		fetchedObjectsLock      *sync.Mutex
 		fetchedObjectsChans     []chan fetchedObjects
 		regenerationLock        *sync.Mutex
@@ -89,7 +88,7 @@ func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo stri
 	return ch
 }
 
-func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, repo string, diff cm_storage.ObjectSliceDiff, storageObjects []cm_storage.Object) <-chan indexRegeneration {
+func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, repo string, diff cm_storage.ObjectSliceDiff) <-chan indexRegeneration {
 	ch := make(chan indexRegeneration, 1)
 
 	server.IndexCache[repo].regenerationLock.Lock()
@@ -98,7 +97,7 @@ func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.Logging
 	if len(server.IndexCache[repo].regeneratedIndexesChans) == 1 {
 		server.IndexCache[repo].regenerationLock.Unlock()
 
-		index, err := server.regenerateRepositoryIndexWorker(log, repo, diff, storageObjects)
+		index, err := server.regenerateRepositoryIndexWorker(log, repo, diff)
 
 		server.IndexCache[repo].regenerationLock.Lock()
 		for _, riCh := range server.IndexCache[repo].regeneratedIndexesChans {
@@ -111,7 +110,7 @@ func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.Logging
 	return ch
 }
 
-func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.LoggingFn, repo string, diff cm_storage.ObjectSliceDiff, storageObjects []cm_storage.Object) (*cm_repo.Index, error) {
+func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.LoggingFn, repo string, diff cm_storage.ObjectSliceDiff) (*cm_repo.Index, error) {
 	log(cm_logger.DebugLevel, "Regenerating index.yaml",
 		"repo", repo,
 	)
@@ -146,10 +145,7 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 		return nil, err
 	}
 
-	// It is very important that these two stay in sync as they reflect the same reality. StorageCache serves
-	// as object modification time cache, and RepositoryIndex is the canonical cached index.
 	server.IndexCache[repo].RepositoryIndex = index
-	server.IndexCache[repo].StorageCache = storageObjects
 
 	log(cm_logger.DebugLevel, "index.yaml regenerated",
 		"repo", repo,
@@ -309,7 +305,6 @@ func (server *MultiTenantServer) initCachedIndexFile(log cm_logger.LoggingFn, re
 		}
 		server.IndexCache[repo] = &cachedIndexFile{
 			RepositoryIndex:    cm_repo.NewIndex(chartURL),
-			StorageCache:       []cm_storage.Object{},
 			fetchedObjectsLock: &sync.Mutex{},
 			regenerationLock:   &sync.Mutex{},
 		}
