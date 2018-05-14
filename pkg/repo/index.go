@@ -12,6 +12,7 @@ import (
 var (
 	// IndexFileContentType is the http content-type header for index.yaml
 	IndexFileContentType = "application/x-yaml"
+	StatefileFilename = "index-cache.yaml"
 )
 
 // Index represents the repository index (index.yaml)

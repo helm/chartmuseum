@@ -319,7 +319,7 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 		return cm_repo.NewIndex(chartURL)
 	}
 
-	objectPath := pathutil.Join(repo, "index-cache.yaml")
+	objectPath := pathutil.Join(repo, cm_repo.StatefileFilename)
 	object, err := server.StorageBackend.GetObject(objectPath)
 	if err != nil {
 		return cm_repo.NewIndex(chartURL)
