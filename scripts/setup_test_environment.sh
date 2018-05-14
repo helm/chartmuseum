@@ -57,6 +57,9 @@ install_helm() {
         chmod +x ./helm
         popd
         helm init --client-only
+
+        # remove any repos that come out-of-the-box (i.e. "stable")
+        helm repo list | sed -n '1!p' | awk '{print $1}' | xargs -L1 helm repo remove
     fi
 }
 
