@@ -315,29 +315,25 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 		chartURL = server.ChartURL + "/" + repo
 	}
 
-	// check storage for leftover state file
-	log(cm_logger.DebugLevel, "Attempting to load index-cache.yaml",
-		"repo", repo,
-	)
 	objectPath := pathutil.Join(repo, "index-cache.yaml")
 	object, err := server.StorageBackend.GetObject(objectPath)
 	if err != nil {
-		log(cm_logger.DebugLevel, "Could not load index-cache.yaml",
-			"repo", repo,
-			"error", err.Error(),
-		)
 		return cm_repo.NewIndex(chartURL)
 	}
 
 	indexFile := &helm_repo.IndexFile{}
 	err = yaml.Unmarshal(object.Content, indexFile)
 	if err != nil {
-		log(cm_logger.WarnLevel, "index-cache.yaml could not be parsed",
+		log(cm_logger.WarnLevel, "index-cache.yaml found but could not be parsed",
 			"repo", repo,
 			"error", err.Error(),
 		)
 		return cm_repo.NewIndex(chartURL)
 	}
+
+	log(cm_logger.DebugLevel, "index-cache.yaml loaded",
+		"repo", repo,
+	)
 
 	return &cm_repo.Index{indexFile, object.Content, chartURL}
 }
