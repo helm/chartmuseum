@@ -26,8 +26,9 @@ import (
 	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
-	helm_repo "k8s.io/helm/pkg/repo"
+	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
+	helm_repo "k8s.io/helm/pkg/repo"
 )
 
 type (
@@ -299,14 +300,44 @@ func (server *MultiTenantServer) initCachedIndexFile(log cm_logger.LoggingFn, re
 	server.IndexCacheKeyLock.Lock()
 	defer server.IndexCacheKeyLock.Unlock()
 	if _, ok := server.IndexCache[repo]; !ok {
-		var chartURL string
-		if server.ChartURL != "" {
-			chartURL = server.ChartURL + "/" + repo
-		}
+		repoIndex := server.newRepositoryIndex(log, repo)
 		server.IndexCache[repo] = &cachedIndexFile{
-			RepositoryIndex:    cm_repo.NewIndex(chartURL),
+			RepositoryIndex:    repoIndex,
 			fetchedObjectsLock: &sync.Mutex{},
 			regenerationLock:   &sync.Mutex{},
 		}
 	}
+}
+
+func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, repo string) *cm_repo.Index {
+	var chartURL string
+	if server.ChartURL != "" {
+		chartURL = server.ChartURL + "/" + repo
+	}
+
+	// check storage for leftover state file
+	log(cm_logger.DebugLevel, "Attempting to load index-cache.yaml",
+		"repo", repo,
+	)
+	objectPath := pathutil.Join(repo, "index-cache.yaml")
+	object, err := server.StorageBackend.GetObject(objectPath)
+	if err != nil {
+		log(cm_logger.DebugLevel, "Could not load index-cache.yaml",
+			"repo", repo,
+			"error", err.Error(),
+		)
+		return cm_repo.NewIndex(chartURL)
+	}
+
+	indexFile := &helm_repo.IndexFile{}
+	err = yaml.Unmarshal(object.Content, indexFile)
+	if err != nil {
+		log(cm_logger.WarnLevel, "index-cache.yaml could not be parsed",
+			"repo", repo,
+			"error", err.Error(),
+		)
+		return cm_repo.NewIndex(chartURL)
+	}
+
+	return &cm_repo.Index{indexFile, object.Content, chartURL}
 }
