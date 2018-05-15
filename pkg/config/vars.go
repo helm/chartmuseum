@@ -74,7 +74,7 @@ var configVars = map[string]configVar{
 		Default: false,
 		CLIFlag: cli.BoolFlag{
 			Name:   "disable-statefiles",
-			Usage:  "disable use of index-cache.yaml to improve caching",
+			Usage:  "disable use of index-cache.yaml",
 			EnvVar: "DISABLE_STATEFILES",
 		},
 	},

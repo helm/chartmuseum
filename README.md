@@ -257,7 +257,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 #### Other CLI options
 - `--log-json` - output structured logs as json
 - `--disable-api` - disable all routes prefixed with /api
-- `--disable-statefiles` - disable use of index-cache.yaml to improve caching
+- `--disable-statefiles` - disable use of index-cache.yaml
 - `--allow-overwrite` - allow chart versions to be re-uploaded
 - `--chart-url=<url>` - absolute url for .tgzs in index.yaml
 - `--storage-amazon-endpoint=<endpoint>` - alternative s3 endpoint
