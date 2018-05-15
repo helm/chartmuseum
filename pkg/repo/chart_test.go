@@ -8,6 +8,7 @@ import (
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"github.com/stretchr/testify/suite"
+	helm_repo "k8s.io/helm/pkg/repo"
 )
 
 type ChartTestSuite struct {
@@ -96,6 +97,18 @@ func (suite *ChartTestSuite) TestChartVersionFromStorageObject() {
 	suite.Nil(err)
 	suite.Equal("my-long-hyphenated-chart-name", chartVersion.Name, "chart name as expected")
 	suite.Equal("crapversion", chartVersion.Version, "chart version as expected")
+}
+
+func (suite *ChartTestSuite) TestStorageObjectFromChartVersion() {
+	now :=  time.Now()
+	chartVersion := &helm_repo.ChartVersion{
+		URLs:     []string{"charts/mychart-0.1.0.tgz"},
+		Created:  now,
+	}
+	object := StorageObjectFromChartVersion(chartVersion)
+	suite.Equal(now, object.LastModified, "object last modified as expected")
+	suite.Equal("mychart-0.1.0.tgz", object.Path, "object path as expected")
+	suite.Equal([]byte{}, object.Content, "object content as expected")
 }
 
 func (suite *ChartTestSuite) TestChartPackageFilenameFromContent() {

@@ -57,7 +57,7 @@ Test Helm integration
 Start ChartMuseum server with storage backend
     [Arguments]    ${storage}
     ChartMuseum.start chartmuseum  ${storage}
-    Sleep  3
+    ChartMuseum.wait for chartmuseum
 
 Upload test charts to ChartMuseum
     ChartMuseum.upload test charts

@@ -1,7 +1,10 @@
+import contextlib
 import glob
 import os
 import requests
 import shutil
+import socket
+import time
 
 import common
 
@@ -36,6 +39,18 @@ class ChartMuseum(common.CommandRunner):
                   % (common.STORAGE_OPENSTACK_CONTAINER, common.STORAGE_OPENSTACK_PREFIX, common.STORAGE_OPENSTACK_REGION, common.LOGFILE)
         print(cmd)
         self.run_command(cmd, detach=True)
+
+    def wait_for_chartmuseum(self):
+        seconds_waited = 0
+        while True:
+            with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                result = sock.connect_ex(('localhost', common.PORT))
+            if result == 0:
+                break
+            if seconds_waited == common.MAX_WAIT_SECONDS:
+                raise Exception('Reached max time (%d seconds) waiting for chartmuseum to come up' % common.MAX_WAIT_SECONDS)
+            time.sleep(1)
+            seconds_waited += 1
 
     def stop_chartmuseum(self):
         self.run_command('pkill -9 chartmuseum')

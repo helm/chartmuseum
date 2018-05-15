@@ -11,6 +11,7 @@ ACCEPTANCE_DIR = '.acceptance/'
 STORAGE_DIR = os.path.join(ACCEPTANCE_DIR, 'storage/')
 KEYRING = 'testdata/pgp/helm-test-key.pub'
 LOGFILE = '.chartmuseum.log'
+MAX_WAIT_SECONDS = 10
 
 STORAGE_AMAZON_BUCKET = os.getenv('TEST_STORAGE_AMAZON_BUCKET')
 STORAGE_AMAZON_REGION = os.getenv('TEST_STORAGE_AMAZON_REGION')

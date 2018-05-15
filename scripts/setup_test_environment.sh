@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-HELM_VERSION="2.9.0"
+HELM_VERSION="2.9.1"
 REQUIRED_TEST_STORAGE_ENV_VARS=(
     "TEST_STORAGE_AMAZON_BUCKET"
     "TEST_STORAGE_AMAZON_REGION"
@@ -57,6 +57,9 @@ install_helm() {
         chmod +x ./helm
         popd
         helm init --client-only
+
+        # remove any repos that come out-of-the-box (i.e. "stable")
+        helm repo list | sed -n '1!p' | awk '{print $1}' | xargs -L1 helm repo remove
     fi
 }
 

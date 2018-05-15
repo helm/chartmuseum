@@ -69,6 +69,15 @@ var configVars = map[string]configVar{
 			EnvVar: "DISABLE_API",
 		},
 	},
+	"disablestatefiles": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "disable-statefiles",
+			Usage:  "disable use of index-cache.yaml",
+			EnvVar: "DISABLE_STATEFILES",
+		},
+	},
 	"allowoverwrite": {
 		Type:    boolType,
 		Default: false,

@@ -22,6 +22,7 @@ type (
 		LogJSON                bool
 		Debug                  bool
 		EnableAPI              bool
+		UseStatefiles          bool
 		AllowOverwrite         bool
 		EnableMetrics          bool
 		AnonymousGet           bool
@@ -72,6 +73,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		IndexLimit:             options.IndexLimit,
 		GenIndex:               options.GenIndex,
 		EnableAPI:              options.EnableAPI,
+		UseStatefiles:          options.UseStatefiles,
 		AllowOverwrite:         options.AllowOverwrite,
 	})
 

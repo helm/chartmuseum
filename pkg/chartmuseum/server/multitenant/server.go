@@ -31,6 +31,7 @@ type (
 		IndexLimit             int
 		AllowOverwrite         bool
 		APIEnabled             bool
+		UseStatefiles          bool
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
@@ -52,6 +53,7 @@ type (
 		GenIndex               bool
 		AllowOverwrite         bool
 		EnableAPI              bool
+		UseStatefiles          bool
 	}
 )
 
@@ -73,6 +75,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
 		AllowOverwrite:         options.AllowOverwrite,
 		APIEnabled:             options.EnableAPI,
+		UseStatefiles:          options.UseStatefiles,
 		Limiter:                make(chan struct{}, options.IndexLimit),
 		IndexCache:             map[string]*cachedIndexFile{},
 		IndexCacheKeyLock:      &sync.Mutex{},

@@ -1,6 +1,8 @@
 package multitenant
 
 import (
+	pathutil "path"
+
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -23,14 +25,15 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		return nil, &HTTPError{500, errStr}
 	}
 
-	diff := cm_storage.GetObjectSliceDiff(server.IndexCache[repo].StorageCache, fo.objects)
+	objects := server.getRepoObjectSlice(repo)
+	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects)
 
 	// return fast if no changes
 	if !diff.Change {
 		return server.IndexCache[repo].RepositoryIndex, nil
 	}
 
-	ir := <-server.regenerateRepositoryIndex(log, repo, diff, fo.objects)
+	ir := <-server.regenerateRepositoryIndex(log, repo, diff)
 
 	if ir.err != nil {
 		errStr := ir.err.Error()
@@ -40,5 +43,35 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		return ir.index, &HTTPError{500, errStr}
 	}
 
+	if server.UseStatefiles {
+		// Dont wait, save index-cache.yaml to storage in the background.
+		// It is not crucial if this does not succeed, we will just log any errors
+		go server.saveStatefile(log, repo, ir.index.Raw)
+	}
+
 	return ir.index, nil
+}
+
+func (server *MultiTenantServer) saveStatefile(log cm_logger.LoggingFn, repo string, content []byte) {
+	err := server.StorageBackend.PutObject(pathutil.Join(repo, cm_repo.StatefileFilename), content)
+	if err != nil {
+		log(cm_logger.WarnLevel, "Error saving index-cache.yaml",
+			"repo", repo,
+			"error", err.Error(),
+		)
+	}
+	log(cm_logger.DebugLevel, "index-cache.yaml saved in storage",
+		"repo", repo,
+	)
+}
+
+func (server *MultiTenantServer) getRepoObjectSlice(repo string) []cm_storage.Object {
+	var objects []cm_storage.Object
+	for _, entry := range server.IndexCache[repo].RepositoryIndex.Entries {
+		for _, chartVersion := range entry {
+			object := cm_repo.StorageObjectFromChartVersion(chartVersion)
+			objects = append(objects, object)
+		}
+	}
+	return objects
 }
