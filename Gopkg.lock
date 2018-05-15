@@ -97,6 +97,18 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  name = "github.com/cespare/xxhash"
+  packages = ["."]
+  revision = "5c37fe3735342a2e0d01c87a907579987c8936cc"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/coocood/freecache"
+  packages = ["."]
+  revision = "f3233c8095b26cd0dea0b136b931708c05defa08"
+  version = "v1.0.1"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -147,6 +159,21 @@
   packages = ["."]
   revision = "6529cf7c58879c08d927016dde4477f18a0634cb"
   version = "v1.36.0"
+
+[[projects]]
+  name = "github.com/go-redis/redis"
+  packages = [
+    ".",
+    "internal",
+    "internal/consistenthash",
+    "internal/hashtag",
+    "internal/pool",
+    "internal/proto",
+    "internal/singleflight",
+    "internal/util"
+  ]
+  revision = "877867d2845fbaf86798befe410b6ceb6f5c29a3"
+  version = "v6.10.2"
 
 [[projects]]
   name = "github.com/gobwas/glob"
@@ -611,6 +638,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b5da246f6b3e5ab37061ac4d47a30ecd2bc39e3401eb5d66e0a88153ec7688f8"
+  inputs-digest = "373c28695cca305436033352db0ef4f982a9ef11b228dc685283dd301ecb2cf4"
   solver-name = "gps-cdcl"
   solver-version = 1
