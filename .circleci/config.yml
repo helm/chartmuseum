@@ -5,7 +5,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.10
         environment:
           GOOGLE_APPLICATION_CREDENTIALS: /home/circleci/gcp-key.json
     working_directory: /go/src/github.com/kubernetes-helm/chartmuseum
