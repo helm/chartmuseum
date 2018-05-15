@@ -257,6 +257,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 #### Other CLI options
 - `--log-json` - output structured logs as json
 - `--disable-api` - disable all routes prefixed with /api
+- `--disable-statefiles` - disable use of index-cache.yaml to improve caching
 - `--allow-overwrite` - allow chart versions to be re-uploaded
 - `--chart-url=<url>` - absolute url for .tgzs in index.yaml
 - `--storage-amazon-endpoint=<endpoint>` - alternative s3 endpoint
@@ -342,6 +343,8 @@ If you manually add/remove a .tgz package from storage, it will be immediately r
 You are no longer required to maintain your own version of index.yaml using `helm repo index --merge`.
 
 The `--gen-index` CLI option (described above) can be used to generate and print index.yaml to stdout.
+
+Upon index regeneration, *ChartMuseum* will, however, save a statefile in storage called `index-cache.yaml` used for cache optimization. This file is only meant for internal use, but may be able to be used for migration to simple storage.
 
 ## Mirroring the official Kubernetes repositories
 Please see `scripts/mirror_k8s_repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).
