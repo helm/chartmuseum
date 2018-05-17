@@ -558,7 +558,7 @@ func (suite *MultiTenantServerTestSuite) TestMetrics() {
 	metrics := buffer.String()
 	//fmt.Print(metrics) // observe the metric output
 
-	// Ensure that we have the Guages as documented
+	// Ensure that we have the Gauges as documented
 	suite.True(strings.Contains(metrics, "# TYPE chartmuseum_chart_versions_served_total gauge"))
 	suite.True(strings.Contains(metrics, "# TYPE chartmuseum_charts_served_total gauge"))
 

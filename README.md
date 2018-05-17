@@ -343,8 +343,8 @@ have repo labels named `org1/repoa` and `org2/repob`.
 
 | Metric                                   | Type           | Labels     | Description                              |
 | ---------------------------------------- | -------------- | ---------- | ---------------------------------------- |
-| chartmuseum_charts_served_total          | Guage          | {repo="*"} | Total number of charts                   |
-| chartmuseum_charts_versions_served_total | Guage          | {repo="*"} | Total number of chart versions available |
+| chartmuseum_charts_served_total          | Gauge          | {repo="*"} | Total number of charts                   |
+| chartmuseum_charts_versions_served_total | Gauge          | {repo="*"} | Total number of chart versions available |
 
 *: see above for repo label
 
@@ -361,7 +361,7 @@ There are other general global metrics harvested (per process, hence for all ten
 | chartmuseum_response_size_bytes              | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP response sizes in bytes          |
 | chartmuseum_response_size_bytes_sum          |         |                                                       |                                           |
 | chartmuseum_response_size_bytes_count        |         |                                                       |                                           |
-| go_goroutines                                | Guage   |                                                       | Number of goroutines that currently exist |
+| go_goroutines                                | Gauge   |                                                       | Number of goroutines that currently exist |
 
 
 ## Notes on index.yaml
