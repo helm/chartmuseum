@@ -23,9 +23,9 @@ import (
 )
 
 var maxUploadSize = 1024 * 1024 * 20
-var testTarballPath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz"
 
-// generated with: cd testdata/charts/mychart && helm package --version 0.2.0 .
+// These are generated from scripts/setup_test_environment.sh
+var testTarballPath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz"
 var testTarballPathV2 = "../../../../testdata/charts/mychart/mychart-0.2.0.tgz"
 var testProvfilePath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.prov"
 var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz"
