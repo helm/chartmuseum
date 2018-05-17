@@ -71,7 +71,7 @@ package_test_charts() {
         popd
     done
     # add another version to repo for metric tests
-    helm package --version 0.2.0 -d mychart/ mychart/.
+    helm package --sign --key helm-test --keyring ../pgp/helm-test-key.secret --version 0.2.0 -d mychart/ mychart/.
     popd
 }
 
