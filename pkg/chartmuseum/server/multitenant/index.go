@@ -6,7 +6,6 @@ import (
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
-	"encoding/json"
 )
 
 var (
@@ -50,25 +49,6 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 			"repo", repo,
 		)
 		return newRepoIndex, &HTTPError{500, errStr}
-	}
-
-
-	// save to cache
-	content, err := json.Marshal(entry)
-	if err != nil {
-		errStr := err.Error()
-		log(cm_logger.ErrorLevel, errStr,
-			"repo", repo,
-		)
-		return nil, &HTTPError{500, errStr}
-	}
-	err = server.CacheStore.Set(repo, content)
-	if err != nil {
-		errStr := err.Error()
-		log(cm_logger.ErrorLevel, errStr,
-			"repo", repo,
-		)
-		return nil, &HTTPError{500, errStr}
 	}
 
 	if server.UseStatefiles {

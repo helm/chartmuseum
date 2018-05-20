@@ -18,13 +18,14 @@ _.-'  \        ( \___
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	cm_cache "github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
 	pathutil "path"
 
-	"encoding/json"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	helm_repo "k8s.io/helm/pkg/repo"
@@ -52,13 +53,20 @@ type (
 	}
 )
 
+var (
+	CouldNotSaveEntryErrorMessage = "Could not save entry in cache store due to insufficient memory allocation"
+)
+
 func (server *MultiTenantServer) primeCache() error {
 	// only prime the cache if this is a single tenant setup
 	if server.Router.Depth == 0 {
 		log := server.Logger.ContextLoggingFn(&gin.Context{})
 		_, err := server.getIndexFile(log, "")
 		if err != nil {
-			return errors.New(err.Message)
+			errStr := err.Message
+			if errStr != cm_cache.ErrLargeEntry.Error() {
+				return errors.New(errStr)
+			}
 		}
 	}
 	return nil
@@ -119,9 +127,9 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 	)
 	index := &cm_repo.Index{
 		IndexFile: entry.RepoIndex.IndexFile,
+		RepoName:  entry.RepoName,
 		Raw:       entry.RepoIndex.Raw,
 		ChartURL:  entry.RepoIndex.ChartURL,
-		Repo:      entry.RepoName,
 	}
 
 	for _, object := range diff.Removed {
@@ -158,7 +166,12 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 	}
 	err = server.CacheStore.Set(entry.RepoName, content)
 	if err != nil {
-		return nil, err
+		if err != cm_cache.ErrLargeEntry {
+			return nil, err
+		}
+		log(cm_logger.WarnLevel, CouldNotSaveEntryErrorMessage,
+			"repo", entry.RepoName,
+		)
 	}
 
 	log(cm_logger.DebugLevel, "index.yaml regenerated",
@@ -332,7 +345,12 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 		}
 		err := server.CacheStore.Set(repo, content)
 		if err != nil {
-			return nil, err
+			if err != cm_cache.ErrLargeEntry {
+				return nil, err
+			}
+			log(cm_logger.WarnLevel, CouldNotSaveEntryErrorMessage,
+				"repo", entry.RepoName,
+			)
 		}
 		return entry, nil
 	}
@@ -377,5 +395,5 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 		"repo", repo,
 	)
 
-	return &cm_repo.Index{indexFile, object.Content, chartURL, repo}
+	return &cm_repo.Index{indexFile, repo, object.Content, chartURL}
 }

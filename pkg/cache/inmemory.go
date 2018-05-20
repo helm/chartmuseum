@@ -14,6 +14,10 @@ type (
 	}
 )
 
+var (
+	ErrLargeEntry = freecache.ErrLargeEntry
+)
+
 // NewInMemoryObject creates a new, empty InMemoryStore
 func NewInMemoryStore(size int) *InMemoryStore {
 	cache := freecache.NewCache(size)
