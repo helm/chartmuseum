@@ -16,14 +16,10 @@ type StoreTestSuite struct {
 func (suite *StoreTestSuite) SetupSuite() {
 	suite.Stores = make(map[string]Store)
 
-	suite.Stores["InMemory"] = NewInMemoryStore(&InMemoryStoreOptions{
-		Size: 0,
-	})
+	suite.Stores["InMemory"] = NewInMemoryStore(0)
 
 	if os.Getenv("TEST_REDIS") == "1" {
-		redisStore := NewRedisStore(&RedisStoreOptions{
-			Addr: "localhost:6379",
-		})
+		redisStore := NewRedisStore("localhost:6379")
 		suite.Stores["Redis"] = redisStore
 	}
 }

@@ -8,12 +8,14 @@ import (
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	"github.com/stretchr/testify/suite"
 )
 
 type ServerTestSuite struct {
 	suite.Suite
-	Backend storage.Backend
+	Backend       storage.Backend
+	Store         cache.Store
 	TempDirectory string
 }
 
@@ -21,6 +23,7 @@ func (suite *ServerTestSuite) SetupSuite() {
 	timestamp := time.Now().Format("20060102150405")
 	brokenTempDirectory := fmt.Sprintf("../../.test/chartmuseum-server/%s", timestamp)
 	suite.Backend = storage.Backend(storage.NewLocalFilesystemBackend(brokenTempDirectory))
+	suite.Store = cache.Store(cache.NewInMemoryStore(209715200))
 }
 
 func (suite *ServerTestSuite) TearDownSuite() {
@@ -31,6 +34,7 @@ func (suite *ServerTestSuite) TearDownSuite() {
 func (suite *ServerTestSuite) TestNewServer() {
 	serverOptions := ServerOptions{
 		StorageBackend: suite.Backend,
+		CacheStore: suite.Store,
 	}
 
 	multiTenantServer, err := NewServer(serverOptions)

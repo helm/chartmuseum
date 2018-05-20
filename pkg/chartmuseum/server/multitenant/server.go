@@ -6,9 +6,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	"encoding/json"
 )
 
 var (
@@ -27,6 +29,7 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
+		CacheStore             cache.Store
 		MaxStorageObjects      int
 		IndexLimit             int
 		AllowOverwrite         bool
@@ -36,7 +39,7 @@ type (
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 		Limiter                chan struct{}
-		IndexCache             map[string]*cachedIndexFile
+		IndexCache             map[string]*cacheEntry
 		IndexCacheKeyLock      *sync.Mutex
 	}
 
@@ -45,6 +48,7 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
+		CacheStore             cache.Store
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
@@ -68,6 +72,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:                 options.Logger,
 		Router:                 options.Router,
 		StorageBackend:         options.StorageBackend,
+		CacheStore:             options.CacheStore,
 		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
 		ChartURL:               chartURL,
@@ -77,7 +82,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		APIEnabled:             options.EnableAPI,
 		UseStatefiles:          options.UseStatefiles,
 		Limiter:                make(chan struct{}, options.IndexLimit),
-		IndexCache:             map[string]*cachedIndexFile{},
+		IndexCache:             map[string]*cacheEntry{},
 		IndexCacheKeyLock:      &sync.Mutex{},
 	}
 
@@ -97,6 +102,15 @@ func (server *MultiTenantServer) Listen(port int) {
 }
 
 func (server *MultiTenantServer) genIndex() {
-	echo(string(server.IndexCache[""].RepositoryIndex.Raw[:]))
+	var entry *cacheEntry
+	content, err := server.CacheStore.Get("")
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal(content, &entry)
+	if err != nil {
+		panic(err)
+	}
+	echo(string(entry.RepoIndex.Raw[:]))
 	exit(0)
 }

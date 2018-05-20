@@ -12,16 +12,11 @@ type (
 	InMemoryStore struct {
 		Cache *freecache.Cache
 	}
-
-	// InMemoryStoreOptions are the options for creating a new InMemoryStore
-	InMemoryStoreOptions struct {
-		Size int
-	}
 )
 
 // NewInMemoryObject creates a new, empty InMemoryStore
-func NewInMemoryStore(options *InMemoryStoreOptions) *InMemoryStore {
-	cache := freecache.NewCache(options.Size)
+func NewInMemoryStore(size int) *InMemoryStore {
+	cache := freecache.NewCache(size)
 	store := &InMemoryStore{cache}
 	return store
 }

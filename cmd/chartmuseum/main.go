@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
 	"github.com/kubernetes-helm/chartmuseum/pkg/config"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -43,9 +44,11 @@ func cliHandler(c *cli.Context) {
 	}
 
 	backend := backendFromConfig(conf)
+	store := storeFromConfig(conf)
 
 	options := chartmuseum.ServerOptions{
 		StorageBackend:         backend,
+		CacheStore:             store,
 		ChartURL:               conf.GetString("charturl"),
 		TlsCert:                conf.GetString("tls.cert"),
 		TlsKey:                 conf.GetString("tls.key"),
@@ -158,6 +161,12 @@ func openstackBackendFromConfig(conf *config.Config) storage.Backend {
 		conf.GetString("storage.openstack.region"),
 		conf.GetString("storage.openstack.cacert"),
 	))
+}
+
+func storeFromConfig(conf *config.Config) cache.Store {
+	var store cache.Store
+	store = cache.Store(cache.NewInMemoryStore(52428800))
+	return store
 }
 
 func crashIfConfigMissingVars(conf *config.Config, vars []string) {

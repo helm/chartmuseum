@@ -12,14 +12,15 @@ import (
 var (
 	// IndexFileContentType is the http content-type header for index.yaml
 	IndexFileContentType = "application/x-yaml"
-	StatefileFilename = "index-cache.yaml"
+	StatefileFilename    = "index-cache.yaml"
 )
 
 // Index represents the repository index (index.yaml)
 type Index struct {
-	*helm_repo.IndexFile
-	Raw      []byte
-	ChartURL string
+	// cryptic JSON field names to minimize size saved in cache
+	*helm_repo.IndexFile `json:"a"`
+	Raw                  []byte `json:"b"`
+	ChartURL             string `json:"c"`
 }
 
 // NewIndex creates a new instance of Index

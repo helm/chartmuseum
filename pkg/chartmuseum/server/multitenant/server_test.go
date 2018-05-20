@@ -16,6 +16,7 @@ import (
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
@@ -176,6 +177,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	}
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
+	store := cache.Store(cache.NewInMemoryStore(209715200))
 
 	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
 		Debug: true,
@@ -191,6 +193,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -209,6 +212,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -226,6 +230,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -243,6 +248,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -261,6 +267,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
+		CacheStore:     store,
 		EnableAPI:      false,
 	})
 	suite.NotNil(server)
@@ -276,6 +283,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		CacheStore:             store,
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -294,6 +302,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -312,6 +321,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		CacheStore:             store,
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -331,6 +341,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		CacheStore:             store,
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -351,41 +362,44 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 
 	log := server.Logger.ContextLoggingFn(&gin.Context{})
 
-	objects, err := server.fetchChartsInStorage(log, "")
-	diff := storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	entry, err := server.initCacheEntry(log, "")
+	suite.Nil(err, "no error on init cache entry")
+
+	objects, err := server.fetchChartsInStorage(log, entry)
+	diff := storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index")
 
 	newtime := time.Now().Add(1 * time.Hour)
 	err = os.Chtimes(suite.TestTarballFilename, newtime, newtime)
 	suite.Nil(err, "no error changing modtime on temp file")
 
-	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	objects, err = server.fetchChartsInStorage(log, entry)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index with tarball updated")
 
 	brokenTarballFilename := pathutil.Join(suite.TempDirectory, "brokenchart.tgz")
 	destFile, err := os.Create(brokenTarballFilename)
 	suite.Nil(err, "no error creating new broken tarball in temp dir")
 	defer destFile.Close()
-	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	objects, err = server.fetchChartsInStorage(log, entry)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball added")
 
 	err = os.Chtimes(brokenTarballFilename, newtime, newtime)
 	suite.Nil(err, "no error changing modtime on broken tarball")
-	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	objects, err = server.fetchChartsInStorage(log, entry)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball updated")
 
 	err = os.Remove(brokenTarballFilename)
 	suite.Nil(err, "no error removing broken tarball")
-	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	objects, err = server.fetchChartsInStorage(log, entry)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball removed")
 }
 
@@ -404,6 +418,7 @@ func (suite *MultiTenantServerTestSuite) TestGenIndex() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
+		CacheStore:     suite.Depth0Server.CacheStore,
 		GenIndex:       true,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")

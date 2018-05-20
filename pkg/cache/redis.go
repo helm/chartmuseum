@@ -9,19 +9,15 @@ type (
 	RedisStore struct {
 		Client *redis.Client
 	}
-
-	// RedisStoreOptions are the options for creating a new RedisStore
-	RedisStoreOptions struct {
-		Addr string
-	}
 )
 
 // NewRedisStore creates a new RedisStore
-func NewRedisStore(options *RedisStoreOptions) *RedisStore {
+func NewRedisStore(addr string) *RedisStore {
 	store := &RedisStore{}
-	store.Client = redis.NewClient(&redis.Options{
-		Addr: options.Addr,
-	})
+	redisClientOptions := &redis.Options{
+		Addr: addr,
+	}
+	store.Client = redis.NewClient(redisClientOptions)
 	return store
 }
 
