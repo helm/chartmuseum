@@ -121,6 +121,7 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 		IndexFile: entry.RepoIndex.IndexFile,
 		Raw:       entry.RepoIndex.Raw,
 		ChartURL:  entry.RepoIndex.ChartURL,
+		Repo:      entry.RepoName,
 	}
 
 	for _, object := range diff.Removed {
@@ -353,13 +354,13 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 	}
 
 	if !server.UseStatefiles {
-		return cm_repo.NewIndex(chartURL)
+		return cm_repo.NewIndex(chartURL, repo)
 	}
 
 	objectPath := pathutil.Join(repo, cm_repo.StatefileFilename)
 	object, err := server.StorageBackend.GetObject(objectPath)
 	if err != nil {
-		return cm_repo.NewIndex(chartURL)
+		return cm_repo.NewIndex(chartURL, repo)
 	}
 
 	indexFile := &helm_repo.IndexFile{}
@@ -369,12 +370,12 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 			"repo", repo,
 			"error", err.Error(),
 		)
-		return cm_repo.NewIndex(chartURL)
+		return cm_repo.NewIndex(chartURL, repo)
 	}
 
 	log(cm_logger.DebugLevel, "index-cache.yaml loaded",
 		"repo", repo,
 	)
 
-	return &cm_repo.Index{indexFile, object.Content, chartURL}
+	return &cm_repo.Index{indexFile, object.Content, chartURL, repo}
 }

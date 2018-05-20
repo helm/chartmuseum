@@ -21,12 +21,13 @@ type Index struct {
 	*helm_repo.IndexFile `json:"a"`
 	Raw                  []byte `json:"b"`
 	ChartURL             string `json:"c"`
+	Repo                 string `json:"d"`
 }
 
 // NewIndex creates a new instance of Index
-func NewIndex(chartURL string) *Index {
+func NewIndex(chartURL, repo string) *Index {
 	chartURL = strings.TrimSuffix(chartURL, "/")
-	index := Index{&helm_repo.IndexFile{}, []byte{}, chartURL}
+	index := Index{&helm_repo.IndexFile{}, []byte{}, chartURL, repo}
 	index.Entries = map[string]helm_repo.ChartVersions{}
 	index.APIVersion = helm_repo.APIVersionV1
 	index.Regenerate()
@@ -108,6 +109,6 @@ func (index *Index) updateMetrics() {
 	for _, chartVersions := range index.Entries {
 		nChartVersions += len(chartVersions)
 	}
-	chartTotalGauge.Set(float64(len(index.Entries)))
-	chartVersionTotalGauge.Set(float64(nChartVersions))
+	chartTotalGaugeVec.WithLabelValues(index.Repo).Set(float64(len(index.Entries)))
+	chartVersionTotalGaugeVec.WithLabelValues(index.Repo).Set(float64(nChartVersions))
 }
