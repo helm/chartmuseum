@@ -164,10 +164,35 @@ func openstackBackendFromConfig(conf *config.Config) storage.Backend {
 }
 
 func storeFromConfig(conf *config.Config) cache.Store {
+	crashIfConfigMissingVars(conf, []string{"cache.store"})
+
 	var store cache.Store
-	//store = cache.Store(cache.NewInMemoryStore(52428800))
-	store = cache.Store(cache.NewRedisStore("localhost:6379"))
+
+	cacheFlag := strings.ToLower(conf.GetString("cache.store"))
+	switch cacheFlag {
+	case "inmemory":
+		store = inmemoryCacheFromConfig(conf)
+	case "redis":
+		store = redisCacheFromConfig(conf)
+	default:
+		crash("Unsupported cache store: ", cacheFlag)
+	}
+
 	return store
+}
+
+func inmemoryCacheFromConfig(conf *config.Config) cache.Store {
+	crashIfConfigMissingVars(conf, []string{"cache.inmemory.size"})
+	return cache.Store(cache.NewInMemoryStore(
+		conf.GetInt("cache.inmemory.size"),
+	))
+}
+
+func redisCacheFromConfig(conf *config.Config) cache.Store {
+	crashIfConfigMissingVars(conf, []string{"cache.redis.addr"})
+	return cache.Store(cache.NewRedisStore(
+		conf.GetString("cache.redis.addr"),
+	))
 }
 
 func crashIfConfigMissingVars(conf *config.Config, vars []string) {

@@ -54,6 +54,7 @@ type (
 )
 
 var (
+	EntrySavedMessage             = "Entry saved in cache store"
 	CouldNotSaveEntryErrorMessage = "Could not save entry in cache store due to insufficient memory allocation"
 )
 
@@ -177,7 +178,7 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 			"repo", entry.RepoName,
 		)
 	} else {
-		log(cm_logger.DebugLevel, "Entry saved in cache store",
+		log(cm_logger.DebugLevel, EntrySavedMessage,
 			"repo", entry.RepoName,
 		)
 	}
@@ -354,6 +355,10 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 				return nil, err
 			}
 			log(cm_logger.WarnLevel, CouldNotSaveEntryErrorMessage,
+				"repo", entry.RepoName,
+			)
+		} else {
+			log(cm_logger.DebugLevel, EntrySavedMessage,
 				"repo", entry.RepoName,
 			)
 		}

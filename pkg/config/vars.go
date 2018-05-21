@@ -150,6 +150,34 @@ var configVars = map[string]configVar{
 			EnvVar: "TLS_KEY",
 		},
 	},
+	"cache.store": {
+		Type:    stringType,
+		Default: "inmemory",
+		CLIFlag: cli.StringFlag{
+			Name:   "cache",
+			Usage:  "cache store, can be one of: inmemory, redis",
+			EnvVar: "CACHE",
+		},
+	},
+	"cache.inmemory.size": {
+		Type:    intType,
+		Default: 52428800,
+		CLIFlag: cli.IntFlag{
+			Name:   "cache-inmemory-size",
+			Usage:  "pre-allocated size of in-memory cache (bytes)",
+			EnvVar: "CACHE_IMMEMORY_SIZE",
+			Value: 52428800,
+		},
+	},
+	"cache.redis.addr": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "cache-redis-addr",
+			Usage:  "address of Redis service (host:port)",
+			EnvVar: "CACHE_REDIS_ADDR",
+		},
+	},
 	"storage.backend": {
 		Type:    stringType,
 		Default: "",

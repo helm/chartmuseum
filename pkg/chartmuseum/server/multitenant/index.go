@@ -37,8 +37,15 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 
 	// return fast if no changes
 	if !diff.Change {
+		log(cm_logger.DebugLevel, "No change detected between cache and storage",
+			"repo", repo,
+		)
 		return entry.RepoIndex, nil
 	}
+
+	log(cm_logger.DebugLevel, "Change detected between cache and storage",
+		"repo", repo,
+	)
 
 	ir := <-server.regenerateRepositoryIndex(log, entry, diff)
 	newRepoIndex := ir.index
