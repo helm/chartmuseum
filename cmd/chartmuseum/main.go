@@ -165,7 +165,8 @@ func openstackBackendFromConfig(conf *config.Config) storage.Backend {
 
 func storeFromConfig(conf *config.Config) cache.Store {
 	var store cache.Store
-	store = cache.Store(cache.NewInMemoryStore(52428800))
+	//store = cache.Store(cache.NewInMemoryStore(52428800))
+	store = cache.Store(cache.NewRedisStore("localhost:6379"))
 	return store
 }
 

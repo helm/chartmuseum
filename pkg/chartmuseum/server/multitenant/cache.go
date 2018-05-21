@@ -159,6 +159,10 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 
 	entry.RepoIndex = index
 
+	log(cm_logger.DebugLevel, "index.yaml regenerated",
+		"repo", entry.RepoName,
+	)
+
 	// save to cache
 	content, err := json.Marshal(entry)
 	if err != nil {
@@ -172,11 +176,12 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 		log(cm_logger.WarnLevel, CouldNotSaveEntryErrorMessage,
 			"repo", entry.RepoName,
 		)
+	} else {
+		log(cm_logger.DebugLevel, "Entry saved in cache store",
+			"repo", entry.RepoName,
+		)
 	}
 
-	log(cm_logger.DebugLevel, "index.yaml regenerated",
-		"repo", entry.RepoName,
-	)
 	return index, nil
 }
 
@@ -355,10 +360,12 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 		return entry, nil
 	}
 
-	//fmt.Println(string(content))
+	log(cm_logger.DebugLevel, "Entry found in cache store",
+		"repo", repo,
+	)
+
 	err = json.Unmarshal(content, &entry)
 	if err != nil {
-		//fmt.Printf("%+v\n", err)
 		return nil, err
 	}
 

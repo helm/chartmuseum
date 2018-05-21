@@ -23,15 +23,18 @@ func NewRedisStore(addr string) *RedisStore {
 
 // Get returns an object at key
 func (store *RedisStore) Get(key string) ([]byte, error) {
-	return store.Client.Get(key).Bytes()
+	content, err := store.Client.Get(key).Bytes()
+	return content, err
 }
 
 // Set saves a new value for key
 func (store *RedisStore) Set(key string, contents []byte) error {
-	return store.Client.Set(key, contents, 0).Err()
+	err := store.Client.Set(key, contents, 0).Err()
+	return err
 }
 
 // Delete removes a key from the store
 func (store *RedisStore) Delete(key string) error {
-	return store.Client.Del(key).Err()
+	err := store.Client.Del(key).Err()
+	return err
 }
