@@ -49,7 +49,7 @@ type (
 )
 
 type (
-	packageOrProvenanceFile struct {
+	chartOrProvenanceFile struct {
 		filename string
 		content  []byte
 		field    string // file was extracted from this form field
@@ -183,35 +183,16 @@ func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context
 	c.JSON(201, objectSavedResponse)
 }
 
-// TODO: cleanup, cleanup
 func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
-	var ppFiles []*packageOrProvenanceFile
 
-	type fieldFuncPair struct {
-		field string
-		fn    filenameFromContentFn
+	cpFiles, status, err := server.getChartAndProvFiles(c.Request, repo)
+	if status != 200 {
+		c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
+		return
 	}
 
-	ffp := []fieldFuncPair{
-		{defaultFormField, cm_repo.ChartPackageFilenameFromContent},
-		{server.ChartPostFormFieldName, cm_repo.ChartPackageFilenameFromContent},
-		{defaultProvField, cm_repo.ProvenanceFilenameFromContent},
-		{server.ProvPostFormFieldName, cm_repo.ProvenanceFilenameFromContent},
-	}
-
-	for _, ff := range ffp {
-		ppf, status, err := server.extractAndValidateFormFile(c.Request, repo, ff.field, ff.fn)
-		if err != nil {
-			c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
-			return
-		}
-		if ppf != nil {
-			ppFiles = append(ppFiles, ppf)
-		}
-	}
-
-	if len(ppFiles) == 0 {
+	if len(cpFiles) == 0 {
 		if len(c.Errors) > 0 {
 			return // this is a "request too large"
 		}
@@ -223,8 +204,9 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	}
 
 	// At this point input is presumed valid, we now proceed to store it
-	var storedFiles []*packageOrProvenanceFile
-	for _, ppf := range ppFiles {
+	// Undo transaction if there is an error
+	var storedFiles []*chartOrProvenanceFile
+	for _, ppf := range cpFiles {
 		server.Logger.Debugc(c, "Adding file to storage (form field)",
 			"filename", ppf.filename,
 			"field", ppf.field,
@@ -244,22 +226,58 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	c.JSON(201, objectSavedResponse)
 }
 
-func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, repo string, field string, fnFromContent filenameFromContentFn) (*packageOrProvenanceFile, int, error) {
+func (server *MultiTenantServer) getChartAndProvFiles(req *http.Request, repo string) (map[string]*chartOrProvenanceFile, int, error) {
+	type fieldFuncPair struct {
+		field string
+		fn    filenameFromContentFn
+	}
+
+	ffp := []fieldFuncPair{
+		{defaultFormField, cm_repo.ChartPackageFilenameFromContent},
+		{server.ChartPostFormFieldName, cm_repo.ChartPackageFilenameFromContent},
+		{defaultProvField, cm_repo.ProvenanceFilenameFromContent},
+		{server.ProvPostFormFieldName, cm_repo.ProvenanceFilenameFromContent},
+	}
+
+	cpFiles := make(map[string]*chartOrProvenanceFile)
+	for _, ff := range ffp {
+		content, err := extractContentFromRequest(req, ff.field)
+		if err != nil {
+			return nil, 500, err
+		}
+		if content == nil {
+			continue
+		}
+		filename, err := ff.fn(content)
+		if err != nil {
+			return nil, 400, err
+		}
+		if _, ok := cpFiles[filename]; ok {
+			continue
+		}
+		if status, err := server.validateChartOrProv(repo, filename); err != nil {
+			return nil, status, err
+		}
+		cpFiles[filename] = &chartOrProvenanceFile{filename, content, ff.field}
+	}
+
+	return cpFiles, 200, nil
+}
+
+func extractContentFromRequest(req *http.Request, field string) ([]byte, error) {
 	file, header, _ := req.FormFile(field)
-	var ppf *packageOrProvenanceFile
 	if file == nil || header == nil {
-		return ppf, 200, nil // field is not present
+		return nil, nil // field is not present
 	}
 	buf := bytes.NewBuffer(nil)
 	_, err := io.Copy(buf, file)
 	if err != nil {
-		return ppf, 500, err // IO error
+		return nil, err // IO error
 	}
-	content := buf.Bytes()
-	filename, err := fnFromContent(content)
-	if err != nil {
-		return ppf, 400, err // validation error (bad request)
-	}
+	return buf.Bytes(), nil
+}
+
+func (server *MultiTenantServer) validateChartOrProv(repo, filename string) (int, error) {
 	var f string
 	if repo == "" {
 		f = filename
@@ -267,10 +285,10 @@ func (server *MultiTenantServer) extractAndValidateFormFile(req *http.Request, r
 		f = repo + "/" + filename
 	}
 	if !server.AllowOverwrite {
-		_, err = server.StorageBackend.GetObject(f)
+		_, err := server.StorageBackend.GetObject(f)
 		if err == nil {
-			return ppf, 409, fmt.Errorf("%s already exists", f) // conflict
+			return 409, fmt.Errorf("%s already exists", f) // conflict
 		}
 	}
-	return &packageOrProvenanceFile{filename, content, field}, 200, nil
+	return 200, nil
 }
