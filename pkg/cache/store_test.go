@@ -2,15 +2,16 @@ package cache
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
+	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/suite"
 )
 
 type StoreTestSuite struct {
 	suite.Suite
-	Stores map[string]Store
+	RedisMock *miniredis.Miniredis
+	Stores    map[string]Store
 }
 
 func (suite *StoreTestSuite) SetupSuite() {
@@ -18,10 +19,14 @@ func (suite *StoreTestSuite) SetupSuite() {
 
 	suite.Stores["InMemory"] = NewInMemoryStore(0)
 
-	if os.Getenv("TEST_REDIS") == "1" {
-		redisStore := NewRedisStore("localhost:6379")
-		suite.Stores["Redis"] = redisStore
-	}
+	redisMock, err := miniredis.Run()
+	suite.Nil(err, "able to create miniredis instance")
+	suite.RedisMock = redisMock
+	suite.Stores["Redis"] = NewRedisStore(redisMock.Addr())
+}
+
+func (suite *StoreTestSuite) TearDownSuite() {
+	suite.RedisMock.Close()
 }
 
 func (suite *StoreTestSuite) TestAllStores() {

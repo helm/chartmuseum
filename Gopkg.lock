@@ -49,6 +49,21 @@
   version = "v1.4.2"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/alicebob/gopher-json"
+  packages = ["."]
+  revision = "5a6b3ba71ee69b77cf64febf8b5a7526ca5eaef0"
+
+[[projects]]
+  name = "github.com/alicebob/miniredis"
+  packages = [
+    ".",
+    "server"
+  ]
+  revision = "c8ba25935377e94fab2649b0ff92fdef1c98af76"
+  version = "2.4.2"
+
+[[projects]]
   name = "github.com/aliyun/aliyun-oss-go-sdk"
   packages = ["oss"]
   revision = "52de7239022ceba47354832fbcc65983aa8d019d"
@@ -202,6 +217,15 @@
   ]
   revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
   version = "v1.1.0"
+
+[[projects]]
+  name = "github.com/gomodule/redigo"
+  packages = [
+    "internal",
+    "redis"
+  ]
+  revision = "9c11da706d9b7902c6da69c592f75637793fe121"
+  version = "v2.0.0"
 
 [[projects]]
   name = "github.com/googleapis/gax-go"
@@ -391,6 +415,17 @@
   packages = ["."]
   revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
   version = "v1.20.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/yuin/gopher-lua"
+  packages = [
+    ".",
+    "ast",
+    "parse",
+    "pm"
+  ]
+  revision = "b0fa786cf4ea360285924c4a7fd42325be57aec8"
 
 [[projects]]
   branch = "master"
@@ -638,6 +673,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "373c28695cca305436033352db0ef4f982a9ef11b228dc685283dd301ecb2cf4"
+  inputs-digest = "1820cddfd5af45689aa27c918454615eb4c1c65b80c0bcf6cff7045d91377daf"
   solver-name = "gps-cdcl"
   solver-version = 1
