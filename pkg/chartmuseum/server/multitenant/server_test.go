@@ -14,12 +14,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -375,7 +376,7 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 	entry, err := server.initCacheEntry(log, "")
 	suite.Nil(err, "no error on init cache entry")
 
-	objects, err := server.fetchChartsInStorage(log, entry)
+	objects, err := server.fetchChartsInStorage(log, "")
 	diff := storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index")
@@ -384,7 +385,7 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 	err = os.Chtimes(suite.TestTarballFilename, newtime, newtime)
 	suite.Nil(err, "no error changing modtime on temp file")
 
-	objects, err = server.fetchChartsInStorage(log, entry)
+	objects, err = server.fetchChartsInStorage(log, "")
 	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index with tarball updated")
@@ -393,21 +394,21 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 	destFile, err := os.Create(brokenTarballFilename)
 	suite.Nil(err, "no error creating new broken tarball in temp dir")
 	defer destFile.Close()
-	objects, err = server.fetchChartsInStorage(log, entry)
+	objects, err = server.fetchChartsInStorage(log, "")
 	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball added")
 
 	err = os.Chtimes(brokenTarballFilename, newtime, newtime)
 	suite.Nil(err, "no error changing modtime on broken tarball")
-	objects, err = server.fetchChartsInStorage(log, entry)
+	objects, err = server.fetchChartsInStorage(log, "")
 	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball updated")
 
 	err = os.Remove(brokenTarballFilename)
 	suite.Nil(err, "no error removing broken tarball")
-	objects, err = server.fetchChartsInStorage(log, entry)
+	objects, err = server.fetchChartsInStorage(log, "")
 	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball removed")
@@ -429,6 +430,82 @@ func (suite *MultiTenantServerTestSuite) TestGenIndex() {
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
 		CacheStore:     suite.Depth0Server.CacheStore,
+		GenIndex:       true,
+	})
+	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
+	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
+	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
+}
+
+func (suite *MultiTenantServerTestSuite) TestStatefiles() {
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug:   true,
+		LogJSON: true,
+	})
+	suite.Nil(err, "no error creating logger")
+
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger: logger,
+	})
+
+	// add an example index-cache.yaml
+	indexCacheFilePath := pathutil.Join(suite.TempDirectory, repo.StatefileFilename)
+	content := []byte(`apiVersion: v1
+entries:
+  acs-engine-autoscaler:
+  - name: acs-engine-autoscaler
+    urls:
+    - charts/acs-engine-autoscaler-2.1.2.tgz
+    version: 2.1.2
+generated: "2018-05-23T15:14:46-05:00"`)
+	err = ioutil.WriteFile(indexCacheFilePath, content, 0644)
+	suite.Nil(err, "no error creating test index-cache.yaml")
+
+	NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: suite.Depth0Server.StorageBackend,
+		CacheStore:     cache.Store(cache.NewInMemoryStore(209715200)), // use fresh cache for code path purposes
+		UseStatefiles:  true,
+		GenIndex:       true,
+	})
+	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
+	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
+	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
+
+	// remove index-cache.yaml
+	err = os.Remove(indexCacheFilePath)
+	suite.Nil(err, "no error deleting test index-cache.yaml")
+
+	// invalid, unparsable index-cache.yaml
+	indexCacheFilePath = pathutil.Join(suite.TempDirectory, repo.StatefileFilename)
+	content = []byte(`is this valid yaml? maybe. but its definitely not a valid index.yaml!`)
+	err = ioutil.WriteFile(indexCacheFilePath, content, 0644)
+	suite.Nil(err, "no error creating test index-cache.yaml")
+
+	NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: suite.Depth0Server.StorageBackend,
+		CacheStore:     cache.Store(cache.NewInMemoryStore(209715200)), // use fresh cache for code path purposes
+		UseStatefiles:  true,
+		GenIndex:       true,
+	})
+	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
+	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
+	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
+
+	// remove index-cache.yaml
+	err = os.Remove(indexCacheFilePath)
+	suite.Nil(err, "no error deleting test index-cache.yaml")
+
+	// no index-cache.yaml
+	NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: suite.Depth0Server.StorageBackend,
+		CacheStore:     cache.Store(cache.NewInMemoryStore(209715200)), // use fresh cache for code path purposes
+		UseStatefiles:  true,
 		GenIndex:       true,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")

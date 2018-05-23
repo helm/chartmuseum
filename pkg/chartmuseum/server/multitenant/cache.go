@@ -25,6 +25,7 @@ import (
 	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
 	pathutil "path"
+	"sync"
 
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
@@ -36,20 +37,6 @@ type (
 		// cryptic JSON field names to minimize size saved in cache
 		RepoName  string         `json:"a"`
 		RepoIndex *cm_repo.Index `json:"b"`
-		//FetchedObjectsLock      *sync.Mutex              `json:"c"`
-		//FetchedObjectsChans     []chan fetchedObjects    `json:"d"`
-		//RegenerationLock        *sync.Mutex              `json:"e"`
-		//RegeneratedIndexesChans []chan indexRegeneration `json:"f"`
-	}
-
-	fetchedObjects struct {
-		objects []cm_storage.Object
-		err     error
-	}
-
-	indexRegeneration struct {
-		index *cm_repo.Index
-		err   error
 	}
 )
 
@@ -74,28 +61,29 @@ func (server *MultiTenantServer) primeCache() error {
 }
 
 // getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
-func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, entry *cacheEntry) <-chan fetchedObjects {
+func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo string) <-chan fetchedObjects {
 	ch := make(chan fetchedObjects, 1)
 
-	//entry.FetchedObjectsLock.Lock()
-	//entry.FetchedObjectsChans = append(entry.FetchedObjectsChans, ch)
+	server.Tenants[repo].FetchedObjectsLock.Lock()
+	server.Tenants[repo].FetchedObjectsChans = append(server.Tenants[repo].FetchedObjectsChans, ch)
 
-	//if len(entry.FetchedObjectsChans) == 1 {
-	// this unlock is wanted, while fetching the list, allow other channeled requests to be added
-	//entry.FetchedObjectsLock.Unlock()
+	if len(server.Tenants[repo].FetchedObjectsChans) == 1 {
+		// this unlock is wanted, while fetching the list, allow other channeled requests to be added
+		server.Tenants[repo].FetchedObjectsLock.Unlock()
 
-	objects, err := server.fetchChartsInStorage(log, entry)
-	ch <- fetchedObjects{objects, err}
+		objects, err := server.fetchChartsInStorage(log, repo)
 
-	//entry.FetchedObjectsLock.Lock()
+		server.Tenants[repo].FetchedObjectsLock.Lock()
 
-	// flush every other consumer that also wanted the index
-	//for _, foCh := range entry.FetchedObjectsChans {
-	//	foCh <- fetchedObjects{objects, err}
-	//}
-	//entry.FetchedObjectsChans = nil
-	//}
-	//entry.FetchedObjectsLock.Unlock()
+		// flush every other consumer that also wanted the index
+		for _, foCh := range server.Tenants[repo].FetchedObjectsChans {
+			foCh <- fetchedObjects{objects, err}
+		}
+
+		server.Tenants[repo].FetchedObjectsChans = nil
+	}
+
+	server.Tenants[repo].FetchedObjectsLock.Unlock()
 
 	return ch
 }
@@ -103,52 +91,55 @@ func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, entry *ca
 func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, entry *cacheEntry, diff cm_storage.ObjectSliceDiff) <-chan indexRegeneration {
 	ch := make(chan indexRegeneration, 1)
 
-	//entry.RegenerationLock.Lock()
-	//entry.RegeneratedIndexesChans = append(entry.RegeneratedIndexesChans, ch)
+	repo := entry.RepoName
 
-	//if len(entry.RegeneratedIndexesChans) == 1 {
-	//	entry.RegenerationLock.Unlock()
+	server.Tenants[repo].RegenerationLock.Lock()
+	server.Tenants[repo].RegeneratedIndexesChans = append(server.Tenants[repo].RegeneratedIndexesChans, ch)
 
-	index, err := server.regenerateRepositoryIndexWorker(log, entry, diff)
-	ch <- indexRegeneration{index, err}
-	//	entry.RegenerationLock.Lock()
-	//	for _, riCh := range entry.RegeneratedIndexesChans {
-	//		riCh <- indexRegeneration{index, err}
-	//	}
-	//	entry.RegeneratedIndexesChans = nil
-	//}
-	//entry.RegenerationLock.Unlock()
+	if len(server.Tenants[repo].RegeneratedIndexesChans) == 1 {
+		server.Tenants[repo].RegenerationLock.Unlock()
+		index, err := server.regenerateRepositoryIndexWorker(log, entry, diff)
+		server.Tenants[repo].RegenerationLock.Lock()
+		for _, riCh := range server.Tenants[repo].RegeneratedIndexesChans {
+			riCh <- indexRegeneration{index, err}
+		}
+		server.Tenants[repo].RegeneratedIndexesChans = nil
+	}
+
+	server.Tenants[repo].RegenerationLock.Unlock()
 
 	return ch
 }
 
 func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.LoggingFn, entry *cacheEntry, diff cm_storage.ObjectSliceDiff) (*cm_repo.Index, error) {
+	repo := entry.RepoName
+
 	log(cm_logger.DebugLevel, "Regenerating index.yaml",
-		"repo", entry.RepoName,
+		"repo", repo,
 	)
 	index := &cm_repo.Index{
 		IndexFile: entry.RepoIndex.IndexFile,
-		RepoName:  entry.RepoName,
+		RepoName:  repo,
 		Raw:       entry.RepoIndex.Raw,
 		ChartURL:  entry.RepoIndex.ChartURL,
 	}
 
 	for _, object := range diff.Removed {
-		err := server.removeIndexObject(log, entry, index, object)
+		err := server.removeIndexObject(log, repo, index, object)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for _, object := range diff.Updated {
-		err := server.updateIndexObject(log, entry, index, object)
+		err := server.updateIndexObject(log, repo, index, object)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Parallelize retrieval of added objects to improve speed
-	err := server.addIndexObjectsAsync(log, entry, index, diff.Added)
+	err := server.addIndexObjectsAsync(log, repo, index, diff.Added)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +152,7 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 	entry.RepoIndex = index
 
 	log(cm_logger.DebugLevel, "index.yaml regenerated",
-		"repo", entry.RepoName,
+		"repo", repo,
 	)
 
 	// save to cache
@@ -169,28 +160,29 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 	if err != nil {
 		return nil, err
 	}
-	err = server.CacheStore.Set(entry.RepoName, content)
+
+	err = server.CacheStore.Set(repo, content)
 	if err != nil {
 		if err != cm_cache.ErrLargeEntry {
 			return nil, err
 		}
 		log(cm_logger.WarnLevel, CouldNotSaveEntryErrorMessage,
-			"repo", entry.RepoName,
+			"repo", repo,
 		)
 	} else {
 		log(cm_logger.DebugLevel, EntrySavedMessage,
-			"repo", entry.RepoName,
+			"repo", repo,
 		)
 	}
 
 	return index, nil
 }
 
-func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, entry *cacheEntry) ([]cm_storage.Object, error) {
+func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, repo string) ([]cm_storage.Object, error) {
 	log(cm_logger.DebugLevel, "Fetching chart list from storage",
-		"repo", entry.RepoName,
+		"repo", repo,
 	)
-	allObjects, err := server.StorageBackend.ListObjects(entry.RepoName)
+	allObjects, err := server.StorageBackend.ListObjects(repo)
 	if err != nil {
 		return []cm_storage.Object{}, err
 	}
@@ -206,13 +198,13 @@ func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, e
 	return filteredObjects, nil
 }
 
-func (server *MultiTenantServer) removeIndexObject(log cm_logger.LoggingFn, entry *cacheEntry, index *cm_repo.Index, object cm_storage.Object) error {
-	chartVersion, err := server.getObjectChartVersion(entry, object, false)
+func (server *MultiTenantServer) removeIndexObject(log cm_logger.LoggingFn, repo string, index *cm_repo.Index, object cm_storage.Object) error {
+	chartVersion, err := server.getObjectChartVersion(repo, object, false)
 	if err != nil {
-		return server.checkInvalidChartPackageError(log, entry, object, err, "removed")
+		return server.checkInvalidChartPackageError(log, repo, object, err, "removed")
 	}
 	log(cm_logger.DebugLevel, "Removing chart from index",
-		"repo", entry.RepoName,
+		"repo", repo,
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
@@ -220,13 +212,13 @@ func (server *MultiTenantServer) removeIndexObject(log cm_logger.LoggingFn, entr
 	return nil
 }
 
-func (server *MultiTenantServer) updateIndexObject(log cm_logger.LoggingFn, entry *cacheEntry, index *cm_repo.Index, object cm_storage.Object) error {
-	chartVersion, err := server.getObjectChartVersion(entry, object, true)
+func (server *MultiTenantServer) updateIndexObject(log cm_logger.LoggingFn, repo string, index *cm_repo.Index, object cm_storage.Object) error {
+	chartVersion, err := server.getObjectChartVersion(repo, object, true)
 	if err != nil {
-		return server.checkInvalidChartPackageError(log, entry, object, err, "updated")
+		return server.checkInvalidChartPackageError(log, repo, object, err, "updated")
 	}
 	log(cm_logger.DebugLevel, "Updating chart in index",
-		"repo", entry.RepoName,
+		"repo", repo,
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
@@ -234,14 +226,14 @@ func (server *MultiTenantServer) updateIndexObject(log cm_logger.LoggingFn, entr
 	return nil
 }
 
-func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, entry *cacheEntry, index *cm_repo.Index, objects []cm_storage.Object) error {
+func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, repo string, index *cm_repo.Index, objects []cm_storage.Object) error {
 	numObjects := len(objects)
 	if numObjects == 0 {
 		return nil
 	}
 
 	log(cm_logger.DebugLevel, "Loading charts packages from storage (this could take awhile)",
-		"repo", entry.RepoName,
+		"repo", repo,
 		"total", numObjects,
 	)
 
@@ -269,9 +261,9 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, e
 			case <-ctx.Done():
 				return
 			default:
-				chartVersion, err := server.getObjectChartVersion(entry, o, true)
+				chartVersion, err := server.getObjectChartVersion(repo, o, true)
 				if err != nil {
-					err = server.checkInvalidChartPackageError(log, entry, o, err, "added")
+					err = server.checkInvalidChartPackageError(log, repo, o, err, "added")
 					if err != nil {
 						cancel()
 					}
@@ -290,7 +282,7 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, e
 			continue
 		}
 		log(cm_logger.DebugLevel, "Adding chart to index",
-			"repo", entry.RepoName,
+			"repo", repo,
 			"name", cvRes.cv.Name,
 			"version", cvRes.cv.Version,
 		)
@@ -300,11 +292,11 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, e
 	return nil
 }
 
-func (server *MultiTenantServer) getObjectChartVersion(entry *cacheEntry, object cm_storage.Object, load bool) (*helm_repo.ChartVersion, error) {
+func (server *MultiTenantServer) getObjectChartVersion(repo string, object cm_storage.Object, load bool) (*helm_repo.ChartVersion, error) {
 	op := object.Path
 	if load {
 		var err error
-		objectPath := pathutil.Join(entry.RepoName, op)
+		objectPath := pathutil.Join(repo, op)
 		object, err = server.StorageBackend.GetObject(objectPath)
 		if err != nil {
 			return nil, err
@@ -316,10 +308,10 @@ func (server *MultiTenantServer) getObjectChartVersion(entry *cacheEntry, object
 	return cm_repo.ChartVersionFromStorageObject(object)
 }
 
-func (server *MultiTenantServer) checkInvalidChartPackageError(log cm_logger.LoggingFn, entry *cacheEntry, object cm_storage.Object, err error, action string) error {
+func (server *MultiTenantServer) checkInvalidChartPackageError(log cm_logger.LoggingFn, repo string, object cm_storage.Object, err error, action string) error {
 	if err == cm_repo.ErrorInvalidChartPackage {
 		log(cm_logger.WarnLevel, "Invalid package in storage",
-			"repo", entry.RepoName,
+			"repo", repo,
 			"action", action,
 			"package", object.Path,
 		)
@@ -333,8 +325,15 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 	var content []byte
 	var err error
 
-	server.IndexCacheKeyLock.Lock()
-	defer server.IndexCacheKeyLock.Unlock()
+	server.TenantCacheKeyLock.Lock()
+	defer server.TenantCacheKeyLock.Unlock()
+
+	if _, ok := server.Tenants[repo]; !ok {
+		server.Tenants[repo] = &tenantInternals{
+			FetchedObjectsLock: &sync.Mutex{},
+			RegenerationLock:   &sync.Mutex{},
+		}
+	}
 
 	content, err = server.CacheStore.Get(repo)
 	if err != nil {
@@ -342,8 +341,6 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 		entry = &cacheEntry{
 			RepoName:  repo,
 			RepoIndex: repoIndex,
-			//FetchedObjectsLock: &sync.Mutex{},
-			//RegenerationLock:   &sync.Mutex{},
 		}
 		content, err = json.Marshal(entry)
 		if err != nil {

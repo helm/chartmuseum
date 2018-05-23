@@ -6,11 +6,13 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gin-gonic/gin"
 	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
+	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
-	"encoding/json"
+	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
 
 var (
@@ -39,8 +41,8 @@ type (
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 		Limiter                chan struct{}
-		IndexCache             map[string]*cacheEntry
-		IndexCacheKeyLock      *sync.Mutex
+		Tenants                map[string]*tenantInternals
+		TenantCacheKeyLock     *sync.Mutex
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -58,6 +60,23 @@ type (
 		AllowOverwrite         bool
 		EnableAPI              bool
 		UseStatefiles          bool
+	}
+
+	tenantInternals struct {
+		FetchedObjectsLock      *sync.Mutex
+		RegenerationLock        *sync.Mutex
+		FetchedObjectsChans     []chan fetchedObjects
+		RegeneratedIndexesChans []chan indexRegeneration
+	}
+
+	fetchedObjects struct {
+		objects []cm_storage.Object
+		err     error
+	}
+
+	indexRegeneration struct {
+		index *cm_repo.Index
+		err   error
 	}
 )
 
@@ -82,8 +101,8 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		APIEnabled:             options.EnableAPI,
 		UseStatefiles:          options.UseStatefiles,
 		Limiter:                make(chan struct{}, options.IndexLimit),
-		IndexCache:             map[string]*cacheEntry{},
-		IndexCacheKeyLock:      &sync.Mutex{},
+		Tenants:                map[string]*tenantInternals{},
+		TenantCacheKeyLock:     &sync.Mutex{},
 	}
 
 	server.Router.SetRoutes(server.Routes())
@@ -102,12 +121,8 @@ func (server *MultiTenantServer) Listen(port int) {
 }
 
 func (server *MultiTenantServer) genIndex() {
-	var entry *cacheEntry
-	content, err := server.CacheStore.Get("")
-	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(content, &entry)
+	log := server.Logger.ContextLoggingFn(&gin.Context{})
+	entry, err := server.initCacheEntry(log, "")
 	if err != nil {
 		panic(err)
 	}

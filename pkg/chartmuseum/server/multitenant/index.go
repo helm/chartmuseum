@@ -22,7 +22,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		return nil, &HTTPError{500, errStr}
 	}
 
-	fo := <-server.getChartList(log, entry)
+	fo := <-server.getChartList(log, repo)
 
 	if fo.err != nil {
 		errStr := fo.err.Error()
