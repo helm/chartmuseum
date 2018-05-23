@@ -20,7 +20,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	cm_cache "github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -42,7 +41,7 @@ type (
 
 var (
 	EntrySavedMessage             = "Entry saved in cache store"
-	CouldNotSaveEntryErrorMessage = "Could not save entry in cache store due to insufficient memory allocation"
+	CouldNotSaveEntryErrorMessage = "Could not save entry in cache store"
 )
 
 func (server *MultiTenantServer) primeCache() error {
@@ -51,10 +50,7 @@ func (server *MultiTenantServer) primeCache() error {
 		log := server.Logger.ContextLoggingFn(&gin.Context{})
 		_, err := server.getIndexFile(log, "")
 		if err != nil {
-			errStr := err.Message
-			if errStr != cm_cache.ErrLargeEntry.Error() {
-				return errors.New(errStr)
-			}
+			return errors.New(err.Message)
 		}
 	}
 	return nil
@@ -163,10 +159,8 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 
 	err = server.CacheStore.Set(repo, content)
 	if err != nil {
-		if err != cm_cache.ErrLargeEntry {
-			return nil, err
-		}
-		log(cm_logger.WarnLevel, CouldNotSaveEntryErrorMessage,
+		log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
+			"error", err.Error(),
 			"repo", repo,
 		)
 	} else {
@@ -348,11 +342,9 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 		}
 		err := server.CacheStore.Set(repo, content)
 		if err != nil {
-			if err != cm_cache.ErrLargeEntry {
-				return nil, err
-			}
-			log(cm_logger.WarnLevel, CouldNotSaveEntryErrorMessage,
-				"repo", entry.RepoName,
+			log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
+				"error", err.Error(),
+				"repo", repo,
 			)
 		} else {
 			log(cm_logger.DebugLevel, EntrySavedMessage,
