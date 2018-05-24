@@ -182,9 +182,12 @@ func storeFromConfig(conf *config.Config) cache.Store {
 }
 
 func inmemoryCacheFromConfig(conf *config.Config) cache.Store {
-	crashIfConfigMissingVars(conf, []string{"cache.inmemory.size"})
+	crashIfConfigMissingVars(conf,
+		[]string{"cache.inmemory.maxentries", "cache.inmemory.maxentrysize", "cache.inmemory.maxcachesize"})
 	return cache.Store(cache.NewInMemoryStore(
-		conf.GetInt("cache.inmemory.size"),
+		conf.GetInt("cache.inmemory.maxentries"),
+		conf.GetInt("cache.inmemory.maxentrysize"),
+		conf.GetInt("cache.inmemory.maxcachesize"),
 	))
 }
 

@@ -159,14 +159,34 @@ var configVars = map[string]configVar{
 			EnvVar: "CACHE",
 		},
 	},
-	"cache.inmemory.size": {
+	"cache.inmemory.maxentries": {
 		Type:    intType,
-		Default: 52428800,
+		Default: 1,
 		CLIFlag: cli.IntFlag{
-			Name:   "cache-inmemory-size",
-			Usage:  "pre-allocated size of in-memory cache (bytes)",
-			EnvVar: "CACHE_IMMEMORY_SIZE",
-			Value:  52428800,
+			Name:   "cache-inmemory-maxentries",
+			Usage:  "max number of entries for in-memory cache (must be 1 or a power of 2)",
+			EnvVar: "CACHE_IMMEMORY_MAXENTRIES",
+			Value:  1,
+		},
+	},
+	"cache.inmemory.maxentrysize": {
+		Type:    intType,
+		Default: 64,
+		CLIFlag: cli.IntFlag{
+			Name:   "cache-inmemory-maxentrysize",
+			Usage:  "max size of a single in-memory cache entry (MB)",
+			EnvVar: "CACHE_IMMEMORY_MAXENTRYSIZE",
+			Value:  64,
+		},
+	},
+	"cache.inmemory.maxcachesize": {
+		Type:    intType,
+		Default: 64,
+		CLIFlag: cli.IntFlag{
+			Name:   "cache-inmemory-maxcachesize",
+			Usage:  "max size of entire in-memory cache (MB)",
+			EnvVar: "CACHE_IMMEMORY_MAXCACHESIZE",
+			Value:  64,
 		},
 	},
 	"cache.redis.addr": {

@@ -70,6 +70,15 @@
   version = "1.8.0"
 
 [[projects]]
+  name = "github.com/allegro/bigcache"
+  packages = [
+    ".",
+    "queue"
+  ]
+  revision = "f31987a23e44c5121ef8c8b2f2ea2e8ffa37b068"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -110,18 +119,6 @@
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
-
-[[projects]]
-  name = "github.com/cespare/xxhash"
-  packages = ["."]
-  revision = "5c37fe3735342a2e0d01c87a907579987c8936cc"
-  version = "v1.0.0"
-
-[[projects]]
-  name = "github.com/coocood/freecache"
-  packages = ["."]
-  revision = "f3233c8095b26cd0dea0b136b931708c05defa08"
-  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -673,6 +670,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1820cddfd5af45689aa27c918454615eb4c1c65b80c0bcf6cff7045d91377daf"
+  inputs-digest = "9329a705938ac5ea72727fbb3b696f7c5fbff6eb640b6ff3ae628735b514ef27"
   solver-name = "gps-cdcl"
   solver-version = 1

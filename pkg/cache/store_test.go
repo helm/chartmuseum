@@ -17,7 +17,7 @@ type StoreTestSuite struct {
 func (suite *StoreTestSuite) SetupSuite() {
 	suite.Stores = make(map[string]Store)
 
-	suite.Stores["InMemory"] = NewInMemoryStore(0)
+	suite.Stores["InMemory"] = NewInMemoryStore(1, 1, 1)
 
 	redisMock, err := miniredis.Run()
 	suite.Nil(err, "able to create miniredis instance")

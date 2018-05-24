@@ -23,7 +23,7 @@ func (suite *ServerTestSuite) SetupSuite() {
 	timestamp := time.Now().Format("20060102150405")
 	brokenTempDirectory := fmt.Sprintf("../../.test/chartmuseum-server/%s", timestamp)
 	suite.Backend = storage.Backend(storage.NewLocalFilesystemBackend(brokenTempDirectory))
-	suite.Store = cache.Store(cache.NewInMemoryStore(209715200))
+	suite.Store = cache.Store(cache.NewInMemoryStore(1, 1, 1))
 }
 
 func (suite *ServerTestSuite) TearDownSuite() {

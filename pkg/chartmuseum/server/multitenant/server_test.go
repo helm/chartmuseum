@@ -186,7 +186,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	}
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
-	store := cache.Store(cache.NewInMemoryStore(209715200))
+	store := cache.Store(cache.NewInMemoryStore(1, 1, 1))
 
 	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
 		Debug: true,
@@ -460,12 +460,13 @@ entries:
 generated: "2018-05-23T15:14:46-05:00"`)
 	err = ioutil.WriteFile(indexCacheFilePath, content, 0644)
 	suite.Nil(err, "no error creating test index-cache.yaml")
+	defer os.Remove(indexCacheFilePath)
 
 	NewMultiTenantServer(MultiTenantServerOptions{
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
-		CacheStore:     cache.Store(cache.NewInMemoryStore(209715200)), // use fresh cache for code path purposes
+		CacheStore:     cache.Store(cache.NewInMemoryStore(1, 1, 1)), // use fresh cache for code path purposes
 		UseStatefiles:  true,
 		GenIndex:       true,
 	})
@@ -487,7 +488,7 @@ generated: "2018-05-23T15:14:46-05:00"`)
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
-		CacheStore:     cache.Store(cache.NewInMemoryStore(209715200)), // use fresh cache for code path purposes
+		CacheStore:     cache.Store(cache.NewInMemoryStore(1, 1, 1)), // use fresh cache for code path purposes
 		UseStatefiles:  true,
 		GenIndex:       true,
 	})
@@ -504,7 +505,7 @@ generated: "2018-05-23T15:14:46-05:00"`)
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
-		CacheStore:     cache.Store(cache.NewInMemoryStore(209715200)), // use fresh cache for code path purposes
+		CacheStore:     cache.Store(cache.NewInMemoryStore(1, 1, 1)), // use fresh cache for code path purposes
 		UseStatefiles:  true,
 		GenIndex:       true,
 	})

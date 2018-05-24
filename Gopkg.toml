@@ -59,9 +59,9 @@
   version = "6.10.2"
 
 [[constraint]]
-  name = "github.com/coocood/freecache"
-  version = "1.0.1"
-
-[[constraint]]
   name = "github.com/alicebob/miniredis"
   version = "2.4.2"
+
+[[constraint]]
+  name = "github.com/allegro/bigcache"
+  version = "1.1.0"
