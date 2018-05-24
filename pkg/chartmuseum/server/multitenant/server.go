@@ -31,7 +31,8 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
-		CacheStore             cache.Store
+		ExternalCacheStore     cache.Store
+		InternalCacheStore     map[string]*cacheEntry
 		MaxStorageObjects      int
 		IndexLimit             int
 		AllowOverwrite         bool
@@ -50,7 +51,7 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
-		CacheStore             cache.Store
+		ExternalCacheStore     cache.Store
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
@@ -91,7 +92,8 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:                 options.Logger,
 		Router:                 options.Router,
 		StorageBackend:         options.StorageBackend,
-		CacheStore:             options.CacheStore,
+		ExternalCacheStore:     options.ExternalCacheStore,
+		InternalCacheStore:     map[string]*cacheEntry{},
 		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
 		ChartURL:               chartURL,

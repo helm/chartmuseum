@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -186,7 +185,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	}
 
 	backend := storage.Backend(storage.NewLocalFilesystemBackend(suite.TempDirectory))
-	store := cache.Store(cache.NewInMemoryStore(1, 1, 1))
 
 	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
 		Debug: true,
@@ -203,7 +201,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
-		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -223,7 +220,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
-		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -241,7 +237,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
-		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -259,7 +254,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
-		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -278,7 +272,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: backend,
-		CacheStore:     store,
 		EnableAPI:      false,
 	})
 	suite.NotNil(server)
@@ -294,7 +287,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
-		CacheStore:             store,
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -313,7 +305,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
-		CacheStore:             store,
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -332,7 +323,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
-		CacheStore:             store,
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -352,7 +342,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
-		CacheStore:             store,
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -429,7 +418,6 @@ func (suite *MultiTenantServerTestSuite) TestGenIndex() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
-		CacheStore:     suite.Depth0Server.CacheStore,
 		GenIndex:       true,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
@@ -466,7 +454,6 @@ generated: "2018-05-23T15:14:46-05:00"`)
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
-		CacheStore:     cache.Store(cache.NewInMemoryStore(1, 1, 1)), // use fresh cache for code path purposes
 		UseStatefiles:  true,
 		GenIndex:       true,
 	})
@@ -488,7 +475,6 @@ generated: "2018-05-23T15:14:46-05:00"`)
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
-		CacheStore:     cache.Store(cache.NewInMemoryStore(1, 1, 1)), // use fresh cache for code path purposes
 		UseStatefiles:  true,
 		GenIndex:       true,
 	})
@@ -505,7 +491,6 @@ generated: "2018-05-23T15:14:46-05:00"`)
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
-		CacheStore:     cache.Store(cache.NewInMemoryStore(1, 1, 1)), // use fresh cache for code path purposes
 		UseStatefiles:  true,
 		GenIndex:       true,
 	})

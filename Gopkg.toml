@@ -61,7 +61,3 @@
 [[constraint]]
   name = "github.com/alicebob/miniredis"
   version = "2.4.2"
-
-[[constraint]]
-  name = "github.com/allegro/bigcache"
-  version = "1.1.0"

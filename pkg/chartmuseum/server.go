@@ -12,7 +12,7 @@ type (
 	// ServerOptions are options for constructing a Server
 	ServerOptions struct {
 		StorageBackend         storage.Backend
-		CacheStore             cache.Store
+		ExternalCacheStore     cache.Store
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
@@ -68,7 +68,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         options.StorageBackend,
-		CacheStore:             options.CacheStore,
+		ExternalCacheStore:     options.ExternalCacheStore,
 		ChartURL:               options.ChartURL,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,

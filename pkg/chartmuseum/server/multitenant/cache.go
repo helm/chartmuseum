@@ -151,22 +151,28 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 		"repo", repo,
 	)
 
-	// save to cache
-	content, err := json.Marshal(entry)
-	if err != nil {
-		return nil, err
-	}
-
-	err = server.CacheStore.Set(repo, content)
-	if err != nil {
-		log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
-			"error", err.Error(),
-			"repo", repo,
-		)
-	} else {
+	// save to cache (either internal or external)
+	if server.ExternalCacheStore == nil {
+		server.InternalCacheStore[repo] = entry
 		log(cm_logger.DebugLevel, EntrySavedMessage,
 			"repo", repo,
 		)
+	} else {
+		content, err := json.Marshal(entry)
+		if err != nil {
+			return nil, err
+		}
+		err = server.ExternalCacheStore.Set(repo, content)
+		if err != nil {
+			log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
+				"error", err.Error(),
+				"repo", repo,
+			)
+		} else {
+			log(cm_logger.DebugLevel, EntrySavedMessage,
+				"repo", repo,
+			)
+		}
 	}
 
 	return index, nil
@@ -329,38 +335,51 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 		}
 	}
 
-	content, err = server.CacheStore.Get(repo)
-	if err != nil {
-		repoIndex := server.newRepositoryIndex(log, repo)
-		entry = &cacheEntry{
-			RepoName:  repo,
-			RepoIndex: repoIndex,
+	if server.ExternalCacheStore == nil {
+		var ok bool
+		entry, ok = server.InternalCacheStore[repo]
+		if !ok {
+			repoIndex := server.newRepositoryIndex(log, repo)
+			entry = &cacheEntry{
+				RepoName:  repo,
+				RepoIndex: repoIndex,
+			}
+			server.InternalCacheStore[repo] = entry
+		} else {
+			log(cm_logger.DebugLevel, "Entry found in cache store",
+				"repo", repo,
+			)
 		}
-		content, err = json.Marshal(entry)
+	} else {
+		content, err = server.ExternalCacheStore.Get(repo)
+		if err != nil {
+			repoIndex := server.newRepositoryIndex(log, repo)
+			entry = &cacheEntry{
+				RepoName:  repo,
+				RepoIndex: repoIndex,
+			}
+			content, err = json.Marshal(entry)
+			if err != nil {
+				return nil, err
+			}
+			err := server.ExternalCacheStore.Set(repo, content)
+			if err != nil {
+				log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
+					"error", err.Error(),
+					"repo", repo,
+				)
+			}
+			return entry, nil
+		}
+
+		log(cm_logger.DebugLevel, "Entry found in cache store",
+			"repo", repo,
+		)
+
+		err = json.Unmarshal(content, &entry)
 		if err != nil {
 			return nil, err
 		}
-		err := server.CacheStore.Set(repo, content)
-		if err != nil {
-			log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
-				"error", err.Error(),
-				"repo", repo,
-			)
-		} else {
-			log(cm_logger.DebugLevel, EntrySavedMessage,
-				"repo", entry.RepoName,
-			)
-		}
-		return entry, nil
-	}
-
-	log(cm_logger.DebugLevel, "Entry found in cache store",
-		"repo", repo,
-	)
-
-	err = json.Unmarshal(content, &entry)
-	if err != nil {
-		return nil, err
 	}
 
 	return entry, nil

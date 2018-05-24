@@ -70,15 +70,6 @@
   version = "1.8.0"
 
 [[projects]]
-  name = "github.com/allegro/bigcache"
-  packages = [
-    ".",
-    "queue"
-  ]
-  revision = "f31987a23e44c5121ef8c8b2f2ea2e8ffa37b068"
-  version = "v1.1.0"
-
-[[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -670,6 +661,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9329a705938ac5ea72727fbb3b696f7c5fbff6eb640b6ff3ae628735b514ef27"
+  inputs-digest = "9a5a84df15509b29ecc2422ea816eadae6a3d2b6f793301e66db717a483343cf"
   solver-name = "gps-cdcl"
   solver-version = 1

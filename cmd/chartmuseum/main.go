@@ -48,7 +48,7 @@ func cliHandler(c *cli.Context) {
 
 	options := chartmuseum.ServerOptions{
 		StorageBackend:         backend,
-		CacheStore:             store,
+		ExternalCacheStore:     store,
 		ChartURL:               conf.GetString("charturl"),
 		TlsCert:                conf.GetString("tls.cert"),
 		TlsKey:                 conf.GetString("tls.key"),
@@ -164,14 +164,14 @@ func openstackBackendFromConfig(conf *config.Config) storage.Backend {
 }
 
 func storeFromConfig(conf *config.Config) cache.Store {
-	crashIfConfigMissingVars(conf, []string{"cache.store"})
+	if conf.GetString("cache.store") == "" {
+		return nil
+	}
 
 	var store cache.Store
 
 	cacheFlag := strings.ToLower(conf.GetString("cache.store"))
 	switch cacheFlag {
-	case "inmemory":
-		store = inmemoryCacheFromConfig(conf)
 	case "redis":
 		store = redisCacheFromConfig(conf)
 	default:
@@ -179,16 +179,6 @@ func storeFromConfig(conf *config.Config) cache.Store {
 	}
 
 	return store
-}
-
-func inmemoryCacheFromConfig(conf *config.Config) cache.Store {
-	crashIfConfigMissingVars(conf,
-		[]string{"cache.inmemory.maxentries", "cache.inmemory.maxentrysize", "cache.inmemory.maxcachesize"})
-	return cache.Store(cache.NewInMemoryStore(
-		conf.GetInt("cache.inmemory.maxentries"),
-		conf.GetInt("cache.inmemory.maxentrysize"),
-		conf.GetInt("cache.inmemory.maxcachesize"),
-	))
 }
 
 func redisCacheFromConfig(conf *config.Config) cache.Store {
