@@ -22,7 +22,7 @@ func (suite *StoreTestSuite) SetupSuite() {
 	redisMock, err := miniredis.Run()
 	suite.Nil(err, "able to create miniredis instance")
 	suite.RedisMock = redisMock
-	suite.Stores["Redis"] = NewRedisStore(redisMock.Addr())
+	suite.Stores["Redis"] = NewRedisStore(redisMock.Addr(), "", 0)
 }
 
 func (suite *StoreTestSuite) TearDownSuite() {

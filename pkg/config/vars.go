@@ -166,7 +166,7 @@ var configVars = map[string]configVar{
 			Name:   "cache-inmemory-size",
 			Usage:  "pre-allocated size of in-memory cache (bytes)",
 			EnvVar: "CACHE_IMMEMORY_SIZE",
-			Value: 52428800,
+			Value:  52428800,
 		},
 	},
 	"cache.redis.addr": {
@@ -176,6 +176,25 @@ var configVars = map[string]configVar{
 			Name:   "cache-redis-addr",
 			Usage:  "address of Redis service (host:port)",
 			EnvVar: "CACHE_REDIS_ADDR",
+		},
+	},
+	"cache.redis.password": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "cache-redis-password",
+			Usage:  "Redis requirepass server configuration",
+			EnvVar: "CACHE_REDIS_PASSWORD",
+		},
+	},
+	"cache.redis.db": {
+		Type:    intType,
+		Default: 0,
+		CLIFlag: cli.IntFlag{
+			Name:   "cache-redis-db",
+			Usage:  "Redis database to be selected after connect",
+			EnvVar: "CACHE_REDIS_DB",
+			Value:  0,
 		},
 	},
 	"storage.backend": {
@@ -383,7 +402,7 @@ var configVars = map[string]configVar{
 			Name:   "max-upload-size",
 			Usage:  "max size of post body (in bytes)",
 			EnvVar: "MAX_UPLOAD_SIZE",
-			Value: 1024 * 1024 * 20,
+			Value:  1024 * 1024 * 20,
 		},
 	},
 	"indexlimit": {

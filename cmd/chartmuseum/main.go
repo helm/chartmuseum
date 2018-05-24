@@ -192,6 +192,8 @@ func redisCacheFromConfig(conf *config.Config) cache.Store {
 	crashIfConfigMissingVars(conf, []string{"cache.redis.addr"})
 	return cache.Store(cache.NewRedisStore(
 		conf.GetString("cache.redis.addr"),
+		conf.GetString("cache.redis.password"),
+		conf.GetInt("cache.redis.db"),
 	))
 }
 

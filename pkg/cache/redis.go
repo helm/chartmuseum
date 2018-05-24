@@ -12,10 +12,12 @@ type (
 )
 
 // NewRedisStore creates a new RedisStore
-func NewRedisStore(addr string) *RedisStore {
+func NewRedisStore(addr string, password string, db int) *RedisStore {
 	store := &RedisStore{}
 	redisClientOptions := &redis.Options{
-		Addr: addr,
+		Addr:     addr,
+		Password: password,
+		DB:       db,
 	}
 	store.Client = redis.NewClient(redisClientOptions)
 	return store
