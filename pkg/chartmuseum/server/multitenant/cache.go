@@ -59,50 +59,50 @@ func (server *MultiTenantServer) primeCache() error {
 // getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
 func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo string) <-chan fetchedObjects {
 	ch := make(chan fetchedObjects, 1)
+	tenant := server.Tenants[repo]
 
-	server.Tenants[repo].FetchedObjectsLock.Lock()
-	server.Tenants[repo].FetchedObjectsChans = append(server.Tenants[repo].FetchedObjectsChans, ch)
+	tenant.FetchedObjectsLock.Lock()
+	tenant.FetchedObjectsChans = append(tenant.FetchedObjectsChans, ch)
 
-	if len(server.Tenants[repo].FetchedObjectsChans) == 1 {
+	if len(tenant.FetchedObjectsChans) == 1 {
 		// this unlock is wanted, while fetching the list, allow other channeled requests to be added
-		server.Tenants[repo].FetchedObjectsLock.Unlock()
+		tenant.FetchedObjectsLock.Unlock()
 
 		objects, err := server.fetchChartsInStorage(log, repo)
 
-		server.Tenants[repo].FetchedObjectsLock.Lock()
+		tenant.FetchedObjectsLock.Lock()
 
 		// flush every other consumer that also wanted the index
-		for _, foCh := range server.Tenants[repo].FetchedObjectsChans {
+		for _, foCh := range tenant.FetchedObjectsChans {
 			foCh <- fetchedObjects{objects, err}
 		}
 
-		server.Tenants[repo].FetchedObjectsChans = nil
+		tenant.FetchedObjectsChans = nil
 	}
 
-	server.Tenants[repo].FetchedObjectsLock.Unlock()
+	tenant.FetchedObjectsLock.Unlock()
 
 	return ch
 }
 
 func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, entry *cacheEntry, diff cm_storage.ObjectSliceDiff) <-chan indexRegeneration {
 	ch := make(chan indexRegeneration, 1)
+	tenant := server.Tenants[entry.RepoName]
 
-	repo := entry.RepoName
+	tenant.RegenerationLock.Lock()
+	tenant.RegeneratedIndexesChans = append(tenant.RegeneratedIndexesChans, ch)
 
-	server.Tenants[repo].RegenerationLock.Lock()
-	server.Tenants[repo].RegeneratedIndexesChans = append(server.Tenants[repo].RegeneratedIndexesChans, ch)
-
-	if len(server.Tenants[repo].RegeneratedIndexesChans) == 1 {
-		server.Tenants[repo].RegenerationLock.Unlock()
+	if len(tenant.RegeneratedIndexesChans) == 1 {
+		tenant.RegenerationLock.Unlock()
 		index, err := server.regenerateRepositoryIndexWorker(log, entry, diff)
-		server.Tenants[repo].RegenerationLock.Lock()
-		for _, riCh := range server.Tenants[repo].RegeneratedIndexesChans {
+		tenant.RegenerationLock.Lock()
+		for _, riCh := range tenant.RegeneratedIndexesChans {
 			riCh <- indexRegeneration{index, err}
 		}
-		server.Tenants[repo].RegeneratedIndexesChans = nil
+		tenant.RegeneratedIndexesChans = nil
 	}
 
-	server.Tenants[repo].RegenerationLock.Unlock()
+	tenant.RegenerationLock.Unlock()
 
 	return ch
 }
@@ -145,37 +145,13 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 		return nil, err
 	}
 
-	entry.RepoIndex = index
-
 	log(cm_logger.DebugLevel, "index.yaml regenerated",
 		"repo", repo,
 	)
 
-	// save to cache (either internal or external)
-	if server.ExternalCacheStore == nil {
-		server.InternalCacheStore[repo] = entry
-		log(cm_logger.DebugLevel, EntrySavedMessage,
-			"repo", repo,
-		)
-	} else {
-		content, err := json.Marshal(entry)
-		if err != nil {
-			return nil, err
-		}
-		err = server.ExternalCacheStore.Set(repo, content)
-		if err != nil {
-			log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
-				"error", err.Error(),
-				"repo", repo,
-			)
-		} else {
-			log(cm_logger.DebugLevel, EntrySavedMessage,
-				"repo", repo,
-			)
-		}
-	}
-
-	return index, nil
+	entry.RepoIndex = index
+	err = server.saveCacheEntry(log, entry)
+	return index, err
 }
 
 func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, repo string) ([]cm_storage.Object, error) {
@@ -383,6 +359,33 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 	}
 
 	return entry, nil
+}
+
+func (server *MultiTenantServer) saveCacheEntry(log cm_logger.LoggingFn, entry *cacheEntry) error {
+	repo := entry.RepoName
+	if server.ExternalCacheStore == nil {
+		server.InternalCacheStore[repo] = entry
+		log(cm_logger.DebugLevel, EntrySavedMessage,
+			"repo", repo,
+		)
+	} else {
+		content, err := json.Marshal(entry)
+		if err != nil {
+			return err
+		}
+		err = server.ExternalCacheStore.Set(repo, content)
+		if err != nil {
+			log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
+				"error", err.Error(),
+				"repo", repo,
+			)
+		} else {
+			log(cm_logger.DebugLevel, EntrySavedMessage,
+				"repo", repo,
+			)
+		}
+	}
+	return nil
 }
 
 func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, repo string) *cm_repo.Index {
