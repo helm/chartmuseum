@@ -53,3 +53,11 @@
 [[constraint]]
   branch = "master"
   name = "github.com/gin-contrib/size"
+
+[[constraint]]
+  name = "github.com/go-redis/redis"
+  version = "6.10.2"
+
+[[constraint]]
+  name = "github.com/alicebob/miniredis"
+  version = "2.4.2"

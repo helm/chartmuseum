@@ -19,6 +19,7 @@ import (
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -361,9 +362,12 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 
 	log := server.Logger.ContextLoggingFn(&gin.Context{})
 
+	entry, err := server.initCacheEntry(log, "")
+	suite.Nil(err, "no error on init cache entry")
+
 	objects, err := server.fetchChartsInStorage(log, "")
-	diff := storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	diff := storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index")
 
 	newtime := time.Now().Add(1 * time.Hour)
@@ -371,8 +375,8 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 	suite.Nil(err, "no error changing modtime on temp file")
 
 	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index with tarball updated")
 
 	brokenTarballFilename := pathutil.Join(suite.TempDirectory, "brokenchart.tgz")
@@ -380,22 +384,22 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 	suite.Nil(err, "no error creating new broken tarball in temp dir")
 	defer destFile.Close()
 	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball added")
 
 	err = os.Chtimes(brokenTarballFilename, newtime, newtime)
 	suite.Nil(err, "no error changing modtime on broken tarball")
 	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball updated")
 
 	err = os.Remove(brokenTarballFilename)
 	suite.Nil(err, "no error removing broken tarball")
 	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(""), objects)
-	_, err = server.regenerateRepositoryIndexWorker(log, "", diff)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball removed")
 }
 
@@ -414,6 +418,80 @@ func (suite *MultiTenantServerTestSuite) TestGenIndex() {
 		Logger:         logger,
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
+		GenIndex:       true,
+	})
+	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
+	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
+	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
+}
+
+func (suite *MultiTenantServerTestSuite) TestStatefiles() {
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug:   true,
+		LogJSON: true,
+	})
+	suite.Nil(err, "no error creating logger")
+
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger: logger,
+	})
+
+	// add an example index-cache.yaml
+	indexCacheFilePath := pathutil.Join(suite.TempDirectory, repo.StatefileFilename)
+	content := []byte(`apiVersion: v1
+entries:
+  acs-engine-autoscaler:
+  - name: acs-engine-autoscaler
+    urls:
+    - charts/acs-engine-autoscaler-2.1.2.tgz
+    version: 2.1.2
+generated: "2018-05-23T15:14:46-05:00"`)
+	err = ioutil.WriteFile(indexCacheFilePath, content, 0644)
+	suite.Nil(err, "no error creating test index-cache.yaml")
+	defer os.Remove(indexCacheFilePath)
+
+	NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: suite.Depth0Server.StorageBackend,
+		UseStatefiles:  true,
+		GenIndex:       true,
+	})
+	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
+	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
+	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
+
+	// remove index-cache.yaml
+	err = os.Remove(indexCacheFilePath)
+	suite.Nil(err, "no error deleting test index-cache.yaml")
+
+	// invalid, unparsable index-cache.yaml
+	indexCacheFilePath = pathutil.Join(suite.TempDirectory, repo.StatefileFilename)
+	content = []byte(`is this valid yaml? maybe. but its definitely not a valid index.yaml!`)
+	err = ioutil.WriteFile(indexCacheFilePath, content, 0644)
+	suite.Nil(err, "no error creating test index-cache.yaml")
+
+	NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: suite.Depth0Server.StorageBackend,
+		UseStatefiles:  true,
+		GenIndex:       true,
+	})
+	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
+	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
+	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
+
+	// remove index-cache.yaml
+	err = os.Remove(indexCacheFilePath)
+	suite.Nil(err, "no error deleting test index-cache.yaml")
+
+	// no index-cache.yaml
+	NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: suite.Depth0Server.StorageBackend,
+		UseStatefiles:  true,
 		GenIndex:       true,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")

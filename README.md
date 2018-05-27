@@ -332,6 +332,26 @@ To use the chart manipulation routes, simply place the name of the repo directly
 curl -F "chart=@mychart-0.1.0.tgz" http://localhost:8080/api/org1/repoa/charts
 ```
 
+## Cache
+
+By default, the contents of `index.yaml` (per-tenant) will be stored in memory. This means that memory usage will continue to grow indefinitely as more charts are added to storage.
+
+You may wish to offload this to an external cache store, especially for large, multitenant installations.
+
+### Using Redis
+
+Example of using Redis as an external cache store:
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="local" \
+  --storage-local-rootdir="./chartstorage" \
+  --cache="redis" \
+  --cache-redis-addr="localhost:6379" \
+  --cache-redis-password="" \
+  --cache-redis-db=0
+```
+
+
 ## Prometheus Metrics
 
 ChartMuseum exposes its [Prometheus metrics](https://prometheus.io/docs/concepts/metric_types/) at the `/metrics` route on the main port. This can be disabled with the `--disable-metrics` command-line flag or the `DISABLE_METRICS` environment variable.

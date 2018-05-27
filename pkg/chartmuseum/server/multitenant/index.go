@@ -13,7 +13,14 @@ var (
 )
 
 func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo string) (*cm_repo.Index, *HTTPError) {
-	server.initCachedIndexFile(log, repo)
+	entry, err := server.initCacheEntry(log, repo)
+	if err != nil {
+		errStr := err.Error()
+		log(cm_logger.ErrorLevel, errStr,
+			"repo", repo,
+		)
+		return nil, &HTTPError{500, errStr}
+	}
 
 	fo := <-server.getChartList(log, repo)
 
@@ -25,22 +32,30 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		return nil, &HTTPError{500, errStr}
 	}
 
-	objects := server.getRepoObjectSlice(repo)
+	objects := server.getRepoObjectSlice(entry)
 	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects)
 
 	// return fast if no changes
 	if !diff.Change {
-		return server.IndexCache[repo].RepositoryIndex, nil
+		log(cm_logger.DebugLevel, "No change detected between cache and storage",
+			"repo", repo,
+		)
+		return entry.RepoIndex, nil
 	}
 
-	ir := <-server.regenerateRepositoryIndex(log, repo, diff)
+	log(cm_logger.DebugLevel, "Change detected between cache and storage",
+		"repo", repo,
+	)
+
+	ir := <-server.regenerateRepositoryIndex(log, entry, diff)
+	newRepoIndex := ir.index
 
 	if ir.err != nil {
 		errStr := ir.err.Error()
 		log(cm_logger.ErrorLevel, errStr,
 			"repo", repo,
 		)
-		return ir.index, &HTTPError{500, errStr}
+		return newRepoIndex, &HTTPError{500, errStr}
 	}
 
 	if server.UseStatefiles {
@@ -65,9 +80,9 @@ func (server *MultiTenantServer) saveStatefile(log cm_logger.LoggingFn, repo str
 	)
 }
 
-func (server *MultiTenantServer) getRepoObjectSlice(repo string) []cm_storage.Object {
+func (server *MultiTenantServer) getRepoObjectSlice(entry *cacheEntry) []cm_storage.Object {
 	var objects []cm_storage.Object
-	for _, entry := range server.IndexCache[repo].RepositoryIndex.Entries {
+	for _, entry := range entry.RepoIndex.Entries {
 		for _, chartVersion := range entry {
 			object := cm_repo.StorageObjectFromChartVersion(chartVersion)
 			objects = append(objects, object)

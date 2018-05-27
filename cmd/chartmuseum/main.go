@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
 	"github.com/kubernetes-helm/chartmuseum/pkg/config"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
@@ -43,9 +44,11 @@ func cliHandler(c *cli.Context) {
 	}
 
 	backend := backendFromConfig(conf)
+	store := storeFromConfig(conf)
 
 	options := chartmuseum.ServerOptions{
 		StorageBackend:         backend,
+		ExternalCacheStore:     store,
 		ChartURL:               conf.GetString("charturl"),
 		TlsCert:                conf.GetString("tls.cert"),
 		TlsKey:                 conf.GetString("tls.key"),
@@ -157,6 +160,33 @@ func openstackBackendFromConfig(conf *config.Config) storage.Backend {
 		conf.GetString("storage.openstack.prefix"),
 		conf.GetString("storage.openstack.region"),
 		conf.GetString("storage.openstack.cacert"),
+	))
+}
+
+func storeFromConfig(conf *config.Config) cache.Store {
+	if conf.GetString("cache.store") == "" {
+		return nil
+	}
+
+	var store cache.Store
+
+	cacheFlag := strings.ToLower(conf.GetString("cache.store"))
+	switch cacheFlag {
+	case "redis":
+		store = redisCacheFromConfig(conf)
+	default:
+		crash("Unsupported cache store: ", cacheFlag)
+	}
+
+	return store
+}
+
+func redisCacheFromConfig(conf *config.Config) cache.Store {
+	crashIfConfigMissingVars(conf, []string{"cache.redis.addr"})
+	return cache.Store(cache.NewRedisStore(
+		conf.GetString("cache.redis.addr"),
+		conf.GetString("cache.redis.password"),
+		conf.GetInt("cache.redis.db"),
 	))
 }
 

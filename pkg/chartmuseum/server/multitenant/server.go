@@ -6,9 +6,13 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gin-gonic/gin"
+	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
+	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
 	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
 )
 
 var (
@@ -27,6 +31,8 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
+		ExternalCacheStore     cache.Store
+		InternalCacheStore     map[string]*cacheEntry
 		MaxStorageObjects      int
 		IndexLimit             int
 		AllowOverwrite         bool
@@ -36,8 +42,8 @@ type (
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 		Limiter                chan struct{}
-		IndexCache             map[string]*cachedIndexFile
-		IndexCacheKeyLock      *sync.Mutex
+		Tenants                map[string]*tenantInternals
+		TenantCacheKeyLock     *sync.Mutex
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -45,6 +51,7 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
+		ExternalCacheStore     cache.Store
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
@@ -54,6 +61,23 @@ type (
 		AllowOverwrite         bool
 		EnableAPI              bool
 		UseStatefiles          bool
+	}
+
+	tenantInternals struct {
+		FetchedObjectsLock      *sync.Mutex
+		RegenerationLock        *sync.Mutex
+		FetchedObjectsChans     []chan fetchedObjects
+		RegeneratedIndexesChans []chan indexRegeneration
+	}
+
+	fetchedObjects struct {
+		objects []cm_storage.Object
+		err     error
+	}
+
+	indexRegeneration struct {
+		index *cm_repo.Index
+		err   error
 	}
 )
 
@@ -68,6 +92,8 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:                 options.Logger,
 		Router:                 options.Router,
 		StorageBackend:         options.StorageBackend,
+		ExternalCacheStore:     options.ExternalCacheStore,
+		InternalCacheStore:     map[string]*cacheEntry{},
 		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
 		ChartURL:               chartURL,
@@ -77,8 +103,8 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		APIEnabled:             options.EnableAPI,
 		UseStatefiles:          options.UseStatefiles,
 		Limiter:                make(chan struct{}, options.IndexLimit),
-		IndexCache:             map[string]*cachedIndexFile{},
-		IndexCacheKeyLock:      &sync.Mutex{},
+		Tenants:                map[string]*tenantInternals{},
+		TenantCacheKeyLock:     &sync.Mutex{},
 	}
 
 	server.Router.SetRoutes(server.Routes())
@@ -97,6 +123,11 @@ func (server *MultiTenantServer) Listen(port int) {
 }
 
 func (server *MultiTenantServer) genIndex() {
-	echo(string(server.IndexCache[""].RepositoryIndex.Raw[:]))
+	log := server.Logger.ContextLoggingFn(&gin.Context{})
+	entry, err := server.initCacheEntry(log, "")
+	if err != nil {
+		panic(err)
+	}
+	echo(string(entry.RepoIndex.Raw[:]))
 	exit(0)
 }

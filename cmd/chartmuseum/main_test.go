@@ -8,11 +8,13 @@ import (
 
 	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
 
+	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/suite"
 )
 
 type MainTestSuite struct {
 	suite.Suite
+	RedisMock        *miniredis.Miniredis
 	LastCrashMessage string
 }
 
@@ -24,6 +26,14 @@ func (suite *MainTestSuite) SetupSuite() {
 	newServer = func(options chartmuseum.ServerOptions) (chartmuseum.Server, error) {
 		return nil, errors.New("graceful crash")
 	}
+
+	redisMock, err := miniredis.Run()
+	suite.Nil(err, "able to create miniredis instance")
+	suite.RedisMock = redisMock
+}
+
+func (suite *MainTestSuite) TearDownSuite() {
+	suite.RedisMock.Close()
 }
 
 func (suite *MainTestSuite) TestMain() {
@@ -66,6 +76,16 @@ func (suite *MainTestSuite) TestMain() {
 	os.Args = []string{"chartmuseum", "--storage", "openstack", "--storage-openstack-container", "x", "--storage-openstack-region", "x"}
 	suite.Panics(main, "openstack storage")
 	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with openstack backend")
+
+	// Redis cache
+	os.Args = []string{"chartmuseum", "--storage", "local", "--storage-local-rootdir", "../../.chartstorage", "--cache", "redis", "--cache-redis-addr", suite.RedisMock.Addr()}
+	suite.Panics(main, "redis cache")
+	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with redis cache")
+
+	// Unsupported cache store
+	os.Args = []string{"chartmuseum", "--storage", "local", "--storage-local-rootdir", "../../.chartstorage", "--cache", "wallet"}
+	suite.Panics(main, "bad cache")
+	suite.Equal("Unsupported cache store: wallet", suite.LastCrashMessage, "crashes with bad cache")
 }
 
 func TestMainTestSuite(t *testing.T) {

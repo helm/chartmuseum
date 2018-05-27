@@ -13,7 +13,7 @@ import (
 
 type ServerTestSuite struct {
 	suite.Suite
-	Backend storage.Backend
+	Backend       storage.Backend
 	TempDirectory string
 }
 

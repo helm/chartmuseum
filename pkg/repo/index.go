@@ -12,22 +12,22 @@ import (
 var (
 	// IndexFileContentType is the http content-type header for index.yaml
 	IndexFileContentType = "application/x-yaml"
-	// StatefileFilename is the cached index as it was last calculated
-	StatefileFilename = "index-cache.yaml"
+	StatefileFilename    = "index-cache.yaml"
 )
 
 // Index represents the repository index (index.yaml)
 type Index struct {
-	*helm_repo.IndexFile
-	Raw      []byte
-	ChartURL string
-	Repo     string
+	// cryptic JSON field names to minimize size saved in cache
+	*helm_repo.IndexFile `json:"a"`
+	RepoName             string `json:"b"`
+	Raw                  []byte `json:"c"`
+	ChartURL             string `json:"d"`
 }
 
 // NewIndex creates a new instance of Index
 func NewIndex(chartURL, repo string) *Index {
 	chartURL = strings.TrimSuffix(chartURL, "/")
-	index := Index{&helm_repo.IndexFile{}, []byte{}, chartURL, repo}
+	index := Index{&helm_repo.IndexFile{}, repo, []byte{}, chartURL}
 	index.Entries = map[string]helm_repo.ChartVersions{}
 	index.APIVersion = helm_repo.APIVersionV1
 	index.Regenerate()
@@ -109,6 +109,6 @@ func (index *Index) updateMetrics() {
 	for _, chartVersions := range index.Entries {
 		nChartVersions += len(chartVersions)
 	}
-	chartTotalGaugeVec.WithLabelValues(index.Repo).Set(float64(len(index.Entries)))
-	chartVersionTotalGaugeVec.WithLabelValues(index.Repo).Set(float64(nChartVersions))
+	chartTotalGaugeVec.WithLabelValues(index.RepoName).Set(float64(len(index.Entries)))
+	chartVersionTotalGaugeVec.WithLabelValues(index.RepoName).Set(float64(nChartVersions))
 }
