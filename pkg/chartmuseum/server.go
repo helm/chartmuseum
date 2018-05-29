@@ -33,6 +33,7 @@ type (
 		IndexLimit             int
 		Depth                  int
 		MaxUploadSize          int
+		HistoryLimit           int
 	}
 
 	// Server is a generic interface for web servers
@@ -78,6 +79,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		EnableAPI:              options.EnableAPI,
 		UseStatefiles:          options.UseStatefiles,
 		AllowOverwrite:         options.AllowOverwrite,
+		HistoryLimit:           options.HistoryLimit,
 	})
 
 	return server, err

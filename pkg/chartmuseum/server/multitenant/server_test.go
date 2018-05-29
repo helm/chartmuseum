@@ -43,6 +43,7 @@ type MultiTenantServerTestSuite struct {
 	ChartURLServer       *MultiTenantServer
 	MaxObjectsServer     *MultiTenantServer
 	MaxUploadSizeServer  *MultiTenantServer
+	HistoryLimitServer   *MultiTenantServer
 	TempDirectory        string
 	TestTarballFilename  string
 	TestProvfileFilename string
@@ -82,6 +83,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.MaxObjectsServer.Router.HandleContext(c)
 	case "maxuploadsize":
 		suite.MaxUploadSizeServer.Router.HandleContext(c)
+	case "historylimit":
+		suite.HistoryLimitServer.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -350,6 +353,27 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new max upload size server")
 	suite.MaxUploadSizeServer = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
+		MaxUploadSize: maxUploadSize,
+	})
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		EnableAPI:              true,
+		HistoryLimit:           1,
+		AllowOverwrite:         true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+	})
+
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new history limit server")
+	suite.HistoryLimitServer = server
+
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -553,6 +577,28 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 func (suite *MultiTenantServerTestSuite) TestCustomChartURLServer() {
 	res := suite.doRequest("charturl", "GET", "/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /index.yaml")
+}
+
+func (suite *MultiTenantServerTestSuite) TestHistoryLimitServer() {
+	content, err := ioutil.ReadFile(testTarballPath)
+	suite.Nil(err, "no error opening test tarball")
+	body := bytes.NewBuffer(content)
+	res := suite.doRequest("historylimit", "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	content, err = ioutil.ReadFile(testTarballPathV2)
+	suite.Nil(err, "no error opening test tarball v2")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("historylimit", "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	res = suite.doRequest("historylimit", "GET", "/api/charts/mychart/0.2.0", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart/0.2.0")
+
+	// old chart should be deleted
+	res = suite.doRequest("historylimit", "GET", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(404, res.Status(), "404 GET /api/charts/mychart/0.1.0")
+
 }
 
 func (suite *MultiTenantServerTestSuite) TestMaxObjectsServer() {

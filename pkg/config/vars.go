@@ -422,6 +422,15 @@ var configVars = map[string]configVar{
 			EnvVar: "DEPTH",
 		},
 	},
+	"historylimit": {
+		Type:    intType,
+		Default: 0,
+		CLIFlag: cli.IntFlag{
+			Name:   "history-limit",
+			Usage:  "Limit the maximum number of versions stored per chart",
+			EnvVar: "HISTORY_LIMIT",
+		},
+	},
 }
 
 func populateCLIFlags() {

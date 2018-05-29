@@ -69,6 +69,7 @@ func cliHandler(c *cli.Context) {
 		IndexLimit:             conf.GetInt("indexlimit"),
 		Depth:                  conf.GetInt("depth"),
 		MaxUploadSize:          conf.GetInt("maxuploadsize"),
+		HistoryLimit:           conf.GetInt("history-limit"),
 	}
 
 	server, err := newServer(options)

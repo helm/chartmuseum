@@ -35,6 +35,7 @@ type (
 		InternalCacheStore     map[string]*cacheEntry
 		MaxStorageObjects      int
 		IndexLimit             int
+		HistoryLimit           int
 		AllowOverwrite         bool
 		APIEnabled             bool
 		UseStatefiles          bool
@@ -57,6 +58,7 @@ type (
 		ProvPostFormFieldName  string
 		MaxStorageObjects      int
 		IndexLimit             int
+		HistoryLimit           int
 		GenIndex               bool
 		AllowOverwrite         bool
 		EnableAPI              bool
@@ -96,6 +98,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		InternalCacheStore:     map[string]*cacheEntry{},
 		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
+		HistoryLimit:           options.HistoryLimit,
 		ChartURL:               chartURL,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,

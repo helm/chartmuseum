@@ -100,10 +100,10 @@ func (suite *ChartTestSuite) TestChartVersionFromStorageObject() {
 }
 
 func (suite *ChartTestSuite) TestStorageObjectFromChartVersion() {
-	now :=  time.Now()
+	now := time.Now()
 	chartVersion := &helm_repo.ChartVersion{
-		URLs:     []string{"charts/mychart-0.1.0.tgz"},
-		Created:  now,
+		URLs:    []string{"charts/mychart-0.1.0.tgz"},
+		Created: now,
 	}
 	object := StorageObjectFromChartVersion(chartVersion)
 	suite.Equal(now, object.LastModified, "object last modified as expected")
@@ -121,6 +121,16 @@ func (suite *ChartTestSuite) TestChartPackageFilenameFromContent() {
 	suite.Equal("mychart-0.1.0.tgz", filename, "chart tarball filename as expected")
 }
 
+func (suite *ChartTestSuite) TestChartNameFromContent() {
+	chartName, err := ChartNameFromContent([]byte{})
+	suite.NotNil(err, "error getting tarball chart name with empty byte array")
+	suite.Equal("", chartName, "chart name blank with empty byte array")
+
+	chartName, err = ChartNameFromContent(suite.TarballContent)
+	suite.Nil(err, "no error getting chart name from test tarball content")
+	suite.Equal("mychart", chartName, "chart name as expected")
+
+}
 func TestChartTestSuite(t *testing.T) {
 	suite.Run(t, new(ChartTestSuite))
 }
