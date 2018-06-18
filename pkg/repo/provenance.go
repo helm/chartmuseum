@@ -32,8 +32,8 @@ func ProvenanceFilenameFromContent(content []byte) (string, error) {
 	contentStr := string(content[:])
 
 	hasPGPBegin := strings.HasPrefix(contentStr, "-----BEGIN PGP SIGNED MESSAGE-----")
-	nameMatch := regexp.MustCompile("name:[ *](.+)").FindStringSubmatch(contentStr)
-	versionMatch := regexp.MustCompile("version:[ *](.+)").FindStringSubmatch(contentStr)
+	nameMatch := regexp.MustCompile("^name:[ *](.+)").FindStringSubmatch(contentStr)
+	versionMatch := regexp.MustCompile("^version:[ *](.+)").FindStringSubmatch(contentStr)
 
 	if !hasPGPBegin || len(nameMatch) != 2 || len(versionMatch) != 2 {
 		return "", ErrorInvalidProvenanceFile
