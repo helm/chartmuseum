@@ -1,6 +1,7 @@
 package router
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -42,6 +43,14 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 			url = strings.Replace(url, contextPath, "", 1)
 		} else {
 			return nil, nil
+		}
+	}
+
+	if url == "/health" && method == http.MethodGet {
+		for _, route := range routes {
+			if route.Path == "/health" {
+				return route, nil
+			}
 		}
 	}
 
