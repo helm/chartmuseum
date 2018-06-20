@@ -1,6 +1,8 @@
 package chartmuseum
 
 import (
+	"strings"
+
 	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
@@ -51,11 +53,16 @@ func NewServer(options ServerOptions) (Server, error) {
 		return nil, err
 	}
 
+	contextPath := strings.TrimSuffix(options.ContextPath, "/")
+	if contextPath != "" && !strings.HasPrefix(contextPath, "/") {
+		contextPath = "/" + contextPath
+	}
+
 	router := cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:        logger,
 		Username:      options.Username,
 		Password:      options.Password,
-		ContextPath:   options.ContextPath,
+		ContextPath:   contextPath,
 		TlsCert:       options.TlsCert,
 		TlsKey:        options.TlsKey,
 		EnableMetrics: options.EnableMetrics,
@@ -69,7 +76,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		Router:                 router,
 		StorageBackend:         options.StorageBackend,
 		ExternalCacheStore:     options.ExternalCacheStore,
-		ChartURL:               options.ChartURL,
+		ChartURL:               strings.TrimSuffix(options.ChartURL, "/"),
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
 		MaxStorageObjects:      options.MaxStorageObjects,

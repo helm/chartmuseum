@@ -3,7 +3,6 @@ package multitenant
 import (
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -85,7 +84,7 @@ type (
 func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer, error) {
 	var chartURL string
 	if options.ChartURL != "" {
-		chartURL = strings.TrimSuffix(options.ChartURL, "/") + options.Router.ContextPath
+		chartURL = options.ChartURL + options.Router.ContextPath
 	}
 
 	server := &MultiTenantServer{

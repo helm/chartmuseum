@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"strings"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -26,7 +25,6 @@ type Index struct {
 
 // NewIndex creates a new instance of Index
 func NewIndex(chartURL, repo string) *Index {
-	chartURL = strings.TrimSuffix(chartURL, "/")
 	index := Index{&helm_repo.IndexFile{}, repo, []byte{}, chartURL}
 	index.Entries = map[string]helm_repo.ChartVersions{}
 	index.APIVersion = helm_repo.APIVersionV1
@@ -99,7 +97,7 @@ func (index *Index) UpdateEntry(chartVersion *helm_repo.ChartVersion) {
 
 func (index *Index) setChartURL(chartVersion *helm_repo.ChartVersion) {
 	if index.ChartURL != "" {
-		chartVersion.URLs[0] = strings.Join([]string{index.ChartURL, chartVersion.URLs[0]}, "/")
+		chartVersion.URLs[0] = index.ChartURL + "/" + chartVersion.URLs[0]
 	}
 }
 

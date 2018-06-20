@@ -391,7 +391,10 @@ func (server *MultiTenantServer) saveCacheEntry(log cm_logger.LoggingFn, entry *
 func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, repo string) *cm_repo.Index {
 	var chartURL string
 	if server.ChartURL != "" {
-		chartURL = server.ChartURL + "/" + repo
+		chartURL = server.ChartURL
+		if repo != "" {
+			chartURL = chartURL + "/" + repo
+		}
 	}
 
 	if !server.UseStatefiles {
