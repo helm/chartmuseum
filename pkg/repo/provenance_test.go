@@ -64,7 +64,7 @@ name: mychart`)
 	suite.Nil(err, "no error getting filename from good content")
 	suite.Equal("mychart-0.1.0.tgz.prov", filename, "filename generated from good content")
 
-	filename, err := ProvenanceFilenameFromContentWithMaintainerName(goodContentWithMatainerName)
+	filename, err = ProvenanceFilenameFromContent(goodContentWithMatainerName)
 	suite.Nil(err, "no error getting filename from good content")
 	suite.Equal("mychart-0.1.0.tgz.prov", filename, "filename generated from good content with maintainer name field")
 
