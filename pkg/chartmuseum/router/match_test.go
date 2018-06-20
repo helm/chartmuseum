@@ -56,7 +56,7 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /
 			r := pathutil.Join("/", contextPath)
-			route, params := match(routes, "GET", r, contextPath, 0)
+			route, params := match(routes, "GET", r, contextPath, depth)
 			suite.NotNil(route)
 			suite.Nil(params)
 			if route != nil {
@@ -68,7 +68,7 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /health
 			r = pathutil.Join("/", contextPath, "health")
-			route, params = match(routes, "GET", r, contextPath, 0)
+			route, params = match(routes, "GET", r, contextPath, depth)
 			suite.NotNil(route)
 			suite.Nil(params)
 			if route != nil {
