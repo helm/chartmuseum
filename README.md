@@ -169,7 +169,15 @@ You need at least the following permissions inside your IAM Policy
 ```
 
 #### Using with Google Cloud Storage
-Make sure your environment is properly setup to access `my-gcs-bucket`
+Make sure your environment is properly setup to access `my-gcs-bucket`.
+
+One way to do so is to set the `GOOGLE_APPLICATION_CREDENTIALS` var in your environment, pointing to the JSON file containing your service account key:
+```
+export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/[FILE_NAME].json"
+```
+
+More info on Google Cloud authentication can be found [here](https://cloud.google.com/docs/authentication/getting-started).
+
 ```bash
 chartmuseum --debug --port=8080 \
   --storage="google" \
