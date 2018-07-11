@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 
 	"github.com/gin-gonic/gin"
 	"net/http/httptest"

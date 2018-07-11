@@ -19,11 +19,11 @@ package chartmuseum
 import (
 	"strings"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
-	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
-	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
-	mt "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/server/multitenant"
-	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	"github.com/helm/chartmuseum/pkg/cache"
+	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
+	mt "github.com/helm/chartmuseum/pkg/chartmuseum/server/multitenant"
+	"github.com/helm/chartmuseum/pkg/storage"
 )
 
 type (

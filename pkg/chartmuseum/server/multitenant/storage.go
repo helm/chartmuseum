@@ -20,9 +20,9 @@ import (
 	pathutil "path"
 	"strings"
 
-	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
-	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
-	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_repo "github.com/helm/chartmuseum/pkg/repo"
+	"github.com/helm/chartmuseum/pkg/storage"
 )
 
 var (

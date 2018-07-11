@@ -17,7 +17,7 @@ limitations under the License.
 package multitenant
 
 import (
-	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
+	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
 )
 
 func (s *MultiTenantServer) Routes() []*cm_router.Route {

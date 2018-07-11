@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	"github.com/helm/chartmuseum/pkg/storage"
 
 	"github.com/stretchr/testify/suite"
 	helm_repo "k8s.io/helm/pkg/repo"

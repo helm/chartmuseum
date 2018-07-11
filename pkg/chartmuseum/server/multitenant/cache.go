@@ -36,9 +36,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
-	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
-	cm_storage "github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_repo "github.com/helm/chartmuseum/pkg/repo"
+	cm_storage "github.com/helm/chartmuseum/pkg/storage"
 	pathutil "path"
 	"sync"
 

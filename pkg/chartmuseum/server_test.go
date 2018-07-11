@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	"github.com/helm/chartmuseum/pkg/storage"
 
 	"github.com/stretchr/testify/suite"
 )

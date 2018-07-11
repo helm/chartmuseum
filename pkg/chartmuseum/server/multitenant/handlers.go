@@ -24,7 +24,7 @@ import (
 	"net/http"
 	pathutil "path"
 
-	cm_repo "github.com/kubernetes-helm/chartmuseum/pkg/repo"
+	cm_repo "github.com/helm/chartmuseum/pkg/repo"
 )
 
 var (
@@ -49,7 +49,7 @@ var (
 working.</p>
 
 <p>For online documentation and support please refer to the
-<a href="https://github.com/kubernetes-helm/chartmuseum">GitHub project</a>.<br/>
+<a href="https://github.com/helm/chartmuseum">GitHub project</a>.<br/>
 
 <p><em>Thank you for using ChartMuseum.</em></p>
 </body>

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"regexp"
 
-	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"

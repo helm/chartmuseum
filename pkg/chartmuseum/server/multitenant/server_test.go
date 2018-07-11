@@ -30,12 +30,12 @@ import (
 	"testing"
 	"time"
 
-	cm_logger "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/logger"
-	cm_router "github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum/router"
-	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
+	"github.com/helm/chartmuseum/pkg/storage"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kubernetes-helm/chartmuseum/pkg/repo"
+	"github.com/helm/chartmuseum/pkg/repo"
 	"github.com/stretchr/testify/suite"
 )
 

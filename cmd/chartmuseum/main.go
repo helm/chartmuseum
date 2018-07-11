@@ -22,10 +22,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/cache"
-	"github.com/kubernetes-helm/chartmuseum/pkg/chartmuseum"
-	"github.com/kubernetes-helm/chartmuseum/pkg/config"
-	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	"github.com/helm/chartmuseum/pkg/cache"
+	"github.com/helm/chartmuseum/pkg/chartmuseum"
+	"github.com/helm/chartmuseum/pkg/config"
+	"github.com/helm/chartmuseum/pkg/storage"
 
 	"github.com/urfave/cli"
 )

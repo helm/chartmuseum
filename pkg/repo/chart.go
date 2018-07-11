@@ -24,7 +24,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kubernetes-helm/chartmuseum/pkg/storage"
+	"github.com/helm/chartmuseum/pkg/storage"
 
 	"k8s.io/helm/pkg/chartutil"
 	helm_chart "k8s.io/helm/pkg/proto/hapi/chart"
