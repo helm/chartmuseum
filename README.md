@@ -276,6 +276,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--index-limit=<number>` - limit the number of parallel indexers
 - `--context-path=<path>` - base context path (new root for application routes)
 - `--depth=<number>` - levels of nested repos for multitenancy
+- `--history-limit=<number>` - limit the number of version saved per chart, 0 means no limit
 
 ### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).

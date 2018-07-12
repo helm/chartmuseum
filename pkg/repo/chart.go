@@ -59,6 +59,15 @@ func ChartPackageFilenameFromContent(content []byte) (string, error) {
 	return filename, nil
 }
 
+// ChartNameFromContent return the name of the chart from the binary content
+func ChartNameFromContent(content []byte) (string, error) {
+	chart, err := chartFromContent(content)
+	if err != nil {
+		return "", err
+	}
+	return chart.Metadata.Name, nil
+}
+
 // ChartVersionFromStorageObject returns a chart version from a storage object
 func ChartVersionFromStorageObject(object storage.Object) (*helm_repo.ChartVersion, error) {
 	if len(object.Content) == 0 {
@@ -88,8 +97,8 @@ func ChartVersionFromStorageObject(object storage.Object) (*helm_repo.ChartVersi
 // StorageObjectFromChartVersion returns a storage object from a chart version (empty content)
 func StorageObjectFromChartVersion(chartVersion *helm_repo.ChartVersion) storage.Object {
 	object := storage.Object{
-		Path: pathutil.Base(chartVersion.URLs[0]),
-		Content: []byte{},
+		Path:         pathutil.Base(chartVersion.URLs[0]),
+		Content:      []byte{},
 		LastModified: chartVersion.Created,
 	}
 	return object

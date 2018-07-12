@@ -92,12 +92,34 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	if limitReached {
 		return &HTTPError{507, "repo has reached storage limit"}
 	}
-	log(cm_logger.DebugLevel,"Adding package to storage",
+	log(cm_logger.DebugLevel, "Adding package to storage",
 		"package", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
 	if err != nil {
 		return &HTTPError{500, err.Error()}
+	}
+
+	if server.HistoryLimit != 0 {
+		name, err := cm_repo.ChartNameFromContent(content)
+		if err != nil {
+			return &HTTPError{500, err.Error()}
+		}
+		chartVersions, httpErr := server.getChart(log, repo, name)
+		if httpErr != nil {
+			return httpErr
+		}
+		if len(chartVersions) > server.HistoryLimit {
+			for _, version := range chartVersions[server.HistoryLimit:] {
+				log(cm_logger.DebugLevel, "Removing old charts",
+					"chart", name,
+					"version", version)
+				httpErr = server.deleteChartVersion(log, repo, name, version.Metadata.Version)
+				if httpErr != nil {
+					return httpErr
+				}
+			}
+		}
 	}
 	return nil
 }
@@ -120,7 +142,7 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 	if limitReached {
 		return &HTTPError{507, "repo has reached storage limit"}
 	}
-	log(cm_logger.DebugLevel,"Adding provenance file to storage",
+	log(cm_logger.DebugLevel, "Adding provenance file to storage",
 		"provenance_file", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
