@@ -56,6 +56,7 @@ type MultiTenantServerTestSuite struct {
 	Depth3Server         *MultiTenantServer
 	DisabledAPIServer    *MultiTenantServer
 	OverwriteServer      *MultiTenantServer
+	ForceOverwriteServer *MultiTenantServer
 	ChartURLServer       *MultiTenantServer
 	MaxObjectsServer     *MultiTenantServer
 	MaxUploadSizeServer  *MultiTenantServer
@@ -92,6 +93,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.DisabledAPIServer.Router.HandleContext(c)
 	case "overwrite":
 		suite.OverwriteServer.Router.HandleContext(c)
+	case "forceoverwrite":
+		suite.ForceOverwriteServer.Router.HandleContext(c)
 	case "charturl":
 		suite.ChartURLServer.Router.HandleContext(c)
 	case "maxobjects":
@@ -311,6 +314,24 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new overwrite server")
 	suite.OverwriteServer = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
+		MaxUploadSize: maxUploadSize,
+	})
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		EnableAPI:              true,
+		AllowForceOverwrite:    true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new forceoverwrite server")
+	suite.ForceOverwriteServer = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:        logger,
@@ -566,6 +587,51 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 }
 
+func (suite *MultiTenantServerTestSuite) TestForceOverwriteServer() {
+	// Clear test repo to allow uploading again
+	res := suite.doRequest("forceoverwrite", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(200, res.Status(),"200 DELETE /api/charts/mychart/0.1.0")
+
+	// Check if files can be overwritten when ?force is on URL
+	content, err := ioutil.ReadFile(testTarballPath)
+	suite.Nil(err, "no error opening test tarball")
+	body := bytes.NewBuffer(content)
+	res = suite.doRequest("forceoverwrite", "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("forceoverwrite", "POST", "/api/charts", body, "")
+	suite.Equal(409, res.Status(), "409 POST /api/charts")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("forceoverwrite", "POST", "/api/charts?force", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts?force")
+
+	content, err = ioutil.ReadFile(testProvfilePath)
+	suite.Nil(err, "no error opening test provenance file")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("forceoverwrite", "POST", "/api/prov", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/prov")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("forceoverwrite", "POST", "/api/prov", body, "")
+	suite.Equal(409, res.Status(), "409 POST /api/prov")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("forceoverwrite", "POST", "/api/prov?force", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/prov?force")
+
+	// Clear test repo to allow uploading again
+	res = suite.doRequest("forceoverwrite", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(200, res.Status(),"200 DELETE /api/charts/mychart/0.1.0")
+
+	buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
+	res = suite.doRequest("forceoverwrite", "POST", "/api/charts", buf, w.FormDataContentType())
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
+	res = suite.doRequest("forceoverwrite", "POST", "/api/charts", buf, w.FormDataContentType())
+	suite.Equal(409, res.Status(), "409 POST /api/charts")
+	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
+	res = suite.doRequest("forceoverwrite", "POST", "/api/charts?force", buf, w.FormDataContentType())
+	suite.Equal(201, res.Status(), "201 POST /api/charts?force")
+}
+
 func (suite *MultiTenantServerTestSuite) TestCustomChartURLServer() {
 	res := suite.doRequest("charturl", "GET", "/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /index.yaml")
@@ -779,6 +845,11 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts", apiPrefix), body, "")
 	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/charts", apiPrefix))
 
+	// with force, still 409
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts?force", apiPrefix), body, "")
+	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/charts?force", apiPrefix))
+
 	// POST /api/:repo/prov
 	content, err = ioutil.ReadFile(testProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
@@ -790,6 +861,11 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/prov", apiPrefix), body, "")
 	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/prov", apiPrefix))
+
+	// with force, still 409
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/prov?force", apiPrefix), body, "")
+	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/prov?force", apiPrefix))
 
 	// Clear test repo to allow uploading again
 	res = suite.doRequest(stype, "DELETE", fmt.Sprintf("%s/charts/mychart/0.1.0", apiPrefix), nil, "")
@@ -832,6 +908,11 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{testTarballPath})
 	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts", apiPrefix), buf, w.FormDataContentType())
 	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/charts", apiPrefix))
+
+	// with force, still 409
+	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{testTarballPath})
+	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts?force", apiPrefix), buf, w.FormDataContentType())
+	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/charts?force", apiPrefix))
 
 	// Create form file with chart=@mychart-0.1.0.tgz.prov, which should fail because it is not a valid chart package
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{testProvfilePath})

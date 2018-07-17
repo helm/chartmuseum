@@ -172,7 +172,8 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 		return
 	}
 	log := server.Logger.ContextLoggingFn(c)
-	err := server.uploadChartPackage(log, repo, content)
+	_, force := c.GetQuery("force")
+	err := server.uploadChartPackage(log, repo, content, force)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
@@ -191,7 +192,8 @@ func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context
 		return
 	}
 	log := server.Logger.ContextLoggingFn(c)
-	err := server.uploadProvenanceFile(log, repo, content)
+	_, force := c.GetQuery("force")
+	err := server.uploadProvenanceFile(log, repo, content, force)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
@@ -201,8 +203,9 @@ func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context
 
 func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
+	_, force := c.GetQuery("force")
 
-	cpFiles, status, err := server.getChartAndProvFiles(c.Request, repo)
+	cpFiles, status, err := server.getChartAndProvFiles(c.Request, repo, force)
 	if status != 200 {
 		c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
 		return
@@ -242,7 +245,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	c.JSON(201, objectSavedResponse)
 }
 
-func (server *MultiTenantServer) getChartAndProvFiles(req *http.Request, repo string) (map[string]*chartOrProvenanceFile, int, error) {
+func (server *MultiTenantServer) getChartAndProvFiles(req *http.Request, repo string, force bool) (map[string]*chartOrProvenanceFile, int, error) {
 	type fieldFuncPair struct {
 		field string
 		fn    filenameFromContentFn
@@ -271,7 +274,7 @@ func (server *MultiTenantServer) getChartAndProvFiles(req *http.Request, repo st
 		if _, ok := cpFiles[filename]; ok {
 			continue
 		}
-		if status, err := server.validateChartOrProv(repo, filename); err != nil {
+		if status, err := server.validateChartOrProv(repo, filename, force); err != nil {
 			return nil, status, err
 		}
 		cpFiles[filename] = &chartOrProvenanceFile{filename, content, ff.field}
@@ -293,14 +296,14 @@ func extractContentFromRequest(req *http.Request, field string) ([]byte, error) 
 	return buf.Bytes(), nil
 }
 
-func (server *MultiTenantServer) validateChartOrProv(repo, filename string) (int, error) {
+func (server *MultiTenantServer) validateChartOrProv(repo, filename string, force bool) (int, error) {
 	var f string
 	if repo == "" {
 		f = filename
 	} else {
 		f = repo + "/" + filename
 	}
-	if !server.AllowOverwrite {
+	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 		_, err := server.StorageBackend.GetObject(f)
 		if err == nil {
 			return 409, fmt.Errorf("%s already exists", f) // conflict

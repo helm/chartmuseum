@@ -99,8 +99,17 @@ var configVars = map[string]configVar{
 		Default: false,
 		CLIFlag: cli.BoolFlag{
 			Name:   "allow-overwrite",
-			Usage:  "allow chart versions to be re-uploaded",
+			Usage:  "allow chart versions to be re-uploaded without ?force querystring",
 			EnvVar: "ALLOW_OVERWRITE",
+		},
+	},
+	"disableforceoverwrite": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "disable-force-overwrite",
+			Usage:  "do not allow chart versions to be re-uploaded, even with ?force querystring",
+			EnvVar: "DISABLE_FORCE_OVERWRITE",
 		},
 	},
 	"port": {

@@ -78,6 +78,7 @@ func cliHandler(c *cli.Context) {
 		EnableAPI:              !conf.GetBool("disableapi"),
 		UseStatefiles:          !conf.GetBool("disablestatefiles"),
 		AllowOverwrite:         conf.GetBool("allowoverwrite"),
+		AllowForceOverwrite:    !conf.GetBool("disableforceoverwrite"),
 		EnableMetrics:          !conf.GetBool("disablemetrics"),
 		AnonymousGet:           conf.GetBool("authanonymousget"),
 		GenIndex:               conf.GetBool("genindex"),

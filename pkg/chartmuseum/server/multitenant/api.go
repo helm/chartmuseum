@@ -74,18 +74,18 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 	return nil
 }
 
-func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte) *HTTPError {
+func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) *HTTPError {
 	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
 	if err != nil {
 		return &HTTPError{500, err.Error()}
 	}
-	if !server.AllowOverwrite {
+	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
 		if err == nil {
 			return &HTTPError{409, "file already exists"}
 		}
 	}
-	limitReached, err := server.checkStorageLimit(repo, filename)
+	limitReached, err := server.checkStorageLimit(repo, filename, force)
 	if err != nil {
 		return &HTTPError{500, err.Error()}
 	}
@@ -102,18 +102,18 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	return nil
 }
 
-func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, repo string, content []byte) *HTTPError {
+func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, repo string, content []byte, force bool) *HTTPError {
 	filename, err := cm_repo.ProvenanceFilenameFromContent(content)
 	if err != nil {
 		return &HTTPError{500, err.Error()}
 	}
-	if !server.AllowOverwrite {
+	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
 		if err == nil {
 			return &HTTPError{409, "file already exists"}
 		}
 	}
-	limitReached, err := server.checkStorageLimit(repo, filename)
+	limitReached, err := server.checkStorageLimit(repo, filename, force)
 	if err != nil {
 		return &HTTPError{500, err.Error()}
 	}
@@ -130,7 +130,7 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 	return nil
 }
 
-func (server *MultiTenantServer) checkStorageLimit(repo string, filename string) (bool, error) {
+func (server *MultiTenantServer) checkStorageLimit(repo string, filename string, force bool) (bool, error) {
 	if server.MaxStorageObjects > 0 {
 		allObjects, err := server.StorageBackend.ListObjects(repo)
 		if err != nil {
@@ -138,7 +138,7 @@ func (server *MultiTenantServer) checkStorageLimit(repo string, filename string)
 		}
 		if len(allObjects) >= server.MaxStorageObjects {
 			limitReached := true
-			if server.AllowOverwrite {
+			if server.AllowOverwrite || (server.AllowForceOverwrite && force) {
 				// if the max has been reached, we should still allow
 				// user to overwrite an existing file
 				for _, object := range allObjects {

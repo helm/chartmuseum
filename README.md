@@ -266,7 +266,8 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--log-json` - output structured logs as json
 - `--disable-api` - disable all routes prefixed with /api
 - `--disable-statefiles` - disable use of index-cache.yaml
-- `--allow-overwrite` - allow chart versions to be re-uploaded
+- `--allow-overwrite` - allow chart versions to be re-uploaded without ?force querystring
+- `--disable-force-overwrite` - do not allow chart versions to be re-uploaded, even with ?force querystring
 - `--chart-url=<url>` - absolute url for .tgzs in index.yaml
 - `--storage-amazon-endpoint=<endpoint>` - alternative s3 endpoint
 - `--storage-amazon-sse=<algorithm>` - s3 server side encryption algorithm

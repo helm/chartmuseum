@@ -51,6 +51,7 @@ type (
 		MaxStorageObjects      int
 		IndexLimit             int
 		AllowOverwrite         bool
+		AllowForceOverwrite    bool
 		APIEnabled             bool
 		UseStatefiles          bool
 		ChartURL               string
@@ -74,6 +75,7 @@ type (
 		IndexLimit             int
 		GenIndex               bool
 		AllowOverwrite         bool
+		AllowForceOverwrite    bool
 		EnableAPI              bool
 		UseStatefiles          bool
 	}
@@ -115,6 +117,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
 		AllowOverwrite:         options.AllowOverwrite,
+		AllowForceOverwrite:    options.AllowForceOverwrite,
 		APIEnabled:             options.EnableAPI,
 		UseStatefiles:          options.UseStatefiles,
 		Limiter:                make(chan struct{}, options.IndexLimit),
