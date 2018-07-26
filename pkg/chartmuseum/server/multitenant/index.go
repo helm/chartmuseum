@@ -104,5 +104,9 @@ func (server *MultiTenantServer) getRepoObjectSlice(entry *cacheEntry) []cm_stor
 			objects = append(objects, object)
 		}
 	}
+	alphabet := func(o1, o2 *cm_storage.Object) bool {
+		return o1.Path < o2.Path
+	}
+	cm_storage.By(alphabet).Sort(objects)
 	return objects
 }

@@ -19,6 +19,7 @@ package storage
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -39,6 +40,14 @@ type (
 		Updated []Object
 	}
 
+	// ObjectSorter provides function for sorting []Objects
+	ObjectSorter struct {
+		objects []Object
+		by      func(o1, o2 *Object) bool
+	}
+
+	By func(o1, o2 *Object) bool
+
 	// Backend is a generic interface for storage backends
 	Backend interface {
 		ListObjects(prefix string) ([]Object, error)
@@ -53,6 +62,26 @@ func (object Object) HasExtension(extension string) bool {
 	return filepath.Ext(object.Path) == fmt.Sprintf(".%s", extension)
 }
 
+func (o *ObjectSorter) Len() int {
+	return len(o.objects)
+}
+
+func (o *ObjectSorter) Swap(i, j int) {
+	o.objects[i], o.objects[j] = o.objects[j], o.objects[i]
+}
+
+func (o *ObjectSorter) Less(i, j int) bool {
+	return o.by(&o.objects[i], &o.objects[j])
+}
+
+func (by By) Sort(objects []Object) {
+	ps := &ObjectSorter{
+		objects: objects,
+		by:      by,
+	}
+	sort.Sort(ps)
+}
+
 // GetObjectSliceDiff takes two objects slices and returns an ObjectSliceDiff
 func GetObjectSliceDiff(os1 []Object, os2 []Object) ObjectSliceDiff {
 	var diff ObjectSliceDiff
@@ -61,7 +90,8 @@ func GetObjectSliceDiff(os1 []Object, os2 []Object) ObjectSliceDiff {
 		for _, o2 := range os2 {
 			if o1.Path == o2.Path {
 				found = true
-				if !o1.LastModified.Equal(o2.LastModified) {
+				// ignore milliseconds due to helm
+				if o1.LastModified.Sub(o2.LastModified) > time.Duration(time.Second*1) {
 					diff.Updated = append(diff.Updated, o2)
 				}
 				break
