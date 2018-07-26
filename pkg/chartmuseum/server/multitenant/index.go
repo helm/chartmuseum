@@ -49,10 +49,6 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 	}
 
 	objects := server.getRepoObjectSlice(entry)
-
-	log(cm_logger.DebugLevel, "cache[0].time:", "", objects[0].LastModified)
-	log(cm_logger.DebugLevel, "storage[0].time:", "", fo.objects[0].LastModified)
-	log(cm_logger.DebugLevel, "equal?", "", objects[0].LastModified.Equal(fo.objects[0].LastModified))
 	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects)
 
 	// return fast if no changes
