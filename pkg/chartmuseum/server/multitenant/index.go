@@ -104,7 +104,6 @@ func (server *MultiTenantServer) getRepoObjectSlice(entry *cacheEntry) []cm_stor
 			objects = append(objects, object)
 		}
 	}
-	// map ranging is out of order, so we have to sort it by alphabet
 	alphabet := func(o1, o2 *cm_storage.Object) bool {
 		return o1.Path < o2.Path
 	}

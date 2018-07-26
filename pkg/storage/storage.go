@@ -40,12 +40,12 @@ type (
 		Updated []Object
 	}
 
+	// ObjectSorter provides function for sorting []Objects
 	ObjectSorter struct {
 		objects []Object
 		by      func(o1, o2 *Object) bool
 	}
 
-	// By is the type of a "less" function that defines the ordering of its Planet arguments.
 	By func(o1, o2 *Object) bool
 
 	// Backend is a generic interface for storage backends
@@ -62,26 +62,22 @@ func (object Object) HasExtension(extension string) bool {
 	return filepath.Ext(object.Path) == fmt.Sprintf(".%s", extension)
 }
 
-// Len is part of sort.Interface.
 func (o *ObjectSorter) Len() int {
 	return len(o.objects)
 }
 
-// Swap is part of sort.Interface.
 func (o *ObjectSorter) Swap(i, j int) {
 	o.objects[i], o.objects[j] = o.objects[j], o.objects[i]
 }
 
-// Less is part of sort.Interface. It is implemented by calling the "by" closure in the sorter.
 func (o *ObjectSorter) Less(i, j int) bool {
 	return o.by(&o.objects[i], &o.objects[j])
 }
 
-// Sort is a method on the function type, By, that sorts the argument slice according to the function.
-func (by By) Sort(planets []Object) {
+func (by By) Sort(objects []Object) {
 	ps := &ObjectSorter{
-		objects: planets,
-		by:      by, // The Sort method's receiver is the function (closure) that defines the sort order.
+		objects: objects,
+		by:      by,
 	}
 	sort.Sort(ps)
 }
