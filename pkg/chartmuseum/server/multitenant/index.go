@@ -49,6 +49,10 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 	}
 
 	objects := server.getRepoObjectSlice(entry)
+
+	log(cm_logger.DebugLevel, "cache[0].time:", "", objects[0].LastModified)
+	log(cm_logger.DebugLevel, "storage[0].time:", "", fo.objects[0].LastModified)
+	log(cm_logger.DebugLevel, "equal?", "", objects[0].LastModified.Equal(fo.objects[0].LastModified))
 	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects)
 
 	// return fast if no changes
@@ -104,5 +108,10 @@ func (server *MultiTenantServer) getRepoObjectSlice(entry *cacheEntry) []cm_stor
 			objects = append(objects, object)
 		}
 	}
+	// map ranging is out of order, so we have to sort it by alphabet
+	alphabet := func(o1, o2 *cm_storage.Object) bool {
+		return o1.Path < o2.Path
+	}
+	cm_storage.By(alphabet).Sort(objects)
 	return objects
 }

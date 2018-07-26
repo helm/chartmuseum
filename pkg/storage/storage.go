@@ -19,6 +19,7 @@ package storage
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -39,6 +40,14 @@ type (
 		Updated []Object
 	}
 
+	ObjectSorter struct {
+		objects []Object
+		by      func(o1, o2 *Object) bool
+	}
+
+	// By is the type of a "less" function that defines the ordering of its Planet arguments.
+	By func(o1, o2 *Object) bool
+
 	// Backend is a generic interface for storage backends
 	Backend interface {
 		ListObjects(prefix string) ([]Object, error)
@@ -53,6 +62,30 @@ func (object Object) HasExtension(extension string) bool {
 	return filepath.Ext(object.Path) == fmt.Sprintf(".%s", extension)
 }
 
+// Len is part of sort.Interface.
+func (o *ObjectSorter) Len() int {
+	return len(o.objects)
+}
+
+// Swap is part of sort.Interface.
+func (o *ObjectSorter) Swap(i, j int) {
+	o.objects[i], o.objects[j] = o.objects[j], o.objects[i]
+}
+
+// Less is part of sort.Interface. It is implemented by calling the "by" closure in the sorter.
+func (o *ObjectSorter) Less(i, j int) bool {
+	return o.by(&o.objects[i], &o.objects[j])
+}
+
+// Sort is a method on the function type, By, that sorts the argument slice according to the function.
+func (by By) Sort(planets []Object) {
+	ps := &ObjectSorter{
+		objects: planets,
+		by:      by, // The Sort method's receiver is the function (closure) that defines the sort order.
+	}
+	sort.Sort(ps)
+}
+
 // GetObjectSliceDiff takes two objects slices and returns an ObjectSliceDiff
 func GetObjectSliceDiff(os1 []Object, os2 []Object) ObjectSliceDiff {
 	var diff ObjectSliceDiff
@@ -61,7 +94,8 @@ func GetObjectSliceDiff(os1 []Object, os2 []Object) ObjectSliceDiff {
 		for _, o2 := range os2 {
 			if o1.Path == o2.Path {
 				found = true
-				if !o1.LastModified.Equal(o2.LastModified) {
+				// ignore milliseconds due to helm
+				if o1.LastModified.Sub(o2.LastModified) > time.Duration(time.Second*1) {
 					diff.Updated = append(diff.Updated, o2)
 				}
 				break
