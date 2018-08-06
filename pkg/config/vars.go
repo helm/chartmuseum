@@ -447,6 +447,69 @@ var configVars = map[string]configVar{
 			EnvVar: "DEPTH",
 		},
 	},
+	"bearerauth": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "bearer-auth",
+			Usage:  "enable bearer auth",
+			EnvVar: "BEARER_AUTH",
+		},
+	},
+	"authtype": {
+		Type:    stringType,
+		Default: "token",
+		CLIFlag: cli.StringFlag{
+			Name:   "auth-type",
+			Usage:  "type of auth (currently only supports token)",
+			EnvVar: "AUTH_TYPE",
+		},
+	},
+	"authrealm": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "auth-realm",
+			Usage:  "authorization server url",
+			EnvVar: "AUTH_REALM",
+		},
+	},
+	"authservice": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "auth-service",
+			Usage:  "authorization server service name",
+			EnvVar: "AUTH_SERVICE",
+		},
+	},
+	"authissuer": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "auth-issuer",
+			Usage:  "authorization server name",
+			EnvVar: "AUTH_ISSUER",
+		},
+	},
+	"authcertpath": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "auth-cert-path",
+			Usage:  "path to authorization server public pem file",
+			EnvVar: "AUTH_CERT_PATH",
+		},
+	},
+	"authscopes": {
+		Type:    stringType,
+		Default: "*",
+		CLIFlag: cli.StringFlag{
+			Name:   "auth-scopes",
+			Usage:  "authentication scopes",
+			EnvVar: "AUTH_SCOPES",
+		},
+	},
 }
 
 func populateCLIFlags() {

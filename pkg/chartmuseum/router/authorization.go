@@ -17,8 +17,17 @@ limitations under the License.
 package router
 
 import (
+	"crypto/rsa"
+	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 func isRepoAction(act action) bool {
@@ -29,6 +38,35 @@ func generateBasicAuthHeader(username string, password string) string {
 	base := username + ":" + password
 	basicAuthHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(base))
 	return basicAuthHeader
+}
+
+// generate a simple jwt from authorization server
+// TODO: this should be handled by a "responseHeaders["WWW-Authentication"] step I believe
+func getJWT(router *Router) string {
+	var token string
+
+	// TODO: using due to self-signed cert, needs removal
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	queryString := url.PathEscape("service=" + router.AuthService + "&scope=registry:catalog:" + router.AuthScopes)
+
+	client := &http.Client{Transport: tr}
+	response, err := client.Get(router.AuthRealm + "?" + queryString)
+
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+		token = "invalid"
+	} else {
+		data, _ := ioutil.ReadAll(response.Body)
+
+		var response map[string]interface{}
+		json.Unmarshal([]byte(string(data)), &response)
+
+		token = response["token"].(string)
+	}
+	return token
 }
 
 func (router *Router) authorizeRequest(request *http.Request) (bool, map[string]string) {
@@ -45,9 +83,67 @@ func (router *Router) authorizeRequest(request *http.Request) (bool, map[string]
 		} else {
 			responseHeaders["WWW-Authenticate"] = "Basic realm=\"ChartMuseum\""
 		}
+	} else if router.BearerAuthHeader != "" {
+		if router.AnonymousGet && request.Method == "GET" {
+			authorized = true
+		} else {
+			splitToken := strings.Split(request.Header.Get("Authorization"), "Bearer ")
+			_, isValid := validateJWT(splitToken[1], router)
+			if isValid {
+				authorized = true
+			} else {
+				// TODO: needs work: not redirecting to auth server correctly .
+				fmt.Println("Should redirect to Authorization server")
+
+				queryString := url.PathEscape("service=" + router.AuthService + "&scope=registry:catalog:" + router.AuthScopes)
+				responseHeaders["WWW-Authenticate"] = "Bearer realm=\"" + router.AuthRealm + "?" + queryString + "\""
+			}
+		}
 	} else {
 		authorized = true
 	}
 
 	return authorized, responseHeaders
+}
+
+// currently this only works with RSA key signing
+// TODO: how best to handle many different signing algorithms?
+func validateJWT(t string, router *Router) (*jwt.Token, bool) {
+	valid := false
+
+	key, err := getRSAKey(router.AuthPublicCert)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+		return key, nil
+	})
+	if err != nil {
+		fmt.Println("Token parse error: ", err)
+	} else {
+		fmt.Println("token is valid")
+		valid = true
+	}
+	return token, valid
+}
+
+// https://github.com/dgrijalva/jwt-go/blob/master/rsa_test.go
+func getRSAKey(key []byte) (*rsa.PublicKey, error) {
+	parsedKey, err := jwt.ParseRSAPublicKeyFromPEM(key)
+	if err != nil {
+		fmt.Println("error parsing RSA key from PEM: ", err)
+	}
+
+	return parsedKey, nil
+}
+
+// Load authorization server public pem file
+// TODO: have this be fetched from a url instead of file
+func loadPublicCertFromFile(certPath string, router *Router) {
+	publicKey, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		router.Logger.Fatal("Error reading Public Key")
+	}
+	router.AuthPublicCert = publicKey
 }
