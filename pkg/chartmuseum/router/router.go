@@ -137,7 +137,7 @@ func NewRouter(options RouterOptions) *Router {
 
 		router.AuthScopes = options.AuthScopes
 
-		router.BearerAuthHeader = "Bearer " + getJWT(router)
+		router.BearerAuthHeader = "Bearer"
 	}
 
 	if options.Username != "" && options.Password != "" {
@@ -175,10 +175,7 @@ func (router *Router) masterHandler(c *gin.Context) {
 	c.Params = params
 
 	if isRepoAction(route.Action) {
-		// TODO: needs work
-		if router.BearerAuthHeader != "" {
-			c.Request.Header.Set("Authorization", router.BearerAuthHeader)
-		}
+
 
 		authorized, responseHeaders := router.authorizeRequest(c.Request)
 		for key, value := range responseHeaders {
