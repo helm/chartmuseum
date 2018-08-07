@@ -113,6 +113,12 @@ func NewRouter(options RouterOptions) *Router {
 	}
 
 	// if BearerAuth is true, looks for required inputs.
+	// example input:
+	// --bearer-auth=true
+	// --auth-realm="https://127.0.0.1:5001/auth" 
+	// --auth-service="chartmuseum" 
+	// --auth-issuer="Acme auth server"
+	// --auth-cert-path="./certs/authorization-server-cert.pem"
 	if options.BearerAuth {
 		if options.AuthRealm == "" {
 			router.Logger.Fatal("Missing Auth Realm")
@@ -126,7 +132,9 @@ func NewRouter(options RouterOptions) *Router {
 		if options.AuthCertPath == "" {
 			router.Logger.Fatal("Missing Auth Server Public Cert Path")
 		}
-		// TODO: currently only accepts Token, error if other value passed in.
+		if options.AuthType != "token" {
+			router.Logger.Fatal("Invalid auth type: only accept token auth")
+		}
 		router.AuthType = options.AuthType
 		router.AuthRealm = options.AuthRealm
 		router.AuthService = options.AuthService
