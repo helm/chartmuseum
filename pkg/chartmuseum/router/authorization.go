@@ -53,6 +53,10 @@ func (router *Router) authorizeRequest(request *http.Request) (bool, map[string]
 			responseHeaders["WWW-Authenticate"] = "Basic realm=\"ChartMuseum\""
 		}
 	} else if router.BearerAuthHeader != "" {
+		// used to escape spaces in service name
+		queryString := url.PathEscape("service=" + router.AuthService)
+		queryString += "&scope=registry:catalog:" + router.AuthScopes
+
 		if router.AnonymousGet && request.Method == "GET" {
 			authorized = true
 		} else {
@@ -61,11 +65,10 @@ func (router *Router) authorizeRequest(request *http.Request) (bool, map[string]
 				_, isValid := validateJWT(splitToken[1], router)
 				if isValid {
 					authorized = true
+				} else {
+					responseHeaders["WWW-Authenticate"] = "Bearer realm=\"" + router.AuthRealm + "?" + queryString + "\""
 				}
 			} else {
-				// TODO: needs work: Should I redirect to Auth Server? or just error as it does now.
-				// FIXME: I should probably move the scope out of this query string parsing as it is parsing * unnecessarly.
-				queryString := url.PathEscape("service=" + router.AuthService + "&scope=registry:catalog:" + router.AuthScopes)
 				responseHeaders["WWW-Authenticate"] = "Bearer realm=\"" + router.AuthRealm + "?" + queryString + "\""
 			}
 		}
