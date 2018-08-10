@@ -45,7 +45,6 @@ type (
 		AuthService      string
 		AuthIssuer       string
 		AuthPublicCert   []byte
-		AuthScopes       string
 	}
 
 	// RouterOptions are options for constructing a Router
@@ -67,7 +66,6 @@ type (
 		AuthService   string
 		AuthIssuer    string
 		AuthCertPath  string
-		AuthScopes    string
 	}
 
 	// Route represents an application route
@@ -142,8 +140,6 @@ func NewRouter(options RouterOptions) *Router {
 
 		// loads certificate from file
 		loadPublicCertFromFile(options.AuthCertPath, router)
-
-		router.AuthScopes = options.AuthScopes
 
 		router.BearerAuthHeader = "Bearer"
 	}

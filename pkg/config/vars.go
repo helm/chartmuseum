@@ -501,15 +501,6 @@ var configVars = map[string]configVar{
 			EnvVar: "AUTH_CERT_PATH",
 		},
 	},
-	"authscopes": {
-		Type:    stringType,
-		Default: "*",
-		CLIFlag: cli.StringFlag{
-			Name:   "auth-scopes",
-			Usage:  "authentication scopes",
-			EnvVar: "AUTH_SCOPES",
-		},
-	},
 }
 
 func populateCLIFlags() {

@@ -58,7 +58,6 @@ type (
 		AuthService            string
 		AuthIssuer             string
 		AuthCertPath           string
-		AuthScopes             string
 	}
 
 	// Server is a generic interface for web servers
@@ -99,7 +98,6 @@ func NewServer(options ServerOptions) (Server, error) {
 		AuthService:   options.AuthService,
 		AuthIssuer:    options.AuthIssuer,
 		AuthCertPath:  options.AuthCertPath,
-		AuthScopes:    options.AuthScopes,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{

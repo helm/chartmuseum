@@ -55,7 +55,6 @@ func (router *Router) authorizeRequest(request *http.Request) (bool, map[string]
 	} else if router.BearerAuthHeader != "" {
 		// used to escape spaces in service name
 		queryString := url.PathEscape("service=" + router.AuthService)
-		queryString += "&scope=registry:catalog:" + router.AuthScopes
 
 		if router.AnonymousGet && request.Method == "GET" {
 			authorized = true

@@ -92,7 +92,6 @@ func cliHandler(c *cli.Context) {
 		AuthService:            conf.GetString("authservice"),
 		AuthIssuer:             conf.GetString("authissuer"),
 		AuthCertPath:           conf.GetString("authcertpath"),
-		AuthScopes:             conf.GetString("authscopes"),
 	}
 
 	server, err := newServer(options)
