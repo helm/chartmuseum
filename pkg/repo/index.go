@@ -30,18 +30,35 @@ var (
 	StatefileFilename    = "index-cache.yaml"
 )
 
-// Index represents the repository index (index.yaml)
-type Index struct {
-	// cryptic JSON field names to minimize size saved in cache
-	*helm_repo.IndexFile `json:"a"`
-	RepoName             string `json:"b"`
-	Raw                  []byte `json:"c"`
-	ChartURL             string `json:"d"`
-}
+type (
+	// ServerInfo contains extra data about the server
+	ServerInfo struct {
+		ContextPath string `json:"contextPath,omitempty"`
+	}
+
+	// IndexFile is a copy of Helm struct with extra data
+	IndexFile struct {
+		*helm_repo.IndexFile
+		ServerInfo *ServerInfo `json:"serverInfo"`
+	}
+
+	// Index represents the repository index (index.yaml)
+	Index struct {
+		// cryptic JSON field names to minimize size saved in cache
+		*IndexFile `json:"a"`
+		RepoName   string `json:"b"`
+		Raw        []byte `json:"c"`
+		ChartURL   string `json:"d"`
+	}
+)
 
 // NewIndex creates a new instance of Index
-func NewIndex(chartURL, repo string) *Index {
-	index := Index{&helm_repo.IndexFile{}, repo, []byte{}, chartURL}
+func NewIndex(chartURL string, repo string, serverInfo *ServerInfo) *Index {
+	indexFile := &IndexFile{
+		IndexFile:  &helm_repo.IndexFile{},
+		ServerInfo: serverInfo,
+	}
+	index := Index{indexFile, repo, []byte{}, chartURL}
 	index.Entries = map[string]helm_repo.ChartVersions{}
 	index.APIVersion = helm_repo.APIVersionV1
 	index.Regenerate()
