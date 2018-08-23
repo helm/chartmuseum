@@ -22,23 +22,29 @@ import (
 
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 
+	"github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"
-	"github.com/gin-contrib/size"
 )
 
 type (
 	// Router handles all incoming HTTP requests
 	Router struct {
 		*gin.Engine
-		Logger          *cm_logger.Logger
-		Routes          []*Route
-		TlsCert         string
-		TlsKey          string
-		ContextPath     string
-		BasicAuthHeader string
-		AnonymousGet    bool
-		Depth           int
+		Logger           *cm_logger.Logger
+		Routes           []*Route
+		TlsCert          string
+		TlsKey           string
+		ContextPath      string
+		BasicAuthHeader  string
+		BearerAuthHeader string
+		AnonymousGet     bool
+		Depth            int
+		AuthType         string
+		AuthRealm        string
+		AuthService      string
+		AuthIssuer       string
+		AuthPublicCert   []byte
 	}
 
 	// RouterOptions are options for constructing a Router
@@ -54,6 +60,12 @@ type (
 		AnonymousGet  bool
 		Depth         int
 		MaxUploadSize int
+		BearerAuth    bool
+		AuthType      string
+		AuthRealm     string
+		AuthService   string
+		AuthIssuer    string
+		AuthCertPath  string
 	}
 
 	// Route represents an application route
@@ -98,6 +110,40 @@ func NewRouter(options RouterOptions) *Router {
 		Depth:        options.Depth,
 	}
 
+	// if BearerAuth is true, looks for required inputs.
+	// example input:
+	// --bearer-auth=true
+	// --auth-realm="https://127.0.0.1:5001/auth" 
+	// --auth-service="chartmuseum" 
+	// --auth-issuer="Acme auth server"
+	// --auth-cert-path="./certs/authorization-server-cert.pem"
+	if options.BearerAuth {
+		if options.AuthRealm == "" {
+			router.Logger.Fatal("Missing Auth Realm")
+		}
+		if options.AuthService == "" {
+			router.Logger.Fatal("Missing Auth Service")
+		}
+		if options.AuthIssuer == "" {
+			router.Logger.Fatal("Missing Auth Issuer")
+		}
+		if options.AuthCertPath == "" {
+			router.Logger.Fatal("Missing Auth Server Public Cert Path")
+		}
+		if options.AuthType != "token" {
+			router.Logger.Fatal("Invalid auth type: only accept token auth")
+		}
+		router.AuthType = options.AuthType
+		router.AuthRealm = options.AuthRealm
+		router.AuthService = options.AuthService
+		router.AuthIssuer = options.AuthIssuer
+
+		// loads certificate from file
+		loadPublicCertFromFile(options.AuthCertPath, router)
+
+		router.BearerAuthHeader = "Bearer"
+	}
+
 	if options.Username != "" && options.Password != "" {
 		router.BasicAuthHeader = generateBasicAuthHeader(options.Username, options.Password)
 	}
@@ -133,6 +179,8 @@ func (router *Router) masterHandler(c *gin.Context) {
 	c.Params = params
 
 	if isRepoAction(route.Action) {
+
+
 		authorized, responseHeaders := router.authorizeRequest(c.Request)
 		for key, value := range responseHeaders {
 			c.Header(key, value)

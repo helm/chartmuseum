@@ -17,8 +17,15 @@ limitations under the License.
 package router
 
 import (
+	"crypto/rsa"
 	"encoding/base64"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 func isRepoAction(act action) bool {
@@ -45,9 +52,71 @@ func (router *Router) authorizeRequest(request *http.Request) (bool, map[string]
 		} else {
 			responseHeaders["WWW-Authenticate"] = "Basic realm=\"ChartMuseum\""
 		}
+	} else if router.BearerAuthHeader != "" {
+		// used to escape spaces in service name
+		queryString := url.PathEscape("service=" + router.AuthService)
+
+		if router.AnonymousGet && request.Method == "GET" {
+			authorized = true
+		} else {
+			if request.Header.Get("Authorization") != "" {
+				splitToken := strings.Split(request.Header.Get("Authorization"), "Bearer ")
+				_, isValid := validateJWT(splitToken[1], router)
+				if isValid {
+					authorized = true
+				} else {
+					responseHeaders["WWW-Authenticate"] = "Bearer realm=\"" + router.AuthRealm + "?" + queryString + "\""
+				}
+			} else {
+				responseHeaders["WWW-Authenticate"] = "Bearer realm=\"" + router.AuthRealm + "?" + queryString + "\""
+			}
+		}
 	} else {
 		authorized = true
 	}
-
+	
 	return authorized, responseHeaders
+}
+
+// verify if JWT is valid by using the rsa public certificate pem
+// currently this only works with RSA key signing
+// TODO: how best to handle many different signing algorithms?
+func validateJWT(t string, router *Router) (*jwt.Token, bool) {
+	valid := false
+
+	key, err := getRSAKey(router.AuthPublicCert)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+		return key, nil
+	})
+	if err != nil {
+		fmt.Println("Token parse error: ", err)
+	} else {
+		fmt.Println("token is valid")
+		valid = true
+	}
+	return token, valid
+}
+
+// https://github.com/dgrijalva/jwt-go/blob/master/rsa_test.go
+func getRSAKey(key []byte) (*rsa.PublicKey, error) {
+	parsedKey, err := jwt.ParseRSAPublicKeyFromPEM(key)
+	if err != nil {
+		fmt.Println("error parsing RSA key from PEM: ", err)
+	}
+
+	return parsedKey, nil
+}
+
+// Load authorization server public pem file
+// TODO: have this be fetched from a url instead of file
+func loadPublicCertFromFile(certPath string, router *Router) {
+	publicKey, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		router.Logger.Fatal("Error reading Public Key")
+	}
+	router.AuthPublicCert = publicKey
 }

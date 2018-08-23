@@ -52,6 +52,12 @@ type (
 		IndexLimit             int
 		Depth                  int
 		MaxUploadSize          int
+		BearerAuth             bool
+		AuthType               string
+		AuthRealm              string
+		AuthService            string
+		AuthIssuer             string
+		AuthCertPath           string
 	}
 
 	// Server is a generic interface for web servers
@@ -86,6 +92,12 @@ func NewServer(options ServerOptions) (Server, error) {
 		AnonymousGet:  options.AnonymousGet,
 		Depth:         options.Depth,
 		MaxUploadSize: options.MaxUploadSize,
+		BearerAuth:    options.BearerAuth,
+		AuthType:      options.AuthType,
+		AuthRealm:     options.AuthRealm,
+		AuthService:   options.AuthService,
+		AuthIssuer:    options.AuthIssuer,
+		AuthCertPath:  options.AuthCertPath,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
