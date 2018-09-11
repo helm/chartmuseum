@@ -64,7 +64,7 @@ func (suite *StoreTestSuite) TestAllStores() {
 
 		value, err = store.Get("x")
 		suite.NotNil(err, fmt.Sprintf("error getting deleted key using %s store", key))
-		suite.Nil(value, fmt.Sprintf("error getting deleted key using %s store", key))
+		suite.Equal([]byte{}, value, fmt.Sprintf("error getting deleted key using %s store", key))
 
 		// in Redis, "A key is ignored if it does not exist"
 		if key != "Redis" {
