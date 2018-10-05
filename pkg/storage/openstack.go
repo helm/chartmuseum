@@ -33,7 +33,7 @@ import (
 )
 
 // ReauthRoundTripper satisfies the http.RoundTripper interface and is used to
-// limit the number of re-auth attempts (infinite by default)
+// limit the number of consecutive re-auth attempts (infinite by default)
 type ReauthRoundTripper struct {
 	rt                http.RoundTripper
 	numReauthAttempts int
@@ -51,6 +51,8 @@ func (rrt *ReauthRoundTripper) RoundTrip(request *http.Request) (*http.Response,
 			return response, errors.New("tried to re-authenticate 3 times with no success")
 		}
 		rrt.numReauthAttempts++
+	} else {
+		rrt.numReauthAttempts = 0
 	}
 
 	return response, nil
