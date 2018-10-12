@@ -61,3 +61,7 @@
 [[constraint]]
   name = "github.com/alicebob/miniredis"
   version = "2.4.4"
+
+[[constraint]]
+  name = "github.com/oracle/oci-go-sdk"
+  version = "2.7.0"
