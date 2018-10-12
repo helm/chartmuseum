@@ -217,7 +217,7 @@ var configVars = map[string]configVar{
 		Default: "",
 		CLIFlag: cli.StringFlag{
 			Name:   "storage",
-			Usage:  "storage backend, can be one of: local, amazon, google",
+			Usage:  "storage backend, can be one of: local, amazon, google, oracle",
 			EnvVar: "STORAGE",
 		},
 	},
@@ -291,6 +291,42 @@ var configVars = map[string]configVar{
 			Name:   "storage-google-prefix",
 			Usage:  "prefix to store charts for --storage-google-bucket",
 			EnvVar: "STORAGE_GOOGLE_PREFIX",
+		},
+	},
+	"storage.oracle.bucket": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-oracle-bucket",
+			Usage:  "ocs bucket to store charts for oracle cloud storage",
+			EnvVar: "STORAGE_ORACLE_BUCKET",
+		},
+	},
+	"storage.oracle.prefix": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-oracle-prefix",
+			Usage:  "prefix to store charts for --storage-oracle-bucket",
+			EnvVar: "STORAGE_ORACLE_PREFIX",
+		},
+	},
+	"storage.oracle.region": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-oracle-region",
+			Usage:  "region to store charts for --storage-oracle-bucket",
+			EnvVar: "STORAGE_ORACLE_REGION",
+		},
+	},
+	"storage.oracle.compartmentid": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-oracle-compartmentid",
+			Usage:  "compartment ocid of --storage-oracle-bucket",
+			EnvVar: "STORAGE_ORACLE_COMPARTMENTID",
 		},
 	},
 	"storage.microsoft.container": {

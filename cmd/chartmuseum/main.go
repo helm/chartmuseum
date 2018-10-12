@@ -46,7 +46,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "ChartMuseum"
 	app.Version = fmt.Sprintf("%s (build %s)", Version, Revision)
-	app.Usage = "Helm Chart Repository with support for Amazon S3, Google Cloud Storage and Openstack"
+	app.Usage = "Helm Chart Repository with support for Amazon S3, Google Cloud Storage, Oracle Cloud Infrastructure Object Storage and Openstack"
 	app.Action = cliHandler
 	app.Flags = config.CLIFlags
 	app.Run(os.Args)
@@ -115,6 +115,8 @@ func backendFromConfig(conf *config.Config) storage.Backend {
 		backend = amazonBackendFromConfig(conf)
 	case "google":
 		backend = googleBackendFromConfig(conf)
+	case "oracle":
+		backend = oracleBackendFromConfig(conf)        
 	case "microsoft":
 		backend = microsoftBackendFromConfig(conf)
 	case "alibaba":
@@ -156,6 +158,16 @@ func googleBackendFromConfig(conf *config.Config) storage.Backend {
 		conf.GetString("storage.google.bucket"),
 		conf.GetString("storage.google.prefix"),
 	))
+}
+
+func oracleBackendFromConfig(conf *config.Config) storage.Backend {
+        crashIfConfigMissingVars(conf, []string{"storage.oracle.bucket", "storage.oracle.compartmentid"})
+        return storage.Backend(storage.NewOracleCSBackend(
+		conf.GetString("storage.oracle.bucket"),
+		conf.GetString("storage.oracle.prefix"),
+		conf.GetString("storage.oracle.region"),
+		conf.GetString("storage.oracle.compartmentid"),
+        ))
 }
 
 func microsoftBackendFromConfig(conf *config.Config) storage.Backend {

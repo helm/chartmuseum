@@ -37,6 +37,9 @@ class ChartMuseum(common.CommandRunner):
         elif storage == 'openstack':
             cmd += '--storage-openstack-container="%s" --storage-openstack-prefix="%s" --storage-openstack-region="%s" >> %s 2>&1' \
                   % (common.STORAGE_OPENSTACK_CONTAINER, common.STORAGE_OPENSTACK_PREFIX, common.STORAGE_OPENSTACK_REGION, common.LOGFILE)
+        elif storage == 'oracle':
+            cmd += '--storage-oracle-bucket="%s" --storage-oracle-prefix="%s" --storage-oracle-compartmentid="%s" >> %s 2>&1' \
+                   % (common.STORAGE_ORACLE_BUCKET, common.STORAGE_ORACLE_PREFIX, common.STORAGE_ORACLE_COMPARTMENTID, common.LOGFILE)
         print(cmd)
         self.run_command(cmd, detach=True)
 
