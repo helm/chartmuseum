@@ -291,7 +291,7 @@ docker run --rm -it \
   -e STORAGE_AMAZON_BUCKET="my-s3-bucket" \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
-  -v ~/.aws:/root/.aws:ro \
+  -v ~/.aws:/home/chartmuseum/.aws:ro \
   chartmuseum/chartmuseum:latest
 ```
 
