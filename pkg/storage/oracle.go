@@ -18,13 +18,13 @@ limitations under the License.
 package storage
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"encoding/binary"
 	"io/ioutil"
+	"os"
 	pathutil "path"
 	"time"
-	"os"
 
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/common/auth"
@@ -33,12 +33,12 @@ import (
 
 // OracleCSBackend is a storage backend for Oracle Cloud Infrastructure Object Storage
 type OracleCSBackend struct {
-	Bucket string
-	Prefix string
-	Namespace string
+	Bucket        string
+	Prefix        string
+	Namespace     string
 	CompartmentId string
-	Client objectstorage.ObjectStorageClient
-	Context context.Context
+	Client        objectstorage.ObjectStorageClient
+	Context       context.Context
 }
 
 // NewOracleCSBackend creates a new instance of OracleCSBackend
@@ -77,7 +77,7 @@ func NewOracleCSBackend(bucket string, prefix string, region string, compartment
 	// Check if the bucket already exists
 	request := objectstorage.GetBucketRequest{
 		NamespaceName: &namespace,
-		BucketName: &bucket,
+		BucketName:    &bucket,
 	}
 
 	_, err = c.GetBucket(ctx, request)
@@ -91,12 +91,12 @@ func NewOracleCSBackend(bucket string, prefix string, region string, compartment
 
 	prefix = cleanPrefix(prefix)
 	b := &OracleCSBackend{
-		Bucket: bucket,
-		Prefix: prefix,
-		Namespace: namespace,
+		Bucket:        bucket,
+		Prefix:        prefix,
+		Namespace:     namespace,
 		CompartmentId: compartmentId,
-		Client: c,
-		Context: ctx,
+		Client:        c,
+		Context:       ctx,
 	}
 	return b
 }
@@ -135,8 +135,8 @@ func (b OracleCSBackend) ListObjects(prefix string) ([]Object, error) {
 
 	request := objectstorage.ListObjectsRequest{
 		NamespaceName: &b.Namespace,
-		BucketName: &b.Bucket,
-		Prefix: &prefix,
+		BucketName:    &b.Bucket,
+		Prefix:        &prefix,
 	}
 
 	rc, err := b.Client.ListObjects(b.Context, request)
@@ -176,8 +176,8 @@ func (b OracleCSBackend) GetObject(path string) (Object, error) {
 
 	request := objectstorage.GetObjectRequest{
 		NamespaceName: &b.Namespace,
-		BucketName: &b.Bucket,
-		ObjectName: &objectname,
+		BucketName:    &b.Bucket,
+		ObjectName:    &objectname,
 	}
 
 	rc, err := b.Client.GetObject(b.Context, request)
@@ -188,7 +188,7 @@ func (b OracleCSBackend) GetObject(path string) (Object, error) {
 
 	object.LastModified = rc.LastModified.Time
 	content, err := ioutil.ReadAll(rc.Content)
-	
+
 	if err != nil {
 		return object, err
 	}
@@ -206,11 +206,11 @@ func (b OracleCSBackend) PutObject(path string, content []byte) error {
 
 	request := objectstorage.PutObjectRequest{
 		NamespaceName: &b.Namespace,
-		BucketName: &b.Bucket,
-		ObjectName: &objectname,
+		BucketName:    &b.Bucket,
+		ObjectName:    &objectname,
 		PutObjectBody: contentBody,
 		ContentLength: &contentLen,
-		OpcMeta: metadata,
+		OpcMeta:       metadata,
 	}
 
 	_, err := b.Client.PutObject(b.Context, request)
@@ -224,8 +224,8 @@ func (b OracleCSBackend) DeleteObject(path string) error {
 
 	request := objectstorage.DeleteObjectRequest{
 		NamespaceName: &b.Namespace,
-		BucketName: &b.Bucket,
-		ObjectName: &objectname,
+		BucketName:    &b.Bucket,
+		ObjectName:    &objectname,
 	}
 
 	_, err := b.Client.DeleteObject(b.Context, request)

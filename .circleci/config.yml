@@ -15,6 +15,10 @@ jobs:
       - setup_remote_docker
       - run: sudo mkdir /usr/local/go/pkg/darwin_amd64
       - run: sudo chown -R circleci:circleci /usr/local/go/pkg/darwin_amd64 /usr/local/go/pkg/linux_amd64
+      - run: mkdir -p ${HOME}/.oci
+      - run: echo $ORACLE_CONFIG | base64 --decode --ignore-garbage > ${HOME}/.oci/config
+      - run: echo $ORACLE_KEY | base64 --decode --ignore-garbage > ${HOME}/.oci/oci_api_key.pem
+      - run: chmod go-rwx ${HOME}/.oci/*
       - run: echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcp-key.json
       - run: mkdir -p ${HOME}/.docker
       - run: echo $DOCKERHUB_CONFIG | base64 --decode --ignore-garbage > ${HOME}/.docker/config.json

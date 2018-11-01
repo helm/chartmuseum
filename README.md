@@ -6,7 +6,7 @@
 [![GoDoc](https://godoc.org/github.com/helm/chartmuseum?status.svg)](https://godoc.org/github.com/helm/chartmuseum)
 <sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
 
-*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md)** written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/) and [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage).
+*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md)** written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), and [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage).
 
 Works as a valid Helm Chart Repository, and also provides an API for uploading new chart packages to storage etc.
 
@@ -306,48 +306,6 @@ docker run --rm -it \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/home/chartmuseum/.aws:ro \
-  chartmuseum/chartmuseum:latest
-```
-
-Example usage (Oracle):
-```bash
-docker run --rm -it \
-  -p 8080:8080 \
-  -e PORT=8080 \
-  -e DEBUG=1 \
-  -e STORAGE="oracle" \
-  -e STORAGE_ORACLE_BUCKET="my-ocs-bucket" \
-  -e STORAGE_ORACLE_PREFIX="" \
-  -e STORAGE_ORACLE_COMPARTMENTID="ocid1.compartment.oc1..1234" \
-  -v ~/.oci:/root/chartmuseum/.oci:ro \
-  chartmuseum/chartmuseum:latest
-```
-
-Example usage (Oracle):
-```bash
-docker run --rm -it \
-  -p 8080:8080 \
-  -e PORT=8080 \
-  -e DEBUG=1 \
-  -e STORAGE="oracle" \
-  -e STORAGE_ORACLE_BUCKET="my-ocs-bucket" \
-  -e STORAGE_ORACLE_PREFIX="" \
-  -e STORAGE_ORACLE_COMPARTMENTID="ocid1.compartment.oc1..1234" \
-  -v ~/.oci:/root/chartmuseum/.oci:ro \
-  chartmuseum/chartmuseum:latest
-```
-
-Example usage (Oracle):
-```bash
-docker run --rm -it \
-  -p 8080:8080 \
-  -e PORT=8080 \
-  -e DEBUG=1 \
-  -e STORAGE="oracle" \
-  -e STORAGE_ORACLE_BUCKET="my-ocs-bucket" \
-  -e STORAGE_ORACLE_PREFIX="" \
-  -e STORAGE_ORACLE_COMPARTMENTID="ocid1.compartment.oc1..1234" \
-  -v ~/.oci:/root/chartmuseum/.oci:ro \
   chartmuseum/chartmuseum:latest
 ```
 

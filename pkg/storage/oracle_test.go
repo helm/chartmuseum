@@ -31,19 +31,25 @@ type OracleTestSuite struct {
 }
 
 func (suite *OracleTestSuite) SetupSuite() {
-	backend := NewOracleCSBackend("fake-bucket-cant-exist-fbce123", "", "", "")
-	suite.BrokenOracleCSBackend = backend
-
 	ocsBucket := os.Getenv("TEST_STORAGE_ORACLE_BUCKET")
 	ocsRegion := os.Getenv("TEST_STORAGE_ORACLE_REGION")
 	ocsCompartmentId := os.Getenv("TEST_STORAGE_ORACLE_COMPARTMENTID")
-	backend = NewOracleCSBackend(ocsBucket, "", ocsRegion, ocsCompartmentId)
+	backend := NewOracleCSBackend(ocsBucket, "", ocsRegion, ocsCompartmentId)
 	suite.NoPrefixOracleCSBackend = backend
 
 	data := []byte("some object")
 	path := "deleteme.txt"
 	err := suite.NoPrefixOracleCSBackend.PutObject(path, data)
 	suite.Nil(err, "no error putting deleteme.txt using OracleCS backend")
+
+	suite.BrokenOracleCSBackend = &OracleCSBackend{
+		Bucket:        "fake-bucket-cant-exist-fbce123",
+		Prefix:        backend.Prefix,
+		Namespace:     backend.Namespace,
+		CompartmentId: backend.CompartmentId,
+		Client:        backend.Client,
+		Context:       backend.Context,
+	}
 }
 
 func (suite *OracleTestSuite) TearDownSuite() {
