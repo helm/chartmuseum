@@ -278,6 +278,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 
 #### Other CLI options
 - `--log-json` - output structured logs as json
+- `--log-health` - log incoming /health requests
 - `--disable-api` - disable all routes prefixed with /api
 - `--disable-statefiles` - disable use of index-cache.yaml
 - `--allow-overwrite` - allow chart versions to be re-uploaded without ?force querystring
