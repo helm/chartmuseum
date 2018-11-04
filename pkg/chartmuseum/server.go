@@ -40,6 +40,7 @@ type (
 		ProvPostFormFieldName  string
 		ContextPath            string
 		LogJSON                bool
+		LogHealth              bool
 		Debug                  bool
 		EnableAPI              bool
 		UseStatefiles          bool
@@ -88,6 +89,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		ContextPath:   contextPath,
 		TlsCert:       options.TlsCert,
 		TlsKey:        options.TlsKey,
+		LogHealth:     options.LogHealth,
 		EnableMetrics: options.EnableMetrics,
 		AnonymousGet:  options.AnonymousGet,
 		Depth:         options.Depth,

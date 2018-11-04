@@ -67,6 +67,15 @@ var configVars = map[string]configVar{
 			EnvVar: "LOG_JSON",
 		},
 	},
+	"loghealth": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "log-health",
+			Usage:  "log inbound /health requests",
+			EnvVar: "LOG_HEALTH",
+		},
+	},
 	"disablemetrics": {
 		Type:    boolType,
 		Default: false,

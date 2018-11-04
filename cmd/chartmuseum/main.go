@@ -74,6 +74,7 @@ func cliHandler(c *cli.Context) {
 		ProvPostFormFieldName:  conf.GetString("provpostformfieldname"),
 		ContextPath:            conf.GetString("contextpath"),
 		LogJSON:                conf.GetBool("logjson"),
+		LogHealth:              conf.GetBool("loghealth"),
 		Debug:                  conf.GetBool("debug"),
 		EnableAPI:              !conf.GetBool("disableapi"),
 		UseStatefiles:          !conf.GetBool("disablestatefiles"),
@@ -116,7 +117,7 @@ func backendFromConfig(conf *config.Config) storage.Backend {
 	case "google":
 		backend = googleBackendFromConfig(conf)
 	case "oracle":
-		backend = oracleBackendFromConfig(conf)        
+		backend = oracleBackendFromConfig(conf)
 	case "microsoft":
 		backend = microsoftBackendFromConfig(conf)
 	case "alibaba":

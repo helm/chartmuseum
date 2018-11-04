@@ -19,6 +19,7 @@ package router
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -33,12 +34,15 @@ var (
 	requestServedMessage = "Request served"
 )
 
-func requestWrapper(logger *cm_logger.Logger) func(c *gin.Context) {
+func requestWrapper(logger *cm_logger.Logger, logHealth bool) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		setupContext(c)
 
 		reqPath := c.Request.URL.Path
-		logger.Debugc(c, fmt.Sprintf("Incoming request: %s", reqPath))
+		logRequest := !strings.HasSuffix(reqPath, "/health") || logHealth
+		if logRequest {
+			logger.Debugc(c, fmt.Sprintf("Incoming request: %s", reqPath))
+		}
 		start := time.Now()
 
 		c.Next()
@@ -56,7 +60,9 @@ func requestWrapper(logger *cm_logger.Logger) func(c *gin.Context) {
 
 		switch {
 		case status == 200 || status == 201:
-			logger.Infoc(c, requestServedMessage, meta...)
+			if logRequest {
+				logger.Infoc(c, requestServedMessage, meta...)
+			}
 		case status == 404:
 			logger.Warnc(c, requestServedMessage, meta...)
 		default:

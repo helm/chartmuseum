@@ -56,6 +56,7 @@ type (
 		TlsCert       string
 		TlsKey        string
 		PathPrefix    string
+		LogHealth     bool
 		EnableMetrics bool
 		AnonymousGet  bool
 		Depth         int
@@ -90,7 +91,7 @@ func NewRouter(options RouterOptions) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	engine.Use(gin.Recovery())
-	engine.Use(requestWrapper(options.Logger))
+	engine.Use(requestWrapper(options.Logger, options.LogHealth))
 	engine.Use(limits.RequestSizeLimiter(int64(options.MaxUploadSize)))
 
 	if options.EnableMetrics {
@@ -113,8 +114,8 @@ func NewRouter(options RouterOptions) *Router {
 	// if BearerAuth is true, looks for required inputs.
 	// example input:
 	// --bearer-auth=true
-	// --auth-realm="https://127.0.0.1:5001/auth" 
-	// --auth-service="chartmuseum" 
+	// --auth-realm="https://127.0.0.1:5001/auth"
+	// --auth-service="chartmuseum"
 	// --auth-issuer="Acme auth server"
 	// --auth-cert-path="./certs/authorization-server-cert.pem"
 	if options.BearerAuth {
