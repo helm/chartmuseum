@@ -26,8 +26,8 @@ import (
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
 	cm_repo "github.com/helm/chartmuseum/pkg/repo"
-	"github.com/helm/chartmuseum/pkg/storage"
-	cm_storage "github.com/helm/chartmuseum/pkg/storage"
+	"github.com/chartmuseum/storage"
+	cm_storage "github.com/chartmuseum/storage"
 )
 
 var (

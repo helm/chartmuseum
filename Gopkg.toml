@@ -1,28 +1,4 @@
 [[constraint]]
-  name = "cloud.google.com/go"
-  source = "https://github.com/GoogleCloudPlatform/google-cloud-go.git"
-  version = "0.27.0"
-
-# Used by Microsoft Azure Blob storage backend
-[[constraint]]
-  name = "github.com/Azure/azure-sdk-for-go"
-  version = "20.1.0"
-
-# Used by Alibaba Cloud OSS storage backend
-[[constraint]]
-  name = "github.com/aliyun/aliyun-oss-go-sdk"
-  version = "1.9.0"
-
-# Used by Openstack Object Storage backend
-[[constraint]]
-  name = "github.com/gophercloud/gophercloud"
-  branch = "master"
-
-[[constraint]]
-  name = "github.com/aws/aws-sdk-go"
-  version = "1.15.31"
-
-[[constraint]]
   name = "github.com/gin-gonic/gin"
   version = "1.3.0"
 
@@ -46,10 +22,6 @@
   name = "k8s.io/helm"
   version = "2.11.0"
 
-[prune]
-  go-tests = true
-  unused-packages = true
-
 [[constraint]]
   branch = "master"
   name = "github.com/gin-contrib/size"
@@ -63,5 +35,9 @@
   version = "2.4.4"
 
 [[constraint]]
-  name = "github.com/oracle/oci-go-sdk"
-  version = "2.7.0"
+  name = "github.com/chartmuseum/storage"
+  version = "0.1.0"
+
+[prune]
+  go-tests = true
+  unused-packages = true
