@@ -23,7 +23,7 @@ import (
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
 	mt "github.com/helm/chartmuseum/pkg/chartmuseum/server/multitenant"
-	"github.com/helm/chartmuseum/pkg/storage"
+	"github.com/chartmuseum/storage"
 )
 
 type (

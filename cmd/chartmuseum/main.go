@@ -22,10 +22,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/chartmuseum/storage"
 	"github.com/helm/chartmuseum/pkg/cache"
 	"github.com/helm/chartmuseum/pkg/chartmuseum"
 	"github.com/helm/chartmuseum/pkg/config"
-	"github.com/helm/chartmuseum/pkg/storage"
 
 	"github.com/urfave/cli"
 )
@@ -162,13 +162,13 @@ func googleBackendFromConfig(conf *config.Config) storage.Backend {
 }
 
 func oracleBackendFromConfig(conf *config.Config) storage.Backend {
-        crashIfConfigMissingVars(conf, []string{"storage.oracle.bucket", "storage.oracle.compartmentid"})
-        return storage.Backend(storage.NewOracleCSBackend(
+	crashIfConfigMissingVars(conf, []string{"storage.oracle.bucket", "storage.oracle.compartmentid"})
+	return storage.Backend(storage.NewOracleCSBackend(
 		conf.GetString("storage.oracle.bucket"),
 		conf.GetString("storage.oracle.prefix"),
 		conf.GetString("storage.oracle.region"),
 		conf.GetString("storage.oracle.compartmentid"),
-        ))
+	))
 }
 
 func microsoftBackendFromConfig(conf *config.Config) storage.Backend {

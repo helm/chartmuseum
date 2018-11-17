@@ -32,7 +32,7 @@ import (
 
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
-	"github.com/helm/chartmuseum/pkg/storage"
+	"github.com/chartmuseum/storage"
 
 	"github.com/gin-gonic/gin"
 	"github.com/helm/chartmuseum/pkg/repo"
