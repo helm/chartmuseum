@@ -4,7 +4,7 @@
 [![CircleCI](https://circleci.com/gh/helm/chartmuseum.svg?style=svg)](https://circleci.com/gh/helm/chartmuseum)
 [![Go Report Card](https://goreportcard.com/badge/github.com/helm/chartmuseum)](https://goreportcard.com/report/github.com/helm/chartmuseum)
 [![GoDoc](https://godoc.org/github.com/helm/chartmuseum?status.svg)](https://godoc.org/github.com/helm/chartmuseum)
-<sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
+</br><sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
 
 *ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md)** written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), and [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage).
 
