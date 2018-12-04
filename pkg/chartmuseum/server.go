@@ -57,7 +57,6 @@ type (
 		AuthType               string
 		AuthRealm              string
 		AuthService            string
-		AuthIssuer             string
 		AuthCertPath           string
 	}
 
@@ -98,7 +97,6 @@ func NewServer(options ServerOptions) (Server, error) {
 		AuthType:      options.AuthType,
 		AuthRealm:     options.AuthRealm,
 		AuthService:   options.AuthService,
-		AuthIssuer:    options.AuthIssuer,
 		AuthCertPath:  options.AuthCertPath,
 	})
 

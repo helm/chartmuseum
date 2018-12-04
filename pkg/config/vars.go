@@ -528,15 +528,6 @@ var configVars = map[string]configVar{
 			EnvVar: "AUTH_SERVICE",
 		},
 	},
-	"authissuer": {
-		Type:    stringType,
-		Default: "",
-		CLIFlag: cli.StringFlag{
-			Name:   "auth-issuer",
-			Usage:  "authorization server name",
-			EnvVar: "AUTH_ISSUER",
-		},
-	},
 	"authcertpath": {
 		Type:    stringType,
 		Default: "",

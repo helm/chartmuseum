@@ -91,7 +91,6 @@ func cliHandler(c *cli.Context) {
 		AuthType:               conf.GetString("authtype"),
 		AuthRealm:              conf.GetString("authrealm"),
 		AuthService:            conf.GetString("authservice"),
-		AuthIssuer:             conf.GetString("authissuer"),
 		AuthCertPath:           conf.GetString("authcertpath"),
 	}
 

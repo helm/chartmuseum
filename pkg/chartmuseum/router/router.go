@@ -43,7 +43,6 @@ type (
 		AuthType         string
 		AuthRealm        string
 		AuthService      string
-		AuthIssuer       string
 		AuthPublicCert   []byte
 	}
 
@@ -65,7 +64,6 @@ type (
 		AuthType      string
 		AuthRealm     string
 		AuthService   string
-		AuthIssuer    string
 		AuthCertPath  string
 	}
 
@@ -125,9 +123,6 @@ func NewRouter(options RouterOptions) *Router {
 		if options.AuthService == "" {
 			router.Logger.Fatal("Missing Auth Service")
 		}
-		if options.AuthIssuer == "" {
-			router.Logger.Fatal("Missing Auth Issuer")
-		}
 		if options.AuthCertPath == "" {
 			router.Logger.Fatal("Missing Auth Server Public Cert Path")
 		}
@@ -137,7 +132,6 @@ func NewRouter(options RouterOptions) *Router {
 		router.AuthType = options.AuthType
 		router.AuthRealm = options.AuthRealm
 		router.AuthService = options.AuthService
-		router.AuthIssuer = options.AuthIssuer
 
 		// loads certificate from file
 		loadPublicCertFromFile(options.AuthCertPath, router)
