@@ -215,7 +215,6 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 			Actions: []string{cm_auth.PullAction},
 		},
 	}
-
 	cmtokenGenerator, err := cm_auth.NewTokenGenerator(&cm_auth.TokenGeneratorOptions{
 		PrivateKeyPath: testPrivateKey,
 	})
