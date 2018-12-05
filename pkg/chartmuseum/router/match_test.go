@@ -21,6 +21,7 @@ import (
 	pathutil "path"
 	"testing"
 
+	cm_auth "github.com/chartmuseum/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 )
@@ -44,16 +45,16 @@ func (suite *MatchTestSuite) TestMatch() {
 	}
 
 	routes := []*Route{
-		{"GET", "/", handlers[0], RepoPullAction},
-		{"GET", "/health", handlers[1], SystemInfoAction},
-		{"GET", "/:repo/index.yaml", handlers[2], RepoPullAction},
-		{"GET", "/:repo/charts/:filename", handlers[3], RepoPullAction},
-		{"GET", "/api/:repo/charts", handlers[4], RepoPullAction},
-		{"GET", "/api/:repo/charts/:name", handlers[5], RepoPullAction},
-		{"GET", "/api/:repo/charts/:name/:version", handlers[6], RepoPullAction},
-		{"POST", "/api/:repo/charts", handlers[7], RepoPushAction},
-		{"POST", "/api/:repo/prov", handlers[8], RepoPushAction},
-		{"DELETE", "/api/:repo/charts/:name/:version", handlers[9], RepoPushAction},
+		{"GET", "/", handlers[0], cm_auth.PullAction},
+		{"GET", "/health", handlers[1], ""},
+		{"GET", "/:repo/index.yaml", handlers[2], cm_auth.PullAction},
+		{"GET", "/:repo/charts/:filename", handlers[3], cm_auth.PullAction},
+		{"GET", "/api/:repo/charts", handlers[4], cm_auth.PullAction},
+		{"GET", "/api/:repo/charts/:name", handlers[5], cm_auth.PullAction},
+		{"GET", "/api/:repo/charts/:name/:version", handlers[6], cm_auth.PullAction},
+		{"POST", "/api/:repo/charts", handlers[7], cm_auth.PushAction},
+		{"POST", "/api/:repo/prov", handlers[8], cm_auth.PushAction},
+		{"DELETE", "/api/:repo/charts/:name/:version", handlers[9], cm_auth.PushAction},
 	}
 
 	for depth := 0; depth <= 3; depth++ {

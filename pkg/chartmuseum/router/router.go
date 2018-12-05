@@ -22,6 +22,7 @@ import (
 
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 
+	cm_auth "github.com/chartmuseum/auth"
 	"github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"
@@ -31,19 +32,13 @@ type (
 	// Router handles all incoming HTTP requests
 	Router struct {
 		*gin.Engine
-		Logger           *cm_logger.Logger
-		Routes           []*Route
-		TlsCert          string
-		TlsKey           string
-		ContextPath      string
-		BasicAuthHeader  string
-		BearerAuthHeader string
-		AnonymousGet     bool
-		Depth            int
-		AuthType         string
-		AuthRealm        string
-		AuthService      string
-		AuthPublicCert   []byte
+		Logger      *cm_logger.Logger
+		Authorizer  *cm_auth.Authorizer
+		Routes      []*Route
+		TlsCert     string
+		TlsKey      string
+		ContextPath string
+		Depth       int
 	}
 
 	// RouterOptions are options for constructing a Router
@@ -61,7 +56,6 @@ type (
 		Depth         int
 		MaxUploadSize int
 		BearerAuth    bool
-		AuthType      string
 		AuthRealm     string
 		AuthService   string
 		AuthCertPath  string
@@ -72,16 +66,8 @@ type (
 		Method  string
 		Path    string
 		Handler gin.HandlerFunc
-		Action  action
+		Action  string
 	}
-
-	action string
-)
-
-var (
-	RepoPullAction   action = "pull"
-	RepoPushAction   action = "push"
-	SystemInfoAction action = "sysinfo"
 )
 
 // NewRouter creates a new Router instance
@@ -99,22 +85,23 @@ func NewRouter(options RouterOptions) *Router {
 	}
 
 	router := &Router{
-		Engine:       engine,
-		Routes:       []*Route{},
-		Logger:       options.Logger,
-		TlsCert:      options.TlsCert,
-		TlsKey:       options.TlsKey,
-		ContextPath:  options.ContextPath,
-		AnonymousGet: options.AnonymousGet,
-		Depth:        options.Depth,
+		Engine:      engine,
+		Routes:      []*Route{},
+		Logger:      options.Logger,
+		TlsCert:     options.TlsCert,
+		TlsKey:      options.TlsKey,
+		ContextPath: options.ContextPath,
+		Depth:       options.Depth,
 	}
+
+	var err error
+	var authorizer *cm_auth.Authorizer
 
 	// if BearerAuth is true, looks for required inputs.
 	// example input:
-	// --bearer-auth=true
-	// --auth-realm="https://127.0.0.1:5001/auth"
-	// --auth-service="chartmuseum"
-	// --auth-issuer="Acme auth server"
+	// --bearer-auth
+	// --auth-realm="https://my.site.io/oauth2/token"
+	// --auth-service="my.site.io"
 	// --auth-cert-path="./certs/authorization-server-cert.pem"
 	if options.BearerAuth {
 		if options.AuthRealm == "" {
@@ -126,22 +113,29 @@ func NewRouter(options RouterOptions) *Router {
 		if options.AuthCertPath == "" {
 			router.Logger.Fatal("Missing Auth Server Public Cert Path")
 		}
-		if options.AuthType != "token" {
-			router.Logger.Fatal("Invalid auth type: only accept token auth")
-		}
-		router.AuthType = options.AuthType
-		router.AuthRealm = options.AuthRealm
-		router.AuthService = options.AuthService
 
-		// loads certificate from file
-		loadPublicCertFromFile(options.AuthCertPath, router)
-
-		router.BearerAuthHeader = "Bearer"
+		authorizer, err = cm_auth.NewAuthorizer(&cm_auth.AuthorizerOptions{
+			Realm:         options.AuthRealm,
+			Service:       options.AuthService,
+			PublicKeyPath: options.AuthCertPath,
+		})
+	} else if options.Username != "" && options.Password != "" {
+		authorizer, err = cm_auth.NewAuthorizer(&cm_auth.AuthorizerOptions{
+			Realm:    "ChartMuseum",
+			Username: options.Username,
+			Password: options.Password,
+		})
 	}
 
-	if options.Username != "" && options.Password != "" {
-		router.BasicAuthHeader = generateBasicAuthHeader(options.Username, options.Password)
+	if err != nil {
+		router.Logger.Fatal(err)
 	}
+
+	if options.AnonymousGet {
+		authorizer.AnonymousActions = []string{cm_auth.PullAction}
+	}
+
+	router.Authorizer = authorizer
 
 	router.NoRoute(router.masterHandler)
 
@@ -173,14 +167,25 @@ func (router *Router) masterHandler(c *gin.Context) {
 	}
 	c.Params = params
 
-	if isRepoAction(route.Action) {
+	if route.Action != "" && router.Authorizer != nil {
+		authHeader := c.Request.Header.Get("Authorization")
 
-
-		authorized, responseHeaders := router.authorizeRequest(c.Request)
-		for key, value := range responseHeaders {
-			c.Header(key, value)
+		namespace := c.Param("repo")
+		if namespace == "" {
+			namespace = cm_auth.DefaultNamespace
 		}
-		if !authorized {
+
+		permissions, err := router.Authorizer.Authorize(authHeader, route.Action, namespace)
+		if err != nil {
+			router.Logger.Error(err)
+			c.JSON(500, gin.H{"error": "internal server error"})
+			return
+		}
+
+		if !permissions.Allowed {
+			if permissions.WWWAuthenticateHeader != "" {
+				c.Header("WWW-Authenticate", permissions.WWWAuthenticateHeader)
+			}
 			c.JSON(401, gin.H{"error": "unauthorized"})
 			return
 		}

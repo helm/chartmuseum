@@ -54,7 +54,6 @@ type (
 		Depth                  int
 		MaxUploadSize          int
 		BearerAuth             bool
-		AuthType               string
 		AuthRealm              string
 		AuthService            string
 		AuthCertPath           string
@@ -94,7 +93,6 @@ func NewServer(options ServerOptions) (Server, error) {
 		Depth:         options.Depth,
 		MaxUploadSize: options.MaxUploadSize,
 		BearerAuth:    options.BearerAuth,
-		AuthType:      options.AuthType,
 		AuthRealm:     options.AuthRealm,
 		AuthService:   options.AuthService,
 		AuthCertPath:  options.AuthCertPath,

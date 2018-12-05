@@ -501,15 +501,6 @@ var configVars = map[string]configVar{
 			EnvVar: "BEARER_AUTH",
 		},
 	},
-	"authtype": {
-		Type:    stringType,
-		Default: "token",
-		CLIFlag: cli.StringFlag{
-			Name:   "auth-type",
-			Usage:  "type of auth (currently only supports token)",
-			EnvVar: "AUTH_TYPE",
-		},
-	},
 	"authrealm": {
 		Type:    stringType,
 		Default: "",

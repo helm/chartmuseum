@@ -17,6 +17,7 @@ limitations under the License.
 package router
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -25,8 +26,14 @@ import (
 
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 
+	cm_auth "github.com/chartmuseum/auth"
 	"github.com/gin-gonic/gin"
 	"net/http/httptest"
+)
+
+var (
+	testPublicKey  = "../../../testdata/bearerauth/server.pem"
+	testPrivateKey = "../../../testdata/bearerauth/server.key"
 )
 
 type RouterTestSuite struct {
@@ -61,22 +68,22 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testRoutes := []*Route{
 		{"GET", "/", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte("200"))
-		}, RepoPullAction},
+		}, cm_auth.PullAction},
 		{"GET", "/health", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte("200"))
-		}, SystemInfoAction},
+		}, ""},
 		{"GET", "/:repo/whatsmyrepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}, RepoPullAction},
+		}, cm_auth.PullAction},
 		{"GET", "/api/:repo/whatsmyrepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}, RepoPullAction},
+		}, cm_auth.PullAction},
 		{"POST", "/api/:repo/writetorepo", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}, RepoPushAction},
+		}, cm_auth.PushAction},
 		{"GET", "/api/:repo/systemstats", func(c *gin.Context) {
 			c.Data(200, "text/html", []byte(c.GetString("repo")))
-		}, RepoPullAction},
+		}, cm_auth.PullAction},
 	}
 
 	// Test route transformations
@@ -188,6 +195,55 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testContext.Request, _ = http.NewRequest("GET", "/", nil)
 	basicAuthRouterAnonGet.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
+
+	// Bearer auth
+	bearerAuthRouter := NewRouter(RouterOptions{
+		Logger:       log,
+		Depth:        2,
+		BearerAuth:   true,
+		AuthRealm:    "https://my.site.io/oauth2/token",
+		AuthService:  "my.site.io",
+		AuthCertPath: testPublicKey,
+	})
+	bearerAuthRouter.SetRoutes(testRoutes)
+
+	// Generate a JWT token that has pull access to org1/repo1
+	access := []cm_auth.AccessEntry{
+		{
+			Name:    "org1/repo1",
+			Type:    cm_auth.AccessEntryType,
+			Actions: []string{cm_auth.PullAction},
+		},
+	}
+
+	cmtokenGenerator, err := cm_auth.NewTokenGenerator(&cm_auth.TokenGeneratorOptions{
+		PrivateKeyPath: testPrivateKey,
+	})
+	suite.Nil(err)
+
+	signedString, err := cmtokenGenerator.GenerateToken(access, 0)
+	suite.Nil(err)
+
+	// Able to pull org1/repo1
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/org1/repo1/whatsmyrepo", nil)
+	testContext.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", signedString))
+	bearerAuthRouter.HandleContext(testContext)
+	suite.Equal(200, testContext.Writer.Status())
+
+	// Unable to push org1/repo1
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("POST", "/api/org1/repo1/writetorepo", nil)
+	testContext.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", signedString))
+	bearerAuthRouter.HandleContext(testContext)
+	suite.Equal(401, testContext.Writer.Status())
+
+	// Cannot pull other repo (org1/repo2)
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/org1/repo2/whatsmyrepo", nil)
+	testContext.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", signedString))
+	bearerAuthRouter.HandleContext(testContext)
+	suite.Equal(401, testContext.Writer.Status())
 }
 
 func (suite *RouterTestSuite) TestMapURLWithParamsBackToRouteTemplate() {
