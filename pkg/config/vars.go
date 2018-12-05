@@ -501,15 +501,6 @@ var configVars = map[string]configVar{
 			EnvVar: "BEARER_AUTH",
 		},
 	},
-	"authtype": {
-		Type:    stringType,
-		Default: "token",
-		CLIFlag: cli.StringFlag{
-			Name:   "auth-type",
-			Usage:  "type of auth (currently only supports token)",
-			EnvVar: "AUTH_TYPE",
-		},
-	},
 	"authrealm": {
 		Type:    stringType,
 		Default: "",
@@ -526,15 +517,6 @@ var configVars = map[string]configVar{
 			Name:   "auth-service",
 			Usage:  "authorization server service name",
 			EnvVar: "AUTH_SERVICE",
-		},
-	},
-	"authissuer": {
-		Type:    stringType,
-		Default: "",
-		CLIFlag: cli.StringFlag{
-			Name:   "auth-issuer",
-			Usage:  "authorization server name",
-			EnvVar: "AUTH_ISSUER",
 		},
 	},
 	"authcertpath": {

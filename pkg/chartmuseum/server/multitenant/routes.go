@@ -18,28 +18,30 @@ package multitenant
 
 import (
 	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
+
+	cm_auth "github.com/chartmuseum/auth"
 )
 
 func (s *MultiTenantServer) Routes() []*cm_router.Route {
 	var routes []*cm_router.Route
 
 	serverInfoRoutes := []*cm_router.Route{
-		{"GET", "/", s.getWelcomePageHandler, cm_router.RepoPullAction},
-		{"GET", "/health", s.getHealthCheckHandler, cm_router.SystemInfoAction},
+		{"GET", "/", s.getWelcomePageHandler, cm_auth.PullAction},
+		{"GET", "/health", s.getHealthCheckHandler, ""},
 	}
 
 	helmChartRepositoryRoutes := []*cm_router.Route{
-		{"GET", "/:repo/index.yaml", s.getIndexFileRequestHandler, cm_router.RepoPullAction},
-		{"GET", "/:repo/charts/:filename", s.getStorageObjectRequestHandler, cm_router.RepoPullAction},
+		{"GET", "/:repo/index.yaml", s.getIndexFileRequestHandler, cm_auth.PullAction},
+		{"GET", "/:repo/charts/:filename", s.getStorageObjectRequestHandler, cm_auth.PullAction},
 	}
 
 	chartManipulationRoutes := []*cm_router.Route{
-		{"GET", "/api/:repo/charts", s.getAllChartsRequestHandler, cm_router.RepoPullAction},
-		{"GET", "/api/:repo/charts/:name", s.getChartRequestHandler, cm_router.RepoPullAction},
-		{"GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler, cm_router.RepoPullAction},
-		{"POST", "/api/:repo/charts", s.postRequestHandler, cm_router.RepoPushAction},
-		{"POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler, cm_router.RepoPushAction},
-		{"DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler, cm_router.RepoPushAction},
+		{"GET", "/api/:repo/charts", s.getAllChartsRequestHandler, cm_auth.PullAction},
+		{"GET", "/api/:repo/charts/:name", s.getChartRequestHandler, cm_auth.PullAction},
+		{"GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler, cm_auth.PullAction},
+		{"POST", "/api/:repo/charts", s.postRequestHandler, cm_auth.PushAction},
+		{"POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler, cm_auth.PushAction},
+		{"DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler, cm_auth.PushAction},
 	}
 
 	routes = append(routes, serverInfoRoutes...)

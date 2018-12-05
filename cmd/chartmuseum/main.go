@@ -88,10 +88,8 @@ func cliHandler(c *cli.Context) {
 		Depth:                  conf.GetInt("depth"),
 		MaxUploadSize:          conf.GetInt("maxuploadsize"),
 		BearerAuth:             conf.GetBool("bearerauth"),
-		AuthType:               conf.GetString("authtype"),
 		AuthRealm:              conf.GetString("authrealm"),
 		AuthService:            conf.GetString("authservice"),
-		AuthIssuer:             conf.GetString("authissuer"),
 		AuthCertPath:           conf.GetString("authcertpath"),
 	}
 

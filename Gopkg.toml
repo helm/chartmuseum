@@ -41,3 +41,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/chartmuseum/auth"
+  version = "0.1.0"
