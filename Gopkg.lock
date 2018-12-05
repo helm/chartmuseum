@@ -137,6 +137,12 @@
   version = "v0.1.0"
 
 [[projects]]
+  name = "github.com/chartmuseum/auth"
+  packages = ["."]
+  revision = "1407962e88812a64e7dfd3599737e163e3046b3c"
+  version = "v0.1.0"
+
+[[projects]]
   name = "github.com/chartmuseum/storage"
   packages = ["."]
   revision = "3667b4124c275f15dba559c031cfa9ed8a6fa6b5"
@@ -355,6 +361,12 @@
   packages = ["."]
   revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
   version = "v1.2.0"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -735,6 +747,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6c454bc555beaa09e7962c3783c0f9dba46711b36927a7be8987546b9292aa45"
+  inputs-digest = "733665eeda08e08b1e1a80bf558a86fcb4474e088741f02ef5387e0f089f39e7"
   solver-name = "gps-cdcl"
   solver-version = 1
