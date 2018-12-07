@@ -153,6 +153,6 @@ steps:
     type: push
     candidate: '${{BuildDockerImage}}'
     image_name: chartmuseum/chartmuseum
-    tag: '${{VERSION}}'
+    tag: 'v${{VERSION}}'
     registry: dockerhub
     when: *version_unreleased
