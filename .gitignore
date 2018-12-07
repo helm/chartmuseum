@@ -20,5 +20,4 @@ goviz.png
 index.yaml
 mirror/
 testbin/
-vendor/
 cmd/chartmuseum/debug

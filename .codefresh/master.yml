@@ -1,0 +1,158 @@
+version: '1.0'
+
+mode: parallel
+
+stages:
+- build
+- test
+- release
+
+steps:
+
+  SetupEnvironment:
+    title: Setup environment
+    image: &testbed chartmuseum/testbed:latest
+    commands:
+    - make clean
+    - cf_export VERSION="$(make get-version)"
+    - cf_export VERSION_RELEASED="$(make version-released && echo true || echo false)"
+    - &link mkdir -p /go/src/github.com/helm && cd /go/src/github.com/helm && ln -s /codefresh/volume/chartmuseum chartmuseum && cd chartmuseum
+    when:
+      steps:
+      - name: main_clone
+        on:
+        - success
+
+  BuildPlatformBinaries:
+    type: parallel
+    stage: build
+    steps:
+      BuildPlatformBinaryLinux:
+        title: Build Linux binary
+        image: *testbed
+        commands:
+        - *link
+        - make build-linux
+      BuildPlatformBinaryMac:
+        title: Build Mac binary
+        image: *testbed
+        commands:
+        - *link
+        - make build-mac
+      BuildPlatformBinaryWindows:
+        title: Build Windows binary
+        image: *testbed
+        commands:
+        - *link
+        - make build-windows
+    when: &post_setup
+      steps:
+      - name: SetupEnvironment
+        on:
+        - success
+
+  BuildDockerImage:
+    type: build
+    stage: build
+    title: Build Docker image
+    image_name: ${{CF_REPO_OWNER}}/chartmuseum
+    when: &post_linux_binary_build
+      steps:
+      - name: BuildPlatformBinaryLinux
+        on:
+        - success
+
+  RunUnitTests:
+    stage: test
+    title: Run unit tests
+    image: *testbed
+    commands:
+    - *link
+    - make test && touch UNIT_TEST_SUCCESS
+    when: *post_setup
+
+  RunAcceptanceTests:
+    stage: test
+    title: Run acceptance tests
+    image: *testbed
+    commands:
+    - *link
+    - make acceptance && touch ACCEPTANCE_TEST_SUCCESS
+    when: *post_linux_binary_build
+
+  UploadTestReports:
+    stage: test
+    title: Upload test reports
+    image: codefresh/cf-docker-test-reporting
+    environment:
+    - BUCKET_NAME=${{TEST_REPORT_S3_BUCKET_NAME}}
+    - CF_STORAGE_INTEGRATION=amazon
+    commands:
+    # Combine reports, add link to coverage report at the bottom of acceptance test report
+    - mkdir -p .report && cp .robot/* .report/ && cp .cover/coverage.html .report/
+    - sed -i 's/<\/body>/<h1><a href=\"coverage.html\">View code coverage<\/a><\/h1><\/body>/' .report/report.html
+    - REPORT_DIR=.report REPORT_INDEX_FILE=report.html node /app/index.js
+    - bash -c 'if [[ ! -f UNIT_TEST_SUCCESS || ! -f ACCEPTANCE_TEST_SUCCESS ]]; then exit 1; fi'
+    when:
+      steps:
+      - name: RunUnitTests
+        on:
+        - finished
+      - name: RunAcceptanceTests
+        on:
+        - finished
+
+  UploadLatestPlatformBinaries:
+    stage: release
+    title: Upload latest platform binaries
+    image: *testbed
+    commands:
+    - *link
+    - make release-latest
+    when: &tests_pass
+      steps:
+      - name: BuildDockerImage
+        on:
+        - success
+      - name: UploadTestReports
+        on:
+        - success
+
+  UploadStablePlatformBinaries:
+    stage: release
+    title: Upload stable platform binaries
+    image: *testbed
+    commands:
+    - *link
+    - make release-stable
+    when: &version_unreleased
+      steps:
+      - name: BuildDockerImage
+        on:
+        - success
+      - name: UploadTestReports
+        on:
+        - success
+      condition:
+        all:
+          VersionReleased: '"${{VERSION_RELEASED}}" == "false"'
+
+  PushLatestDockerImage:
+    stage: release
+    title: Push latest Docker image
+    type: push
+    candidate: '${{BuildDockerImage}}'
+    image_name: chartmuseum/chartmuseum
+    tag: latest
+    registry: dockerhub
+    when: *tests_pass
+
+  PushStableDockerImage:
+    stage: release
+    title: Push stable Docker image
+    type: push
+    candidate: '${{BuildDockerImage}}'
+    image_name: chartmuseum/chartmuseum
+    tag: '${{VERSION}}'
+    registry: dockerhub
+    when: *version_unreleased

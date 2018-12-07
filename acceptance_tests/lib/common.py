@@ -60,8 +60,11 @@ class CommandRunner(object):
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
         if not detach:
-            stdout = process.communicate()[0].strip()
-            print(stdout)
+            stdout = process.communicate()[0].strip().decode()
             self.rc = process.returncode
-            # Remove debug lines that start with "+ "
-            self.stdout = '\n'.join(filter(lambda x: not x.startswith('+ '), stdout.split('\n')))
+            tmp = []
+            for x in stdout.split('\n'):
+                print(x)
+                if not x.startswith('+ '): # Remove debug lines that start with "+ "
+                    tmp.append(x)
+            self.stdout = '\n'.join(tmp)
