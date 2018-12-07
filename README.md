@@ -1,44 +1,29 @@
 # ChartMuseum
-<img align="right" src="https://github.com/helm/chartmuseum/raw/master/logo.png">
 
-[![CircleCI](https://circleci.com/gh/helm/chartmuseum.svg?style=svg)](https://circleci.com/gh/helm/chartmuseum)
+[![Codefresh build status](https://g.codefresh.io/api/badges/pipeline/chartmuseum/helm%2Fchartmuseum%2Fmaster?type=cf-1)](https://g.codefresh.io/public/accounts/chartmuseum/pipelines/helm/chartmuseum/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/helm/chartmuseum)](https://goreportcard.com/report/github.com/helm/chartmuseum)
 [![GoDoc](https://godoc.org/github.com/helm/chartmuseum?status.svg)](https://godoc.org/github.com/helm/chartmuseum)
-<sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
 
-*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/kubernetes/helm/blob/master/docs/chart_repository.md)** written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), and [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage).
+<p align="center"><img align="center" src="logo2.png"></p><br/>
 
-Works as a valid Helm Chart Repository, and also provides an API for uploading new chart packages to storage etc.
+*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/helm/helm/blob/master/docs/chart_repository.md)** server written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), and [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage).
 
-<img width="60" align="right" src="https://github.com/golang-samples/gopher-vector/raw/master/gopher-side_color.png">
-<img width="20" align="right" src="https://github.com/golang-samples/gopher-vector/raw/master/gopher-side_color.png">
+Works as a valid Helm Chart Repository, and also provides an API for uploading charts.
+
+<img width="120" align="right" src="https://github.com/golang-samples/gopher-vector/raw/master/gopher-side_color.png">
+<img width="40" align="right" src="https://github.com/golang-samples/gopher-vector/raw/master/gopher-side_color.png">
 
 Powered by some great Go technology:
-- [Kubernetes Helm](https://github.com/kubernetes/helm) - for working with charts, generating repository index
-- [Gin Web Framework](https://github.com/gin-gonic/gin) - for HTTP routing
-- [cli](https://github.com/urfave/cli) - for command line option parsing
-- [zap](https://github.com/uber-go/zap) - for logging
-
-## Things that have been said in Helm land
->"Finally!!"
-
->"ChartMuseum is awesome"
-
->"This is awesome!"
-
->"Oh yes!!!! I’ve been waiting for this for so long. Makes life much easier, especially for the index.yaml creation!"
-
->"I was thinking about writing one of these up myself. This is perfect! thanks!"
-
->"I am jumping for joy over ChartMuseum, a full-fledged Helm repository server with upload!"
-
->"This is really cool ... We currently have a process that generates the index file and then uploads, so this is nice"
-
->"Really a good idea ... really really great, thanks again. I can use nginx to hold the repos and the museum to add/delete the chart. That's a whole life cycle management of chart with the current helm"
-
->"thanks for building the museum!"
+- [helm/helm](https://github.com/helm/helm) - for working with charts
+- [gin-gonic/gin](https://github.com/gin-gonic/gin) - for HTTP routing
+- [urfave/cli](https://github.com/urfave/cli) - for command line option parsing
+- [spf13/viper](https://github.com/spf13/viper) - for configuration
+- [uber-go/zap](https://github.com/uber-go/zap) - for logging
+- [chartmuseum/auth](https://github.com/chartmuseum/auth) - for auth
+- [chartmuseum/storage](https://github.com/chartmuseum/storage) - for multi-cloud storage
 
 ## API
+
 ### Helm Chart Repository
 - `GET /index.yaml` - retrieved when you run `helm repo add chartmuseum http://localhost:8080/`
 - `GET /charts/mychart-0.1.0.tgz` - retrieved when you run `helm install chartmuseum/mychart`
@@ -70,7 +55,7 @@ Upload `mychart-0.1.0.tgz`:
 curl --data-binary "@mychart-0.1.0.tgz" http://localhost:8080/api/charts
 ```
 
-If you've signed your package and generated a [provenance file](https://github.com/kubernetes/helm/blob/master/docs/provenance.md), upload it with:
+If you've signed your package and generated a [provenance file](https://github.com/helm/helm/blob/master/docs/provenance.md), upload it with:
 ```bash
 curl --data-binary "@mychart-0.1.0.tgz.prov" http://localhost:8080/api/prov
 ```
@@ -105,7 +90,14 @@ helm install chartmuseum/mychart
 ## How to Run
 ### CLI
 #### Installation
-Install the binary:
+Install binary using [GoFish](https://gofi.sh/):
+```
+gofish install chartmuseum
+==> Installing chartmuseum...
+🐠  chartmuseum 0.8.0: installed in 95.431145ms
+```
+
+or manually:
 ```bash
 # on Linux
 curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/linux/amd64/chartmuseum
@@ -121,7 +113,7 @@ mv ./chartmuseum /usr/local/bin
 ```
 Using `latest` in URLs above will get the latest binary (built from master branch).
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.7.1`).
+Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.8.0`).
 
 Determine your version with `chartmuseum --version`.
 
@@ -266,6 +258,39 @@ You may want basic auth to only be applied to operations that can change Charts,
 
 - `--auth-anonymous-get` - allow anonymous GET operations
 
+#### Bearer/Token Auth
+
+If all of the following options are provided, bearer auth will protect all routes:
+- `--bearer-auth` - enables bearer auth
+- `--auth-realm=<realm>` - authorization server url
+- `--auth-service=<service>` - authorization server service name
+- `--auth-cert-path=<path>` - path to authorization server public pem file
+
+Using options above, *ChartMuseum* is configured with a public key, and will accept RS256 JWT tokens signed by the associated private key, passed in the `Authorization` header. You can use the [chartmuseum/auth](https://github.com/chartmuseum/auth) Go library to generate valid JWT tokens.
+
+In order to gain access to a specific resource, the JWT token must contain an `access` section in the claims. This section indicates which resources the user is able to access. Here is an example token payload:
+
+```json
+{
+  "exp": 1543995770,
+  "iat": 1543995470,
+  "access": [
+    {
+      "type": "artifact-repository",
+      "name": "org1/repo1",
+      "actions": [
+        "pull"
+      ]
+    }
+  ]
+}
+```
+
+The `type` is always "artifact-repository", the `name` is the namespace/tenant (just use the string "repo" if using single-tenant server), and `actions` is an array of actions the user can perform ("pull" and/or "push).
+
+For more information about how this works, please see [chartmuseum/auth-server-example](https://github.com/chartmuseum/auth-server-example).
+
+
 #### HTTPS
 If both of the following options are provided, the server will listen and serve HTTPS:
 - `--tls-cert=<crt>` - path to tls certificate chain file
@@ -296,11 +321,21 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 ### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
 
+Example usage (local storage):
+```bash
+docker run --rm -it \
+  -p 8080:8080 \
+  -e DEBUG=1 \
+  -e STORAGE=local \
+  -e STORAGE_LOCAL_ROOTDIR=/charts \
+  -v $(pwd)/charts:/charts \
+  chartmuseum/chartmuseum:latest
+```
+
 Example usage (S3):
 ```bash
 docker run --rm -it \
   -p 8080:8080 \
-  -e PORT=8080 \
   -e DEBUG=1 \
   -e STORAGE="amazon" \
   -e STORAGE_AMAZON_BUCKET="my-s3-bucket" \
@@ -311,9 +346,9 @@ docker run --rm -it \
 ```
 
 ### Helm Chart
-There is a [Helm chart for *ChartMuseum*](https://github.com/kubernetes/charts/tree/master/stable/chartmuseum) itself which can be found in the official Kubernetes Charts repository.
+There is a [Helm chart for *ChartMuseum*](https://github.com/helm/charts/tree/master/stable/chartmuseum) itself which can be found in the official Helm charts repository.
 
-You can also view it on [Kubeapps Hub](https://hub.kubeapps.com/charts/stable/chartmuseum).
+You can also view it on [Helm Hub](https://hub.helm.sh/charts/stable/chartmuseum).
 
 To install:
 ```bash
@@ -321,7 +356,7 @@ helm repo add stable https://kubernetes-charts.storage.googleapis.com
 helm install stable/chartmuseum
 ```
 
-If interested in making changes, please submit a PR to kubernetes/charts. Before doing any work, please check for any [currently open pull requests](https://github.com/kubernetes/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
+If interested in making changes, please submit a PR to [helm/charts](https://github.com/helm/charts). Before doing any work, please check for any [currently open pull requests](https://github.com/helm/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
 
 ## Multitenancy
 Multitenancy is supported with the `--depth` flag.
@@ -429,7 +464,24 @@ You can then use *ChartMuseum* to serve up an internal mirror:
 scripts/mirror_k8s_repos.sh
 chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mirror"
  ```
+ 
+## Original Logo
+
+<sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
+
+![](./logo.png)
+  
+## Subprojects
+
+The following subprojects are maintained by *ChartMuseum*:
+
+- [chartmuseum/helm-push](https://github.com/chartmuseum/helm-push) - Helm plugin to push chart package to ChartMuseum
+- [chartmuseum/storage](https://github.com/chartmuseum/storage) - Go library providing common interface for working across multiple cloud storage backends
+- [chartmuseum/auth](https://github.com/chartmuseum/auth) - Go library for generating ChartMuseum JWT Tokens, authorizing HTTP requests, etc.
+- [chartmuseum/auth-server-example](https://github.com/chartmuseum/auth-server-example) - Example server providing JWT tokens for ChartMuseum auth
+- [chartmuseum/testbed](https://github.com/chartmuseum/testbed) - Docker testbed for continuous integration
+- [chartmuseum/www](https://github.com/chartmuseum/www) - chartmuseum.com static site source code
+- [chartmuseum/ui](https://github.com/chartmuseum/ui) - ChartMuseum frontend UI
 
 ## Community
 You can reach the *ChartMuseum* community and developers in the [Kubernetes Slack](https://slack.k8s.io) **#chartmuseum** channel.
-
