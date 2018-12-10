@@ -113,7 +113,7 @@ mv ./chartmuseum /usr/local/bin
 ```
 Using `latest` in URLs above will get the latest binary (built from master branch).
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.8.0`).
+Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.8.0`). The stable checksums can be found [here](https://github.com/fishworks/fish-food/blob/master/Food/chartmuseum.lua).
 
 Determine your version with `chartmuseum --version`.
 
