@@ -1,41 +1,30 @@
 # Change this and commit to create new release
-VERSION=0.7.1
+VERSION=0.8.0
 REVISION := $(shell git rev-parse --short HEAD;)
-
-HAS_DEP := $(shell command -v dep;)
-HAS_PIP := $(shell command -v pip;)
-HAS_PIPENV := $(shell command -v pipenv;)
-HAS_VENV := $(shell command -v virtualenv;)
-HAS_GOVIZ := $(shell command -v goviz;)
-HAS_DOT := $(shell command -v dot;)
-HAS_AWS := $(shell command -v aws;)
 
 CM_LOADTESTING_HOST ?= http://localhost:8080
 
 .PHONY: bootstrap
 bootstrap:
-ifndef HAS_DEP
-	@go get -u github.com/golang/dep/cmd/dep
-endif
 	@dep ensure -v -vendor-only
 
 .PHONY: build
-build: build_linux build_mac build_windows
+build: build-linux build-mac build-windows
 
-build_windows: export GOARCH=amd64
-build_windows:
+build-windows: export GOARCH=amd64
+build-windows:
 	@GOOS=windows go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
 
-build_linux: export GOARCH=amd64
-build_linux: export CGO_ENABLED=0
-build_linux:
+build-linux: export GOARCH=amd64
+build-linux: export CGO_ENABLED=0
+build-linux:
 	@GOOS=linux go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
 
-build_mac: export GOARCH=amd64
-build_mac: export CGO_ENABLED=0
-build_mac:
+build-mac: export GOARCH=amd64
+build-mac: export CGO_ENABLED=0
+build-mac:
 	@GOOS=darwin go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
 
@@ -45,27 +34,14 @@ clean:
 
 .PHONY: setup-test-environment
 setup-test-environment:
-ifndef HAS_PIP
-	@sudo apt-get update && sudo apt-get install -y python-pip
-endif
-ifndef HAS_VENV
-	@sudo pip install virtualenv
-endif
 	@./scripts/setup_test_environment.sh
 
 .PHONY: test
 test: setup-test-environment
 	@./scripts/test.sh
 
-.PHONY: testcloud
-testcloud: export TEST_CLOUD_STORAGE=1
-testcloud: test
-
 .PHONY: startloadtest
 startloadtest:
-ifndef HAS_PIPENV
-	@sudo pip install pipenv
-endif
 	@cd loadtesting && pipenv install
 	@cd loadtesting && pipenv run locust --host $(CM_LOADTESTING_HOST)
 
@@ -90,17 +66,21 @@ tree:
 # https://github.com/hirokidaichi/goviz/pull/8
 .PHONY: goviz
 goviz:
-ifndef HAS_GOVIZ
-	@go get -u github.com/RobotsAndPencils/goviz
-endif
-ifndef HAS_DOT
-	@sudo apt-get update && sudo apt-get install -y graphviz
-endif
+	#@go get -u github.com/RobotsAndPencils/goviz
 	@goviz -i github.com/helm/chartmuseum/cmd/chartmuseum -l | dot -Tpng -o goviz.png
 
-.PHONY: release
-release:
-ifndef HAS_AWS
-	@sudo pip install awscli
-endif
+.PHONY: release-latest
+release-latest:
+	@scripts/release.sh latest
+
+.PHONY: release-stable
+release-stable:
 	@scripts/release.sh $(VERSION)
+
+.PHONY: version-released
+version-released:
+	@scripts/version_released.sh $(VERSION)
+
+.PHONY: get-version
+get-version:
+	@echo $(VERSION)

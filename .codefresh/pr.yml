@@ -1,0 +1,21 @@
+version: '1.0'
+
+stages:
+- test
+
+steps:
+
+  SetupEnvironment:
+    title: Setup environment
+    image: &testbed chartmuseum/testbed:latest
+    commands:
+    - make clean
+    - &link mkdir -p /go/src/github.com/helm && cd /go/src/github.com/helm && ln -s /codefresh/volume/chartmuseum chartmuseum && cd chartmuseum
+
+  RunUnitTests:
+    stage: test
+    title: Run unit tests
+    image: *testbed
+    commands:
+    - *link
+    - make test
