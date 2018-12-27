@@ -31,6 +31,9 @@ ChartMuseum works with Helm using Openstack cloud storage
 ChartMuseum works with Helm using Oracle cloud storage
     Test Helm integration   oracle
 
+ChartMuseum works with Helm using Baidu cloud storage
+    Test Helm integration   baidu
+
 *** Keyword ***
 Test Helm integration
     [Arguments]    ${storage}

@@ -40,6 +40,9 @@ class ChartMuseum(common.CommandRunner):
         elif storage == 'oracle':
             cmd += '--storage-oracle-bucket="%s" --storage-oracle-prefix="%s" --storage-oracle-compartmentid="%s" >> %s 2>&1' \
                    % (common.STORAGE_ORACLE_BUCKET, common.STORAGE_ORACLE_PREFIX, common.STORAGE_ORACLE_COMPARTMENTID, common.LOGFILE)
+        elif storage == 'baidu':
+            cmd += '--storage-baidu-bucket="%s" --storage-baidu-prefix="%s" --storage-baidu-endpoint="%s" >> %s 2>&1' \
+                   % (common.STORAGE_BAIDU_BUCKET, common.STORAGE_BAIDU_PREFIX, common.STORAGE_BAIDU_ENDPOINT, common.LOGFILE)
         print(cmd)
         self.run_command(cmd, detach=True)
 
