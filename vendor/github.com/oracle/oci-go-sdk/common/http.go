@@ -631,7 +631,7 @@ func intSizeFromKind(kind reflect.Kind) int {
 	case reflect.Int, reflect.Uint:
 		return strconv.IntSize
 	default:
-		Debugln("The type is not valid: %v. Returing int size for arch", kind.String())
+		Debugf("The type is not valid: %v. Returing int size for arch\n", kind.String())
 		return strconv.IntSize
 	}
 

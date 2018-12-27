@@ -321,7 +321,7 @@ func parseConfigAtLine(start int, content []string) (info *configFileInfo, err e
 func expandPath(filepath string) (expandedPath string) {
 	cleanedPath := path.Clean(filepath)
 	expandedPath = cleanedPath
-	if strings.HasPrefix(cleanedPath, "~/") {
+	if strings.HasPrefix(cleanedPath, "~") {
 		rest := cleanedPath[2:]
 		expandedPath = path.Join(getHomeFolder(), rest)
 	}

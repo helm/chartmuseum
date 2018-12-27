@@ -61,6 +61,10 @@
   branch = "master"
   name = "google.golang.org/api"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/baidubce/bce-sdk-go"
+
 [prune]
   go-tests = true
   unused-packages = true
