@@ -428,6 +428,33 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_OPENSTACK_CACERT",
 		},
 	},
+	"storage.baidu.prefix": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-baidu-prefix",
+			Usage:  "prefix to store charts for --storage-baidu-cloud-bucket",
+			EnvVar: "STORAGE_BAIDU_PREFIX",
+		},
+	},
+	"storage.baidu.bucket": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-baidu-bucket",
+			Usage:  "BOS bucket to store charts for Baidu Cloud storage backend",
+			EnvVar: "STORAGE_BAIDU_BUCKET",
+		},
+	},
+	"storage.baidu.endpoint": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-baidu-endpoint",
+			Usage:  "BOS endpoint",
+			EnvVar: "STORAGE_BAIDU_ENDPOINT",
+		},
+	},
 	"chartpostformfieldname": {
 		Type:    stringType,
 		Default: "chart",

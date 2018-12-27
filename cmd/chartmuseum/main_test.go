@@ -97,6 +97,9 @@ func (suite *MainTestSuite) TestMain() {
 	suite.Panics(main, "oracle storage")
 	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with oracle backend")
 
+	os.Args = []string{"chartmuseum", "--storage", "baidu", "--storage-baidu-bucket", "x", "--storage-baidu-endpoint", "bj.bcebos.com"}
+	suite.Panics(main, "baidu storage")
+	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with baidu backend")
 
 	// Redis cache
 	os.Args = []string{"chartmuseum", "--storage", "local", "--storage-local-rootdir", "../../.chartstorage", "--cache", "redis", "--cache-redis-addr", suite.RedisMock.Addr()}
