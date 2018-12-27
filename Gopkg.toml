@@ -35,7 +35,7 @@
 
 [[constraint]]
   name = "github.com/chartmuseum/storage"
-  version = "0.2.0"
+  version = "0.3.0"
 
 [[constraint]]
   name = "github.com/ghodss/yaml"

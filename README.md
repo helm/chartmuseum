@@ -6,7 +6,7 @@
 
 <p align="center"><img align="center" src="logo2.png"></p><br/>
 
-*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/helm/helm/blob/master/docs/chart_repository.md)** server written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), and [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage).
+*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/helm/helm/blob/master/docs/chart_repository.md)** server written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), and [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage), and [Baidu Cloud BOS Storage](https://cloud.baidu.com/product/bos.html).
 
 Works as a valid Helm Chart Repository, and also provides an API for uploading charts.
 
@@ -239,6 +239,22 @@ chartmuseum --debug --port=8080 \
   --storage-oracle-bucket="my-ocs-bucket" \
   --storage-oracle-prefix="" \
   --storage-oracle-compartmentid="ocid1.compartment.oc1..1234"
+```
+
+#### Using with Baidu Cloud BOS Storage
+
+Make sure your environment is properly setup to access `my-bos-bucket`.
+
+To do so, you must set the following env vars:
+- `BAIDU_CLOUD_ACCESS_KEY_ID`
+- `BAIDU_CLOUD_ACCESS_KEY_SECRET`
+
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="baidu" \
+  --storage-baidu-bucket="my-bos-bucket" \
+  --storage-baidu-prefix="" \
+  --storage-baidu-endpoint="bj.bcebos.com"
 ```
 
 #### Using with local filesystem storage
