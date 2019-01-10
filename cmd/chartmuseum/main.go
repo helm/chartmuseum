@@ -68,6 +68,7 @@ func cliHandler(c *cli.Context) {
 		ChartURL:               conf.GetString("charturl"),
 		TlsCert:                conf.GetString("tls.cert"),
 		TlsKey:                 conf.GetString("tls.key"),
+		TlsCACert:              conf.GetString("tls.cacert"),
 		Username:               conf.GetString("basicauth.user"),
 		Password:               conf.GetString("basicauth.pass"),
 		ChartPostFormFieldName: conf.GetString("chartpostformfieldname"),
