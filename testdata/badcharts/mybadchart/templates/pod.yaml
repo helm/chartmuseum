@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: '{{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" -}}'
+spec:
+  containers:
+  - image: busybox
+    name: '{{ .Chart.Name }}'
+    command: ['/bin/sh', '-c', 'while true; do echo {{ .Release.Name }}; sleep 5; done']

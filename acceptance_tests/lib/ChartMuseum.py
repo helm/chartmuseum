@@ -92,6 +92,25 @@ class ChartMuseum(common.CommandRunner):
                     self.http_status_code_should_be(201, response.status_code)
             os.chdir('../')
 
+    def upload_bad_test_charts(self):
+        charts_endpoint = '%s/api/charts' % common.HELM_REPO_URL
+        testcharts_dir = os.path.join(self.rootdir, common.TESTBADCHARTS_DIR)
+        os.chdir(testcharts_dir)
+        for d in os.listdir('.'):
+            if not os.path.isdir(d):
+                continue
+            os.chdir(d)
+            tgzs = glob.glob('*.tgz')
+            for tgz in tgzs:
+                print(('Uploading bad test chart package "%s"' % tgz))
+                with open(tgz, 'rb') as f:
+                    response = requests.post(url=charts_endpoint, data=f.read())
+                    print(('POST %s' % charts_endpoint))
+                    print(('HTTP STATUS: %s' % response.status_code))
+                    print(('HTTP CONTENT: %s' % response.content))
+                    self.http_status_code_should_be(400, response.status_code)
+            os.chdir('../')
+
     def upload_provenance_files(self):
         prov_endpoint = '%s/api/prov' % common.HELM_REPO_URL
         testcharts_dir = os.path.join(self.rootdir, common.TESTCHARTS_DIR)
@@ -109,6 +128,25 @@ class ChartMuseum(common.CommandRunner):
                     print(('HTTP STATUS: %s' % response.status_code))
                     print(('HTTP CONTENT: %s' % response.content))
                     self.http_status_code_should_be(201, response.status_code)
+            os.chdir('../')
+
+    def upload_bad_provenance_files(self):
+        prov_endpoint = '%s/api/prov' % common.HELM_REPO_URL
+        testcharts_dir = os.path.join(self.rootdir, common.TESTBADCHARTS_DIR)
+        os.chdir(testcharts_dir)
+        for d in os.listdir('.'):
+            if not os.path.isdir(d):
+                continue
+            os.chdir(d)
+            provs = glob.glob('*.tgz.prov')
+            for prov in provs:
+                print(('Uploading bad provenance file "%s"' % prov))
+                with open(prov) as f:
+                    response = requests.post(url=prov_endpoint, data=f.read())
+                    print(('POST %s' % prov_endpoint))
+                    print(('HTTP STATUS: %s' % response.status_code))
+                    print(('HTTP CONTENT: %s' % response.content))
+                    self.http_status_code_should_be(400, response.status_code)
             os.chdir('../')
 
     def delete_test_charts(self):

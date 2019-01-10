@@ -30,9 +30,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chartmuseum/storage"
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
-	"github.com/chartmuseum/storage"
 
 	"github.com/gin-gonic/gin"
 	"github.com/helm/chartmuseum/pkg/repo"
@@ -47,6 +47,8 @@ var testTarballPathV2 = "../../../../testdata/charts/mychart/mychart-0.2.0.tgz"
 var testProvfilePath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.prov"
 var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz"
 var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
+var badTestTarballPath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
+var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
@@ -587,10 +589,30 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 }
 
+func (suite *MultiTenantServerTestSuite) TestBadChartUpload() {
+	content, err := ioutil.ReadFile(badTestTarballPath)
+	suite.Nil(err, "no error opening test tarball")
+
+	body := bytes.NewBuffer(content)
+	res := suite.doRequest("depth0", "POST", "/api/charts", body, "")
+	suite.Equal(400, res.Status(), "400 POST /api/charts")
+
+	content, err = ioutil.ReadFile(badTestProvfilePath)
+	suite.Nil(err, "no error opening test provenance file")
+
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest("depth0", "POST", "/api/prov", body, "")
+	suite.Equal(400, res.Status(), "400 POST /api/prov")
+
+	buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{badTestTarballPath, badTestProvfilePath})
+	res = suite.doRequest("depth0", "POST", "/api/charts", buf, w.FormDataContentType())
+	suite.Equal(400, res.Status(), "400 POST /api/charts")
+}
+
 func (suite *MultiTenantServerTestSuite) TestForceOverwriteServer() {
 	// Clear test repo to allow uploading again
 	res := suite.doRequest("forceoverwrite", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
-	suite.Equal(200, res.Status(),"200 DELETE /api/charts/mychart/0.1.0")
+	suite.Equal(200, res.Status(), "200 DELETE /api/charts/mychart/0.1.0")
 
 	// Check if files can be overwritten when ?force is on URL
 	content, err := ioutil.ReadFile(testTarballPath)
@@ -619,7 +641,7 @@ func (suite *MultiTenantServerTestSuite) TestForceOverwriteServer() {
 
 	// Clear test repo to allow uploading again
 	res = suite.doRequest("forceoverwrite", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
-	suite.Equal(200, res.Status(),"200 DELETE /api/charts/mychart/0.1.0")
+	suite.Equal(200, res.Status(), "200 DELETE /api/charts/mychart/0.1.0")
 
 	buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
 	res = suite.doRequest("forceoverwrite", "POST", "/api/charts", buf, w.FormDataContentType())

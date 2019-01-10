@@ -17,6 +17,7 @@ limitations under the License.
 package multitenant
 
 import (
+	"fmt"
 	pathutil "path/filepath"
 
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
@@ -79,6 +80,12 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	if err != nil {
 		return &HTTPError{500, err.Error()}
 	}
+
+	if pathutil.Base(filename) != filename {
+		// Name wants to break out of current directory
+		return &HTTPError{400, fmt.Sprintf("%s is improperly formatted", filename)}
+	}
+
 	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
 		if err == nil {
@@ -92,7 +99,7 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	if limitReached {
 		return &HTTPError{507, "repo has reached storage limit"}
 	}
-	log(cm_logger.DebugLevel,"Adding package to storage",
+	log(cm_logger.DebugLevel, "Adding package to storage",
 		"package", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
@@ -107,6 +114,12 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 	if err != nil {
 		return &HTTPError{500, err.Error()}
 	}
+
+	if pathutil.Base(filename) != filename {
+		// Name wants to break out of current directory
+		return &HTTPError{400, fmt.Sprintf("%s is improperly formatted", filename)}
+	}
+
 	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
 		if err == nil {
@@ -120,7 +133,7 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 	if limitReached {
 		return &HTTPError{507, "repo has reached storage limit"}
 	}
-	log(cm_logger.DebugLevel,"Adding provenance file to storage",
+	log(cm_logger.DebugLevel, "Adding provenance file to storage",
 		"provenance_file", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
