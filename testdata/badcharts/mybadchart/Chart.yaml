@@ -1,0 +1,7 @@
+apiVersion: v1
+name: "../../../../charts/org2/repo2/evil"
+version: 0.1.0
+
+# Note, the mybadchart-1.0.0.tgz is stored here because the helm client will
+# refuse to create it due to directory name and chart name mismatches. The tgz
+# was crafted outside of helm and needs to be stored here.

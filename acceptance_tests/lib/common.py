@@ -7,6 +7,7 @@ PORT = 8080
 HELM_REPO_NAME = 'chartmuseum'
 HELM_REPO_URL = 'http://localhost:%d' % PORT
 TESTCHARTS_DIR = 'testdata/charts'
+TESTBADCHARTS_DIR = 'testdata/badcharts'
 ACCEPTANCE_DIR = '.acceptance/'
 STORAGE_DIR = os.path.join(ACCEPTANCE_DIR, 'storage/')
 KEYRING = 'testdata/pgp/helm-test-key.pub'
