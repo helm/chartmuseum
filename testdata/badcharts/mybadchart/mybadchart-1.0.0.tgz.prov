@@ -1,0 +1,26 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+apiVersion: v1
+name: "../../../../charts/org2/repo2/evil"
+version: 0.1.0
+
+...
+files:
+  mybadchart-1.0.0.tgz: sha256:
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEcR8o1RDh4Ly9X2v+lDboC/ukaQkFAlw3h0MACgkQlDboC/uk
+aQlQlA//WsAPiDrsVy74Z2KL/zB/nHY5f3bTGBDgoFf92UaY/7rWrYO2HzNQixSF
+pxqXUwzToHXvmPp0kP6KNMl3kQVPH041XPBWxEUPrkwkcC6LP/sZxRgeDqC2fpgu
+fGDxdhN4jB4ct1MBMQ/vRwsKWH2OobO9qy/rir4nEPqNM/h5ZvGNuoikhBnQE9L7
+XT0GAr2Hxf9D7uH/PidzMWk2VUDSTqc/ipMBq44iHEXC3iE5tBSCymCeGJSw2FtV
+psx9DTyDMpX2crcQ+869BbRxmYqGESaxOiuYZ5jmewD4LzmEFrmiKN9R3RLq+cSS
+CxP1Xre8IQXebVvJ4VlPV1mX8QbGHEtm9QjkzBZH70jausfKkSZlMjNL7jzrZEzd
+z6BweBbqy2KvP45TWMQZPxlngwAq/ogXW9cDwJbE3pr8h9Eb3WZBHeO6p720Ug7s
+QSxqYS7szEj6tcXnwJk0ro8jol+WUx2uDrcMbggLJVploOb1gVeQDJRN5ZI8HmRX
+YGiqhVNfyiQgN7J91V0DVrnJbBK/N1QGUZUCyGI/XOrwzB/wHKK3Otfd5vC3CMyg
+M8z8cwJyskOk5NT7jQUUqlY1tqDcPJtW/BKjhz5yXqq3mWMT9d0v50UssV7QyLmJ
+2zi6JE4adVBP9QsTFykvLSmKrBy8ygAUbDYoT02D8dM/3L2BAnI=
+=JSGy
+-----END PGP SIGNATURE-----

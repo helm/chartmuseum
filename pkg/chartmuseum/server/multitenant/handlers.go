@@ -19,10 +19,11 @@ package multitenant
 import (
 	"bytes"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	pathutil "path"
+
+	"github.com/gin-gonic/gin"
 
 	cm_repo "github.com/helm/chartmuseum/pkg/repo"
 )
@@ -297,6 +298,10 @@ func extractContentFromRequest(req *http.Request, field string) ([]byte, error) 
 }
 
 func (server *MultiTenantServer) validateChartOrProv(repo, filename string, force bool) (int, error) {
+	if pathutil.Base(filename) != filename {
+		return 400, fmt.Errorf("%s is improperly formatted", filename) // Name wants to break out of current directory
+	}
+
 	var f string
 	if repo == "" {
 		f = filename

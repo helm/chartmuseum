@@ -49,6 +49,8 @@ Test Helm integration
     Unable to fetch and verify test charts
     Upload test charts to ChartMuseum
     Upload provenance files to ChartMuseum
+    Upload bad test charts to ChartMuseum
+    Upload bad provenance files to ChartMuseum
     Able to update ChartMuseum repo
     Helm search returns test charts
     Able to fetch and verify test charts
@@ -67,6 +69,12 @@ Upload test charts to ChartMuseum
 
 Upload provenance files to ChartMuseum
     ChartMuseum.upload provenance files
+
+Upload bad test charts to ChartMuseum
+    ChartMuseum.upload bad test charts
+
+Upload bad provenance files to ChartMuseum
+    ChartMuseum.upload bad provenance files
 
 Delete test charts from ChartMuseum
     ChartMuseum.delete test charts
