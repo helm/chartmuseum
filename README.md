@@ -312,6 +312,10 @@ If both of the following options are provided, the server will listen and serve 
 - `--tls-cert=<crt>` - path to tls certificate chain file
 - `--tls-key=<key>` - path to tls key file
 
+##### HTTPS with Client Certificate Authentication
+If the above HTTPS values are provided in addition to below, the server will listen and serve HTTPS and authenticate client requests against the CA certificate:
+-  `--tls-ca-cert=<cacert>` - path to tls certificate file
+
 #### Just generating index.yaml
 You can specify the `--gen-index` option if you only wish to use _ChartMuseum_ to generate your index.yaml file. Note that this will only work with `--depth=0`.
 

@@ -32,8 +32,11 @@ import (
 )
 
 var (
-	testPublicKey  = "../../../testdata/bearerauth/server.pem"
-	testPrivateKey = "../../../testdata/bearerauth/server.key"
+	testPublicKey      = "../../../testdata/bearerauth/server.pem"
+	testPrivateKey     = "../../../testdata/bearerauth/server.key"
+	testClientAuthCert = "../../../testdata/clientauthcerts/server.pem"
+	testClientAuthKey  = "../../../testdata/clientauthcerts/server.key"
+	testClientAuthCA   = "../../../testdata/clientauthcerts/ca.pem"
 )
 
 type RouterTestSuite struct {
@@ -194,6 +197,21 @@ func (suite *RouterTestSuite) TestRouterHandleContext() {
 	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
 	testContext.Request, _ = http.NewRequest("GET", "/", nil)
 	basicAuthRouterAnonGet.HandleContext(testContext)
+	suite.Equal(200, testContext.Writer.Status())
+
+	// Client Certificate Auth
+	clientAuthRouter := NewRouter(RouterOptions{
+		Logger:    log,
+		TlsKey:    testClientAuthKey,
+		TlsCert:   testClientAuthCert,
+		TlsCACert: testClientAuthCA,
+	})
+	clientAuthRouter.SetRoutes(testRoutes)
+
+	// Able to pull org1/repo1
+	testContext, _ = gin.CreateTestContext(httptest.NewRecorder())
+	testContext.Request, _ = http.NewRequest("GET", "/", nil)
+	clientAuthRouter.HandleContext(testContext)
 	suite.Equal(200, testContext.Writer.Status())
 
 	// Bearer auth

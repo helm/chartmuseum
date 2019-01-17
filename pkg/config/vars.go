@@ -184,6 +184,15 @@ var configVars = map[string]configVar{
 			EnvVar: "TLS_KEY",
 		},
 	},
+	"tls.cacert": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "tls-ca-cert",
+			Usage:  "path to tls ca cert file",
+			EnvVar: "TLS_CA_CERT",
+		},
+	},
 	"cache.store": {
 		Type:    stringType,
 		Default: "",

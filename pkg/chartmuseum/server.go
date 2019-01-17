@@ -19,11 +19,11 @@ package chartmuseum
 import (
 	"strings"
 
+	"github.com/chartmuseum/storage"
 	"github.com/helm/chartmuseum/pkg/cache"
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "github.com/helm/chartmuseum/pkg/chartmuseum/router"
 	mt "github.com/helm/chartmuseum/pkg/chartmuseum/server/multitenant"
-	"github.com/chartmuseum/storage"
 )
 
 type (
@@ -34,6 +34,7 @@ type (
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
+		TlsCACert              string
 		Username               string
 		Password               string
 		ChartPostFormFieldName string
@@ -87,6 +88,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		ContextPath:   contextPath,
 		TlsCert:       options.TlsCert,
 		TlsKey:        options.TlsKey,
+		TlsCACert:     options.TlsCACert,
 		LogHealth:     options.LogHealth,
 		EnableMetrics: options.EnableMetrics,
 		AnonymousGet:  options.AnonymousGet,

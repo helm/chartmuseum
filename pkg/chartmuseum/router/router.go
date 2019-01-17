@@ -17,7 +17,11 @@ limitations under the License.
 package router
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 
 	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
@@ -37,6 +41,7 @@ type (
 		Routes      []*Route
 		TlsCert     string
 		TlsKey      string
+		TlsCACert   string
 		ContextPath string
 		Depth       int
 	}
@@ -49,6 +54,7 @@ type (
 		ContextPath   string
 		TlsCert       string
 		TlsKey        string
+		TlsCACert     string
 		PathPrefix    string
 		LogHealth     bool
 		EnableMetrics bool
@@ -90,6 +96,7 @@ func NewRouter(options RouterOptions) *Router {
 		Logger:      options.Logger,
 		TlsCert:     options.TlsCert,
 		TlsKey:      options.TlsKey,
+		TlsCACert:   options.TlsCACert,
 		ContextPath: options.ContextPath,
 		Depth:       options.Depth,
 	}
@@ -147,7 +154,26 @@ func (router *Router) Start(port int) {
 		"port", port,
 	)
 	if router.TlsCert != "" && router.TlsKey != "" {
-		router.Logger.Fatal(router.RunTLS(fmt.Sprintf(":%d", port), router.TlsCert, router.TlsKey))
+		if router.TlsCACert != "" {
+			keypair, _ := tls.LoadX509KeyPair(router.TlsCert, router.TlsKey)
+			certpool := x509.NewCertPool()
+			capem, _ := ioutil.ReadFile(router.TlsCACert)
+			if !certpool.AppendCertsFromPEM(capem) {
+				router.Logger.Fatal("Can't parse CA certificate file")
+			}
+			server := http.Server{
+				Addr:    fmt.Sprintf(":%d", port),
+				Handler: router,
+				TLSConfig: &tls.Config{
+					Certificates: []tls.Certificate{keypair},
+					ClientAuth:   tls.RequireAndVerifyClientCert,
+					ClientCAs:    certpool,
+				},
+			}
+			router.Logger.Fatal(server.ListenAndServeTLS("", ""))
+		} else {
+			router.Logger.Fatal(router.RunTLS(fmt.Sprintf(":%d", port), router.TlsCert, router.TlsKey))
+		}
 	} else {
 		router.Logger.Fatal(router.Run(fmt.Sprintf(":%d", port)))
 	}
