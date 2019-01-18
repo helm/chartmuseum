@@ -6,7 +6,7 @@ CM_LOADTESTING_HOST ?= http://localhost:8080
 
 .PHONY: bootstrap
 bootstrap:
-	@go mod download && go mod vender
+	@go mod download && go mod vendor
 
 .PHONY: build
 build: build-linux build-mac build-windows
