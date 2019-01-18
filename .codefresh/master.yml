@@ -14,6 +14,7 @@ steps:
     image: &testbed chartmuseum/testbed:latest
     commands:
     - make clean
+    - make bootstrap
     - cf_export VERSION="$(make get-version)"
     - cf_export VERSION_RELEASED="$(make version-released && echo true || echo false)"
     when:
