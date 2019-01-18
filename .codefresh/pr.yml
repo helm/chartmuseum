@@ -10,7 +10,6 @@ steps:
     image: &testbed chartmuseum/testbed:latest
     commands:
     - make clean
-    - &link mkdir -p /go/src/github.com/helm && cd /go/src/github.com/helm && ln -s /codefresh/volume/chartmuseum chartmuseum && cd chartmuseum
 
   RunUnitTests:
     stage: test
@@ -18,4 +17,3 @@ steps:
     image: *testbed
     commands:
     - *link
-    - make test
