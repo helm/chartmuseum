@@ -10,6 +10,7 @@ steps:
     image: &testbed chartmuseum/testbed:latest
     commands:
     - make clean
+    - make bootstrap
 
   RunUnitTests:
     stage: test
