@@ -16,4 +16,4 @@ steps:
     title: Run unit tests
     image: *testbed
     commands:
-    - *link
+    - make test
