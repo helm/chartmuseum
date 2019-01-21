@@ -131,7 +131,7 @@ func NewRouter(options RouterOptions) *Router {
 		router.Logger.Fatal(err)
 	}
 
-	if options.AnonymousGet {
+	if authorizer != nil && options.AnonymousGet {
 		authorizer.AnonymousActions = []string{cm_auth.PullAction}
 	}
 
