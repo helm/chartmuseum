@@ -6,26 +6,26 @@ CM_LOADTESTING_HOST ?= http://localhost:8080
 
 .PHONY: bootstrap
 bootstrap:
-	@dep ensure -v -vendor-only
+	@go mod download && go mod vendor
 
 .PHONY: build
 build: build-linux build-mac build-windows
 
 build-windows: export GOARCH=amd64
 build-windows:
-	@GOOS=windows go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+	@GOOS=windows go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
 
 build-linux: export GOARCH=amd64
 build-linux: export CGO_ENABLED=0
 build-linux:
-	@GOOS=linux go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+	@GOOS=linux go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
 
 build-mac: export GOARCH=amd64
 build-mac: export CGO_ENABLED=0
 build-mac:
-	@GOOS=darwin go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+	@GOOS=darwin go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
 
 .PHONY: clean

@@ -21,3 +21,4 @@ index.yaml
 mirror/
 testbin/
 cmd/chartmuseum/debug
+vendor

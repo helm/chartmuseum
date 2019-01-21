@@ -14,9 +14,9 @@ steps:
     image: &testbed chartmuseum/testbed:latest
     commands:
     - make clean
+    - make bootstrap
     - cf_export VERSION="$(make get-version)"
     - cf_export VERSION_RELEASED="$(make version-released && echo true || echo false)"
-    - &link mkdir -p /go/src/github.com/helm && cd /go/src/github.com/helm && ln -s /codefresh/volume/chartmuseum chartmuseum && cd chartmuseum
     when:
       steps:
       - name: main_clone
@@ -31,19 +31,16 @@ steps:
         title: Build Linux binary
         image: *testbed
         commands:
-        - *link
         - make build-linux
       BuildPlatformBinaryMac:
         title: Build Mac binary
         image: *testbed
         commands:
-        - *link
         - make build-mac
       BuildPlatformBinaryWindows:
         title: Build Windows binary
         image: *testbed
         commands:
-        - *link
         - make build-windows
     when: &post_setup
       steps:
@@ -67,7 +64,6 @@ steps:
     title: Run unit tests
     image: *testbed
     commands:
-    - *link
     - make test && touch UNIT_TEST_SUCCESS
     when: *post_setup
 
@@ -76,7 +72,6 @@ steps:
     title: Run acceptance tests
     image: *testbed
     commands:
-    - *link
     - make acceptance && touch ACCEPTANCE_TEST_SUCCESS
     when: *post_linux_binary_build
 
@@ -107,7 +102,6 @@ steps:
     title: Upload latest platform binaries
     image: *testbed
     commands:
-    - *link
     - make release-latest
     when: &tests_pass
       steps:
@@ -123,7 +117,6 @@ steps:
     title: Upload stable platform binaries
     image: *testbed
     commands:
-    - *link
     - make release-stable
     when: &version_unreleased
       steps:

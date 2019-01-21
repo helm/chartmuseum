@@ -9,7 +9,7 @@ trap "rm -rf .test/" EXIT
 
 export CGO_ENABLED=0
 for pkg in `go list ./... | grep -v /vendor/`; do
-    go test -v -covermode=atomic \
+    go test -mod=vendor -v -covermode=atomic \
         -coverprofile=".cover/$(echo $pkg | sed 's/\//_/g').cover.out" $pkg
 done
 
