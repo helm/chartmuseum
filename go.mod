@@ -16,6 +16,7 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.1.0 // indirect
 	github.com/chartmuseum/auth v0.1.0
 	github.com/chartmuseum/storage v0.3.0
+	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/ghodss/yaml v1.0.0
@@ -27,7 +28,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/martian v2.1.0+incompatible // indirect
 	github.com/googleapis/gax-go v0.0.0-20181219185031-c8a15bac9b9f // indirect
-	github.com/gophercloud/gophercloud v0.0.0-20181221023737-94924357ebf6 // indirect
+	github.com/gophercloud/gophercloud v0.0.0-20190119033613-e102249148e2 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/marstr/guid v1.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
@@ -35,7 +36,7 @@ require (
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
-	github.com/oracle/oci-go-sdk v3.3.0+incompatible // indirect
+	github.com/oracle/oci-go-sdk v3.4.0+incompatible // indirect
 	github.com/pkg/errors v0.8.0 // indirect
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/common v0.0.0-20181218105931-67670fe90761 // indirect
@@ -57,9 +58,9 @@ require (
 	google.golang.org/api v0.0.0-20181221000618-65a46cafb132 // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20181221175505-bd9b4fb69e2f // indirect
-	google.golang.org/grpc v1.17.0 // indirect
+	google.golang.org/grpc v1.18.0 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
-	k8s.io/apimachinery v0.0.0-20181227073029-9c4c36654334 // indirect
+	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee // indirect
 	k8s.io/client-go v10.0.0+incompatible // indirect
-	k8s.io/helm v2.12.1+incompatible
+	k8s.io/helm v2.12.2+incompatible
 )
