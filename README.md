@@ -124,8 +124,10 @@ All command-line options can be specified as environment variables, which are de
 
 For example, the env var `STORAGE_AMAZON_BUCKET` can be used in place of `--storage-amazon-bucket`.
 
-#### Using with Amazon S3
+#### Using with Amazon S3 or Compatible services like Minio
 Make sure your environment is properly setup to access `my-s3-bucket`
+
+For Amazon S3, `endpoint` is automatically inferred.
 ```bash
 chartmuseum --debug --port=8080 \
   --storage="amazon" \
@@ -133,6 +135,17 @@ chartmuseum --debug --port=8080 \
   --storage-amazon-prefix="" \
   --storage-amazon-region="us-east-1"
 ```
+
+For S3 compatible services like Minio, pass the `endpoint`.
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="amazon" \
+  --storage-amazon-bucket="my-s3-bucket" \
+  --storage-amazon-prefix="" \
+  --storage-amazon-region="us-east-1" \
+  --storage-amazon-endpoint="my-s3-compatible-service-endpoint"
+```
+
 You need at least the following permissions inside your IAM Policy
 ```yaml
 {
