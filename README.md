@@ -136,8 +136,11 @@ chartmuseum --debug --port=8080 \
   --storage-amazon-region="us-east-1"
 ```
 
-For S3 compatible services like Minio, pass the `endpoint`.
+For S3 compatible services like Minio, set the credentials using environment variables and pass the `endpoint`.
+
 ```bash
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
 chartmuseum --debug --port=8080 \
   --storage="amazon" \
   --storage-amazon-bucket="my-s3-bucket" \
