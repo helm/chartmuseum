@@ -1,5 +1,5 @@
 # Change this and commit to create new release
-VERSION=0.8.1
+VERSION=0.8.2
 REVISION := $(shell git rev-parse --short HEAD;)
 
 CM_LOADTESTING_HOST ?= http://localhost:8080
