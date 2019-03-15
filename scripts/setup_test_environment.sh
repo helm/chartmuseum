@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-HELM_VERSION="2.12.2"
+HELM_VERSION="2.13.0"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR/../
