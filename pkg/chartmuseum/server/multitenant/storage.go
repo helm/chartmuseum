@@ -20,8 +20,9 @@ import (
 	pathutil "path"
 	"strings"
 
-	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
-	cm_repo "github.com/helm/chartmuseum/pkg/repo"
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
+	cm_repo "helm.sh/chartmuseum/pkg/repo"
+
 	"github.com/chartmuseum/storage"
 )
 

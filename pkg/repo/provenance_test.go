@@ -46,7 +46,7 @@ FUyR0Eszw/x3No0DdPuH3fo0ShamW9eOFnXIgWqvaeSJthTC5WO5mlSGNEunJKft
 HjQLzdEWppyu55ZS6/oIJdVC2GjUa/PZmKkhYwsMvaWYv+jZWFfhZn8fPYEF0qI=
 =/cXn
 -----END PGP SIGNATURE-----`)
-	 goodContentWithMatainerName := []byte(`-----BEGIN PGP SIGNED MESSAGE-----
+	goodContentWithMatainerName := []byte(`-----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA512
 
 description: Buildpack application builder for Hephy Workflow.

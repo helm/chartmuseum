@@ -22,7 +22,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/helm/chartmuseum/pkg/chartmuseum"
+	"helm.sh/chartmuseum/pkg/chartmuseum"
 
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/suite"

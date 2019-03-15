@@ -25,7 +25,6 @@ import (
 	"strings"
 
 	"github.com/chartmuseum/storage"
-
 	"k8s.io/helm/pkg/chartutil"
 	helm_chart "k8s.io/helm/pkg/proto/hapi/chart"
 	helm_repo "k8s.io/helm/pkg/repo"
@@ -88,8 +87,8 @@ func ChartVersionFromStorageObject(object storage.Object) (*helm_repo.ChartVersi
 // StorageObjectFromChartVersion returns a storage object from a chart version (empty content)
 func StorageObjectFromChartVersion(chartVersion *helm_repo.ChartVersion) storage.Object {
 	object := storage.Object{
-		Path: pathutil.Base(chartVersion.URLs[0]),
-		Content: []byte{},
+		Path:         pathutil.Base(chartVersion.URLs[0]),
+		Content:      []byte{},
 		LastModified: chartVersion.Created,
 	}
 	return object

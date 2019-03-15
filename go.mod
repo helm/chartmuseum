@@ -1,4 +1,4 @@
-module github.com/helm/chartmuseum
+module helm.sh/chartmuseum
 
 require (
 	cloud.google.com/go v0.34.0 // indirect
