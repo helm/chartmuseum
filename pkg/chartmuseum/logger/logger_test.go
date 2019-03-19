@@ -19,13 +19,13 @@ package logger
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/suite"
 )
 
 type LoggerTestSuite struct {
 	suite.Suite
-	Logger *Logger
+	Logger  *Logger
 	Context *gin.Context
 }
 

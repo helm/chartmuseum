@@ -192,6 +192,98 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.Equal([]gin.Param{{"name", "mychart"}, {"version", "0.1.0"}, {"repo", repo}}, params)
 		}
 	}
+
+	// Test route repos named "api*"
+	r := "/apix/index.yaml"
+	route, params := match(routes, "GET", r, "", 1)
+	suite.NotNil(route)
+	if route != nil {
+		route.Handler(c)
+	}
+	val, exists := c.Get("index")
+	suite.True(exists)
+	suite.Equal(2, val)
+	suite.Equal([]gin.Param{{"repo", "apix"}}, params)
+
+	r = "/apix/charts/mychart-0.1.0.tgz"
+	route, params = match(routes, "GET", r, "", 1)
+	suite.NotNil(route)
+	if route != nil {
+		route.Handler(c)
+	}
+	val, exists = c.Get("index")
+	suite.True(exists)
+	suite.Equal(3, val)
+	suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", "apix"}}, params)
+
+	// Test route repos named just "api"
+	r = "/api/index.yaml"
+	route, params = match(routes, "GET", r, "", 1)
+	suite.NotNil(route)
+	if route != nil {
+		route.Handler(c)
+	}
+	val, exists = c.Get("index")
+	suite.True(exists)
+	suite.Equal(2, val)
+	suite.Equal([]gin.Param{{"repo", "api"}}, params)
+
+	r = "/api/charts/mychart-0.1.0.tgz"
+	route, params = match(routes, "GET", r, "", 1)
+	suite.NotNil(route)
+	if route != nil {
+		route.Handler(c)
+	}
+	val, exists = c.Get("index")
+	suite.True(exists)
+	suite.Equal(3, val)
+	suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", "api"}}, params)
+
+	// just "api" as repo name, depth=2
+	r = "/api/xyz/index.yaml"
+	route, params = match(routes, "GET", r, "", 2)
+	suite.NotNil(route)
+	if route != nil {
+		route.Handler(c)
+	}
+	val, exists = c.Get("index")
+	suite.True(exists)
+	suite.Equal(2, val)
+	suite.Equal([]gin.Param{{"repo", "api/xyz"}}, params)
+
+	r = "/api/xyz/charts/mychart-0.1.0.tgz"
+	route, params = match(routes, "GET", r, "", 2)
+	suite.NotNil(route)
+	if route != nil {
+		route.Handler(c)
+	}
+	val, exists = c.Get("index")
+	suite.True(exists)
+	suite.Equal(3, val)
+	suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", "api/xyz"}}, params)
+
+	// Test route repos named "health"
+	r = "/health/index.yaml"
+	route, params = match(routes, "GET", r, "", 1)
+	suite.NotNil(route)
+	if route != nil {
+		route.Handler(c)
+	}
+	val, exists = c.Get("index")
+	suite.True(exists)
+	suite.Equal(2, val)
+	suite.Equal([]gin.Param{{"repo", "health"}}, params)
+
+	r = "/health/charts/mychart-0.1.0.tgz"
+	route, params = match(routes, "GET", r, "", 1)
+	suite.NotNil(route)
+	if route != nil {
+		route.Handler(c)
+	}
+	val, exists = c.Get("index")
+	suite.True(exists)
+	suite.Equal(3, val)
+	suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", "health"}}, params)
 }
 
 func TestMatchTestSuite(t *testing.T) {

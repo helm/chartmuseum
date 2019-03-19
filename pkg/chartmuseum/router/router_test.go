@@ -24,7 +24,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 
 	cm_auth "github.com/chartmuseum/auth"
 	"github.com/gin-gonic/gin"

@@ -67,7 +67,7 @@ tree:
 .PHONY: goviz
 goviz:
 	#@go get -u github.com/RobotsAndPencils/goviz
-	@goviz -i github.com/helm/chartmuseum/cmd/chartmuseum -l | dot -Tpng -o goviz.png
+	@goviz -i helm.sh/chartmuseum/cmd/chartmuseum -l | dot -Tpng -o goviz.png
 
 .PHONY: release-latest
 release-latest:

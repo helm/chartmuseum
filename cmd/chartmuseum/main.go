@@ -23,9 +23,9 @@ import (
 	"strings"
 
 	"github.com/chartmuseum/storage"
-	"github.com/helm/chartmuseum/pkg/cache"
-	"github.com/helm/chartmuseum/pkg/chartmuseum"
-	"github.com/helm/chartmuseum/pkg/config"
+	"helm.sh/chartmuseum/pkg/cache"
+	"helm.sh/chartmuseum/pkg/chartmuseum"
+	"helm.sh/chartmuseum/pkg/config"
 
 	"github.com/urfave/cli"
 )

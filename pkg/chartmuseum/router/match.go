@@ -18,9 +18,14 @@ package router
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	validRepoRoute = regexp.MustCompile(`^.*\.(yaml|tgz|prov)$`)
 )
 
 /*
@@ -70,7 +75,7 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 		}
 	}
 
-	isApiRoute := strings.HasPrefix(url, "/api")
+	isApiRoute := checkApiRoute(url)
 	if isApiRoute {
 		startIndex = 2
 	} else {
@@ -128,4 +133,8 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 	}
 
 	return nil, nil
+}
+
+func checkApiRoute(url string) bool {
+	return strings.HasPrefix(url, "/api/") && !validRepoRoute.MatchString(url)
 }

@@ -36,12 +36,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	cm_logger "github.com/helm/chartmuseum/pkg/chartmuseum/logger"
-	cm_repo "github.com/helm/chartmuseum/pkg/repo"
-	cm_storage "github.com/chartmuseum/storage"
 	pathutil "path"
 	"sync"
 
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
+	cm_repo "helm.sh/chartmuseum/pkg/repo"
+
+	cm_storage "github.com/chartmuseum/storage"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	helm_repo "k8s.io/helm/pkg/repo"
@@ -443,8 +444,8 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 
 	return &cm_repo.Index{
 		IndexFile: indexFile,
-		RepoName: repo,
-		Raw: object.Content,
-		ChartURL: chartURL,
+		RepoName:  repo,
+		Raw:       object.Content,
+		ChartURL:  chartURL,
 	}
 }
