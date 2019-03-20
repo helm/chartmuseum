@@ -50,8 +50,9 @@ setup-test-environment:
 	@./scripts/setup_test_environment.sh
 
 .PHONY: test
+test: export CGO_ENABLED=0
 test: export GO111MODULE=on
-test: export GOPROXY=$(GOPROXY_URL)
+test: export GOPROXY=$(MOD_PROXY_URL)
 test: setup-test-environment
 	@./scripts/test.sh
 
