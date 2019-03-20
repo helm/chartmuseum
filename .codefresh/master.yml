@@ -14,7 +14,7 @@ steps:
     image: &testbed chartmuseum/testbed:latest
     commands:
     - make clean
-    - cf_export GOCACHE=/codefresh/volume/mod
+    - cf_export GOCACHE="${{CF_VOLUME_PATH}}/mod"
     - make bootstrap
     - cf_export VERSION="$(make get-version)"
     - cf_export VERSION_RELEASED="$(make version-released && echo true || echo false)"
