@@ -5,6 +5,8 @@ REVISION := $(shell git rev-parse --short HEAD;)
 CM_LOADTESTING_HOST ?= http://localhost:8080
 
 .PHONY: bootstrap
+bootstrap: export GO111MODULE=on
+bootstrap: export GOPROXY=https://gocenter.io
 bootstrap:
 	@go mod download && go mod vendor
 
@@ -12,18 +14,24 @@ bootstrap:
 build: build-linux build-mac build-windows
 
 build-windows: export GOARCH=amd64
+build_windows: export GO111MODULE=on
+build_windows: export GOPROXY=https://gocenter.io
 build-windows:
 	@GOOS=windows go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
 
 build-linux: export GOARCH=amd64
 build-linux: export CGO_ENABLED=0
+build_linux: export GO111MODULE=on
+build_linux: export GOPROXY=https://gocenter.io
 build-linux:
 	@GOOS=linux go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
 
 build-mac: export GOARCH=amd64
 build-mac: export CGO_ENABLED=0
+build_mac: export GO111MODULE=on
+build_mac: export GOPROXY=https://gocenter.io
 build-mac:
 	@GOOS=darwin go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
