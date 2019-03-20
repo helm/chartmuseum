@@ -2,38 +2,43 @@
 VERSION=0.8.2
 REVISION := $(shell git rev-parse --short HEAD;)
 
+MOD_PROXY_URL ?= https://gocenter.io
+
 CM_LOADTESTING_HOST ?= http://localhost:8080
 
 .PHONY: bootstrap
 bootstrap: export GO111MODULE=on
-bootstrap: export GOPROXY=https://gocenter.io
+bootstrap: export GOPROXY=$(MOD_PROXY_URL)
 bootstrap:
-	@go mod download && go mod vendor
+	@go mod download && go mod vendor -v
 
 .PHONY: build
 build: build-linux build-mac build-windows
 
+build-windows: export GOOS=windows
 build-windows: export GOARCH=amd64
-build_windows: export GO111MODULE=on
-build_windows: export GOPROXY=https://gocenter.io
+build-windows: export GO111MODULE=on
+build-windows: export GOPROXY=$(MOD_PROXY_URL)
 build-windows:
-	@GOOS=windows go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+	go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
 
+build-linux: export GOOS=linux
 build-linux: export GOARCH=amd64
 build-linux: export CGO_ENABLED=0
-build_linux: export GO111MODULE=on
-build_linux: export GOPROXY=https://gocenter.io
+build-linux: export GO111MODULE=on
+build-linux: export GOPROXY=$(MOD_PROXY_URL)
 build-linux:
-	@GOOS=linux go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+	go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
 
+build-mac: export GOOS=darwin
 build-mac: export GOARCH=amd64
 build-mac: export CGO_ENABLED=0
-build_mac: export GO111MODULE=on
-build_mac: export GOPROXY=https://gocenter.io
+build-mac: export GO111MODULE=on
+build-mac: export GOPROXY=$(MOD_PROXY_URL)
 build-mac:
-	@GOOS=darwin go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+	go build -mod=vendor -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
 
 .PHONY: clean
@@ -45,6 +50,8 @@ setup-test-environment:
 	@./scripts/setup_test_environment.sh
 
 .PHONY: test
+test: export GO111MODULE=on
+test: export GOPROXY=$(GOPROXY_URL)
 test: setup-test-environment
 	@./scripts/test.sh
 
