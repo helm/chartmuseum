@@ -10,6 +10,7 @@ steps:
     image: &testbed chartmuseum/testbed:latest
     commands:
     - make clean
+    - cf_export GOCACHE=/codefresh/volume/mod
     - make bootstrap
 
   RunUnitTests:
