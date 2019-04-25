@@ -125,6 +125,8 @@ func backendFromConfig(conf *config.Config) storage.Backend {
 		backend = openstackBackendFromConfig(conf)
 	case "baidu":
 		backend = baiduBackendFromConfig(conf)
+	case "etcd":
+		backend = etcdBackendFromConfig(conf)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -197,6 +199,18 @@ func openstackBackendFromConfig(conf *config.Config) storage.Backend {
 		conf.GetString("storage.openstack.prefix"),
 		conf.GetString("storage.openstack.region"),
 		conf.GetString("storage.openstack.cacert"),
+	))
+}
+
+func etcdBackendFromConfig(conf *config.Config) storage.Backend {
+	crashIfConfigMissingVars(conf, []string{"storage.etcd.endpoints",
+		"storage.etcd.cafile", "storage.etcd.certfile","storage.etcd.keyfile","storage.etcd.prefix" })
+	return storage.Backend(storage.NewEtcdCSBackend(
+		conf.GetString("storage.etcd.endpoints"),
+		conf.GetString("storage.etcd.cafile"),
+		conf.GetString("storage.etcd.certfile"),
+		conf.GetString("storage.etcd.keyfile"),
+		conf.GetString("storage.etcd.prefix"),
 	))
 }
 
