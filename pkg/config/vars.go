@@ -464,6 +464,52 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_BAIDU_ENDPOINT",
 		},
 	},
+
+	"storage.etcd.endpoint": {
+		Type:    stringType,
+		Default: "http://localhost:2379",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-etcd-endpoint",
+			Usage:  "ETCD endpoint",
+			EnvVar: "STORAGE_ETCD_ENDPOINT",
+		},
+	},
+	"storage.etcd.cafile": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-etcd-cafile",
+			Usage:  "ca-file provided to etcd",
+			EnvVar: "STORAGE_ETCD_CAFILE",
+		},
+	},
+	"storage.etcd.certfile": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-etcd-certfile",
+			Usage:  "cert provided to etcd",
+			EnvVar: "STORAGE_ETCD_CERTFILE",
+		},
+	},
+	"storage.etcd.keyfile": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-etcd-keyfile",
+			Usage:  "key provided to etcd",
+			EnvVar: "STORAGE_ETCD_KEYFILE",
+		},
+	},
+	"storage.etcd.prefix": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-etcd-prefix",
+			Usage:  "prefix used in etcd to store the charts in etcd",
+			EnvVar: "STORAGE_ETCD_PREFIX",
+		},
+	},
 	"chartpostformfieldname": {
 		Type:    stringType,
 		Default: "chart",
