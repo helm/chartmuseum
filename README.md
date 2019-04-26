@@ -273,6 +273,22 @@ chartmuseum --debug --port=8080 \
   --storage-baidu-endpoint="bj.bcebos.com"
 ```
 
+#### Using with ETCD as backend
+
+To use ETCD as backend you need the CA certificate and the signed key pair.
+See [here](https://coreos.com/etcd/docs/latest/op-guide/security.html)
+
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="etcd" \
+  --storage-etcd-cafile="/path/to/ca.crt" \
+  --storage-etcd-certfile="/path/to/server.crt" \
+  --storage-etcd-certfile="/path/to/server.key" \
+  --storage-etcd-prefix="" \
+  --storage-etcd-endpoint="http://localhost:2379"
+```
+
+
 #### Using with local filesystem storage
 Make sure you have read-write access to `./chartstorage` (will create if doesn't exist on first upload)
 ```bash
