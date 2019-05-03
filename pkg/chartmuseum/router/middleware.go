@@ -26,7 +26,7 @@ import (
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 
 	"github.com/gin-gonic/gin"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 var (
@@ -76,7 +76,7 @@ func setupContext(c *gin.Context) {
 	c.Set("requestcount", reqCount)
 	reqID := c.Request.Header.Get("X-Request-Id")
 	if reqID == "" {
-		reqID = uuid.NewV4().String()
+		reqID = uuid.Must(uuid.NewV4()).String()
 	}
 	c.Set("requestid", reqID)
 	c.Writer.Header().Set("X-Request-Id", reqID)
