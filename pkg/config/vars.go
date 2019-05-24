@@ -464,7 +464,6 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_BAIDU_ENDPOINT",
 		},
 	},
-
 	"storage.etcd.endpoint": {
 		Type:    stringType,
 		Default: "http://localhost:2379",
@@ -508,6 +507,33 @@ var configVars = map[string]configVar{
 			Name:   "storage-etcd-prefix",
 			Usage:  "prefix used in etcd to store the charts in etcd",
 			EnvVar: "STORAGE_ETCD_PREFIX",
+		},
+	},
+	"storage.tencent.bucket": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-tencent-bucket",
+			Usage:  "COS bucket to store charts for Tencent Cloud storage backend",
+			EnvVar: "STORAGE_TENCENT_BUCKET",
+		},
+	},
+	"storage.tencent.prefix": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-tencent-prefix",
+			Usage:  "prefix to store charts for --storage-tencent-cloud-bucket",
+			EnvVar: "STORAGE_TENCENT_PREFIX",
+		},
+	},
+	"storage.tencent.endpoint": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-tencent-endpoint",
+			Usage:  "COS endpoint",
+			EnvVar: "STORAGE_TENCENT_ENDPOINT",
 		},
 	},
 	"chartpostformfieldname": {
