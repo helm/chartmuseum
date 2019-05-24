@@ -127,6 +127,8 @@ func backendFromConfig(conf *config.Config) storage.Backend {
 		backend = baiduBackendFromConfig(conf)
 	case "etcd":
 		backend = etcdBackendFromConfig(conf)
+	case "tencent":
+		backend = tencentBackendFromConfig(conf)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -215,13 +217,22 @@ func etcdBackendFromConfig(conf *config.Config) storage.Backend {
 	crashIfConfigMissingVars(conf, []string{"storage.etcd.cafile",
 		"storage.etcd.certfile",
 		"storage.etcd.keyfile",
-		"storage.etcd.prefix" })
+		"storage.etcd.prefix"})
 	return storage.Backend(storage.NewEtcdCSBackend(
 		conf.GetString("storage.etcd.endpoints"),
 		conf.GetString("storage.etcd.cafile"),
 		conf.GetString("storage.etcd.certfile"),
 		conf.GetString("storage.etcd.keyfile"),
 		conf.GetString("storage.etcd.prefix"),
+	))
+}
+
+func tencentBackendFromConfig(conf *config.Config) storage.Backend {
+	crashIfConfigMissingVars(conf, []string{"storage.tencent.bucket"})
+	return storage.Backend(storage.NewTencentCloudCOSBackend(
+		conf.GetString("storage.tencent.bucket"),
+		conf.GetString("storage.tencent.prefix"),
+		conf.GetString("storage.tencent.endpoint"),
 	))
 }
 
