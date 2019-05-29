@@ -92,6 +92,7 @@ func cliHandler(c *cli.Context) {
 		AuthRealm:              conf.GetString("authrealm"),
 		AuthService:            conf.GetString("authservice"),
 		AuthCertPath:           conf.GetString("authcertpath"),
+		DepthDynamic:           conf.GetBool("depthdynamic"),
 	}
 
 	server, err := newServer(options)
@@ -215,7 +216,7 @@ func etcdBackendFromConfig(conf *config.Config) storage.Backend {
 	crashIfConfigMissingVars(conf, []string{"storage.etcd.cafile",
 		"storage.etcd.certfile",
 		"storage.etcd.keyfile",
-		"storage.etcd.prefix" })
+		"storage.etcd.prefix"})
 	return storage.Backend(storage.NewEtcdCSBackend(
 		conf.GetString("storage.etcd.endpoints"),
 		conf.GetString("storage.etcd.cafile"),

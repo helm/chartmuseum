@@ -51,7 +51,7 @@ For example, the route GET /:repo/index.yaml will be matched differently dependi
 	Path: "/myorg/myteam/myrepo/index.yaml"
 	Repo: "myorg/myteam/myrepo"
 */
-func match(routes []*Route, method string, url string, contextPath string, depth int) (*Route, []gin.Param) {
+func match(routes []*Route, method string, url string, contextPath string, depth int, depthdynamic bool) (*Route, []gin.Param) {
 	var noRepoPathSplit []string
 	var repo, repoPath, noRepoPath string
 	var startIndex, numNoRepoPathParts int
@@ -85,16 +85,22 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 	pathSplit := strings.Split(url, "/")
 	numParts := len(pathSplit)
 
-	if depth < 0 {
+	if depthdynamic {
 		for _, route := range routes {
+			if isApiRoute {
+				if !strings.HasPrefix(route.Path, "/api") {
+					continue
+				}
+			} else {
+				if strings.HasPrefix(route.Path, "/api") {
+					continue
+				}
+			}
 			depth = getDepth(url, route.Path)
 			if depth >= 0 {
 				break
 			}
 		}
-	}
-	if depth < 0 {
-		return nil, nil
 	}
 
 	if numParts >= depth+startIndex {
