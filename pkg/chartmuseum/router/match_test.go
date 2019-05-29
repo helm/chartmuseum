@@ -157,9 +157,6 @@ func (suite *MatchTestSuite) TestMatch() {
 			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
 			suite.Equal(route, routeWithDepthDynamic)
 			suite.Equal(params, paramsWithDepthDynamic)
-			if !suite.Equal(route, routeWithDepthDynamic) || !suite.Equal(params, paramsWithDepthDynamic) {
-				return
-			}
 
 			suite.NotNil(route)
 			if route != nil {
