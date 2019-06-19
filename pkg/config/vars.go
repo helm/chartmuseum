@@ -94,6 +94,15 @@ var configVars = map[string]configVar{
 			EnvVar: "DISABLE_API",
 		},
 	},
+	"disabldelete": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "disable-delete",
+			Usage:  "disable DELETE route",
+			EnvVar: "DISABLE_DELETE",
+		},
+	},
 	"disablestatefiles": {
 		Type:    boolType,
 		Default: false,

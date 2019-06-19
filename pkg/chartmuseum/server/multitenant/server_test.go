@@ -57,6 +57,7 @@ type MultiTenantServerTestSuite struct {
 	Depth2Server         *MultiTenantServer
 	Depth3Server         *MultiTenantServer
 	DisabledAPIServer    *MultiTenantServer
+	DisabledDeleteServer *MultiTenantServer
 	OverwriteServer      *MultiTenantServer
 	ForceOverwriteServer *MultiTenantServer
 	ChartURLServer       *MultiTenantServer
@@ -93,6 +94,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.Depth3Server.Router.HandleContext(c)
 	case "disabled":
 		suite.DisabledAPIServer.Router.HandleContext(c)
+	case "disableddelete":
+		suite.DisabledDeleteServer.Router.HandleContext(c)
 	case "overwrite":
 		suite.OverwriteServer.Router.HandleContext(c)
 	case "forceoverwrite":
@@ -298,6 +301,21 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new disabled server")
 	suite.DisabledAPIServer = server
+
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger: logger,
+		Router: cm_router.NewRouter(cm_router.RouterOptions{
+			Logger:        logger,
+			Depth:         0,
+			MaxUploadSize: maxUploadSize,
+		}),
+		StorageBackend: backend,
+		EnableAPI:      true,
+		DisableDelete:  true,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new disabled delete server")
+	suite.DisabledDeleteServer = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:        logger,
@@ -558,6 +576,11 @@ func (suite *MultiTenantServerTestSuite) TestDisabledServer() {
 	suite.Equal(404, res.Status(), "404 POST /api/prov")
 
 	res = suite.doRequest("disabled", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
+}
+
+func (suite *MultiTenantServerTestSuite) TestDisabledDeleteServer() {
+	res := suite.doRequest("disableddelete", "DELETE", "/api/charts/mychart/0.1.0", nil, "")
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 }
 

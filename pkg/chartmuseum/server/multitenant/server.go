@@ -54,6 +54,7 @@ type (
 		AllowOverwrite         bool
 		AllowForceOverwrite    bool
 		APIEnabled             bool
+		DisableDelete          bool
 		UseStatefiles          bool
 		ChartURL               string
 		ChartPostFormFieldName string
@@ -78,6 +79,7 @@ type (
 		AllowOverwrite         bool
 		AllowForceOverwrite    bool
 		EnableAPI              bool
+		DisableDelete          bool
 		UseStatefiles          bool
 	}
 
@@ -120,6 +122,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		AllowOverwrite:         options.AllowOverwrite,
 		AllowForceOverwrite:    options.AllowForceOverwrite,
 		APIEnabled:             options.EnableAPI,
+		DisableDelete:          options.DisableDelete,
 		UseStatefiles:          options.UseStatefiles,
 		Limiter:                make(chan struct{}, options.IndexLimit),
 		Tenants:                map[string]*tenantInternals{},

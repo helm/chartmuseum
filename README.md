@@ -372,6 +372,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--log-json` - output structured logs as json
 - `--log-health` - log incoming /health requests
 - `--disable-api` - disable all routes prefixed with /api
+- `--disable-delete` - explicitely disable the delete chart route
 - `--disable-statefiles` - disable use of index-cache.yaml
 - `--allow-overwrite` - allow chart versions to be re-uploaded without ?force querystring
 - `--disable-force-overwrite` - do not allow chart versions to be re-uploaded, even with ?force querystring
@@ -487,27 +488,27 @@ ChartMuseum exposes its [Prometheus metrics](https://prometheus.io/docs/concepts
 Below are the current application metrics exposed. Note that there is a per tenant (repo) label. The repo label corresponds to the depth parameter, so a depth=2 as the example above would
 have repo labels named `org1/repoa` and `org2/repob`.
 
-| Metric                                   | Type           | Labels     | Description                              |
-| ---------------------------------------- | -------------- | ---------- | ---------------------------------------- |
-| chartmuseum_charts_served_total          | Gauge          | {repo="*"} | Total number of charts                   |
-| chartmuseum_charts_versions_served_total | Gauge          | {repo="*"} | Total number of chart versions available |
+| Metric                                   | Type  | Labels     | Description                              |
+| ---------------------------------------- | ----- | ---------- | ---------------------------------------- |
+| chartmuseum_charts_served_total          | Gauge | {repo="*"} | Total number of charts                   |
+| chartmuseum_charts_versions_served_total | Gauge | {repo="*"} | Total number of chart versions available |
 
 *: see above for repo label
 
 There are other general global metrics harvested (per process, hence for all tenants). You can get the complete list by using the `/metrics` route.
 
-| Metric                                       | Type    | Labels                                                | Description                               |
-| -------------------------------------------- | ------- | ----------------------------------------------------- | ----------------------------------------- |
-| chartmuseum_request_duration_seconds         | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP request latencies in seconds     |
-| chartmuseum_request_duration_seconds_sum     |         |                                                       |                                           |
-| chartmuseum_request_duration_seconds_count   |         |                                                       |                                           |
-| chartmuseum_request_size_bytes               | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP request sizes in bytes           |
-| chartmuseum_request_size_bytes_sum           |         |                                                       |                                           |
-| chartmuseum_request_size_bytes_count         |         |                                                       |                                           |
-| chartmuseum_response_size_bytes              | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP response sizes in bytes          |
-| chartmuseum_response_size_bytes_sum          |         |                                                       |                                           |
-| chartmuseum_response_size_bytes_count        |         |                                                       |                                           |
-| go_goroutines                                | Gauge   |                                                       | Number of goroutines that currently exist |
+| Metric                                     | Type    | Labels                                                | Description                               |
+| ------------------------------------------ | ------- | ----------------------------------------------------- | ----------------------------------------- |
+| chartmuseum_request_duration_seconds       | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP request latencies in seconds     |
+| chartmuseum_request_duration_seconds_sum   |         |                                                       |                                           |
+| chartmuseum_request_duration_seconds_count |         |                                                       |                                           |
+| chartmuseum_request_size_bytes             | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP request sizes in bytes           |
+| chartmuseum_request_size_bytes_sum         |         |                                                       |                                           |
+| chartmuseum_request_size_bytes_count       |         |                                                       |                                           |
+| chartmuseum_response_size_bytes            | Summary | {quantile="0.5"}, {quantile="0.9"}, {quantile="0.99"} | The HTTP response sizes in bytes          |
+| chartmuseum_response_size_bytes_sum        |         |                                                       |                                           |
+| chartmuseum_response_size_bytes_count      |         |                                                       |                                           |
+| go_goroutines                              | Gauge   |                                                       | Number of goroutines that currently exist |
 
 
 ## Notes on index.yaml
@@ -531,13 +532,13 @@ You can then use *ChartMuseum* to serve up an internal mirror:
 scripts/mirror_k8s_repos.sh
 chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mirror"
  ```
- 
+
 ## Original Logo
 
 <sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
 
 ![](./logo.png)
-  
+
 ## Subprojects
 
 The following subprojects are maintained by *ChartMuseum*:
