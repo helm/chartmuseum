@@ -36,14 +36,15 @@ type (
 	// Router handles all incoming HTTP requests
 	Router struct {
 		*gin.Engine
-		Logger      *cm_logger.Logger
-		Authorizer  *cm_auth.Authorizer
-		Routes      []*Route
-		TlsCert     string
-		TlsKey      string
-		TlsCACert   string
-		ContextPath string
-		Depth       int
+		Logger       *cm_logger.Logger
+		Authorizer   *cm_auth.Authorizer
+		Routes       []*Route
+		TlsCert      string
+		TlsKey       string
+		TlsCACert    string
+		ContextPath  string
+		Depth        int
+		DepthDynamic bool
 	}
 
 	// RouterOptions are options for constructing a Router
@@ -65,6 +66,7 @@ type (
 		AuthRealm     string
 		AuthService   string
 		AuthCertPath  string
+		DepthDynamic  bool
 	}
 
 	// Route represents an application route
@@ -91,14 +93,15 @@ func NewRouter(options RouterOptions) *Router {
 	}
 
 	router := &Router{
-		Engine:      engine,
-		Routes:      []*Route{},
-		Logger:      options.Logger,
-		TlsCert:     options.TlsCert,
-		TlsKey:      options.TlsKey,
-		TlsCACert:   options.TlsCACert,
-		ContextPath: options.ContextPath,
-		Depth:       options.Depth,
+		Engine:       engine,
+		Routes:       []*Route{},
+		Logger:       options.Logger,
+		TlsCert:      options.TlsCert,
+		TlsKey:       options.TlsKey,
+		TlsCACert:    options.TlsCACert,
+		ContextPath:  options.ContextPath,
+		Depth:        options.Depth,
+		DepthDynamic: options.DepthDynamic,
 	}
 
 	var err error
@@ -186,7 +189,8 @@ func (router *Router) SetRoutes(routes []*Route) {
 
 // all incoming requests are passed through this handler
 func (router *Router) masterHandler(c *gin.Context) {
-	route, params := match(router.Routes, c.Request.Method, c.Request.URL.Path, router.ContextPath, router.Depth)
+	route, params := match(router.Routes, c.Request.Method, c.Request.URL.Path, router.ContextPath, router.Depth,
+		router.DepthDynamic)
 	if route == nil {
 		c.JSON(404, gin.H{"error": "not found"})
 		return

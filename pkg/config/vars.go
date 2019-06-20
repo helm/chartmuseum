@@ -645,6 +645,15 @@ var configVars = map[string]configVar{
 			EnvVar: "AUTH_CERT_PATH",
 		},
 	},
+	"depthdynamic": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "depth-dynamic",
+			Usage:  "the length of repo variable",
+			EnvVar: "DEPTH_DYNAMIC",
+		},
+	},
 }
 
 func populateCLIFlags() {

@@ -51,7 +51,7 @@ For example, the route GET /:repo/index.yaml will be matched differently dependi
 	Path: "/myorg/myteam/myrepo/index.yaml"
 	Repo: "myorg/myteam/myrepo"
 */
-func match(routes []*Route, method string, url string, contextPath string, depth int) (*Route, []gin.Param) {
+func match(routes []*Route, method string, url string, contextPath string, depth int, depthdynamic bool) (*Route, []gin.Param) {
 	var noRepoPathSplit []string
 	var repo, repoPath, noRepoPath string
 	var startIndex, numNoRepoPathParts int
@@ -84,6 +84,24 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 
 	pathSplit := strings.Split(url, "/")
 	numParts := len(pathSplit)
+
+	if depthdynamic {
+		for _, route := range routes {
+			if isApiRoute {
+				if !strings.HasPrefix(route.Path, "/api") {
+					continue
+				}
+			} else {
+				if strings.HasPrefix(route.Path, "/api") {
+					continue
+				}
+			}
+			depth = getDepth(url, route.Path)
+			if depth >= 0 {
+				break
+			}
+		}
+	}
 
 	if numParts >= depth+startIndex {
 		repoParts := pathSplit[startIndex : depth+startIndex]
@@ -137,4 +155,40 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 
 func checkApiRoute(url string) bool {
 	return strings.HasPrefix(url, "/api/") && !validRepoRoute.MatchString(url)
+}
+
+func splitPath(key string) []string {
+	key = strings.Trim(key, "/ ")
+	if key == "" {
+		return []string{}
+	}
+	return strings.Split(key, "/")
+}
+
+func url2pattern(url string) string {
+	urls := splitPath(url)
+	var patternItems []string
+	for _, item := range urls {
+		if strings.HasPrefix(item, ":") {
+			if strings.EqualFold(item[1:], "repo") {
+				patternItems = append(patternItems, ".*")
+			} else {
+				patternItems = append(patternItems, `[^/]+`)
+			}
+		} else {
+			patternItems = append(patternItems, item)
+		}
+	}
+	return strings.Replace("^/"+strings.Join(patternItems, "/")+"$",
+		"/.*", "(/.*){0,1}", -1)
+}
+
+func getDepth(url, routePath string) int {
+	r, _ := regexp.Compile(url2pattern(routePath))
+	if r.MatchString(url) {
+		oriNum := len(strings.Split(routePath, "/"))
+		patNum := len(strings.Split(url, "/"))
+		return patNum - oriNum + 1
+	}
+	return -1
 }

@@ -73,7 +73,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /
 			r := pathutil.Join("/", contextPath)
-			route, params := match(routes, "GET", r, contextPath, depth)
+			route, params := match(routes, "GET", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic := match(routes, "GET", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			suite.Nil(params)
 			if route != nil {
@@ -85,7 +89,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /health
 			r = pathutil.Join("/", contextPath, "health")
-			route, params = match(routes, "GET", r, contextPath, depth)
+			route, params = match(routes, "GET", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			suite.Nil(params)
 			if route != nil {
@@ -97,7 +105,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /index.yaml
 			r = pathutil.Join("/", contextPath, repo, "index.yaml")
-			route, params = match(routes, "GET", r, contextPath, depth)
+			route, params = match(routes, "GET", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			if route != nil {
 				route.Handler(c)
@@ -109,7 +121,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /charts/mychart-0.1.0.tgz
 			r = pathutil.Join("/", contextPath, repo, "charts/mychart-0.1.0.tgz")
-			route, params = match(routes, "GET", r, contextPath, depth)
+			route, params = match(routes, "GET", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			if route != nil {
 				route.Handler(c)
@@ -121,7 +137,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /api/charts
 			r = pathutil.Join("/", contextPath, "api", repo, "charts")
-			route, params = match(routes, "GET", r, contextPath, depth)
+			route, params = match(routes, "GET", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			if route != nil {
 				route.Handler(c)
@@ -133,7 +153,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /api/charts/mychart
 			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart")
-			route, params = match(routes, "GET", r, contextPath, depth)
+			route, params = match(routes, "GET", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			if route != nil {
 				route.Handler(c)
@@ -145,7 +169,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// GET /api/charts/mychart/0.1.0
 			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart/0.1.0")
-			route, params = match(routes, "GET", r, contextPath, depth)
+			route, params = match(routes, "GET", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			if route != nil {
 				route.Handler(c)
@@ -157,7 +185,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// POST /api/charts
 			r = pathutil.Join("/", contextPath, "api", repo, "charts")
-			route, params = match(routes, "POST", r, contextPath, depth)
+			route, params = match(routes, "POST", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "POST", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			if route != nil {
 				route.Handler(c)
@@ -169,7 +201,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// POST /api/prov
 			r = pathutil.Join("/", contextPath, "api", repo, "prov")
-			route, params = match(routes, "POST", r, contextPath, depth)
+			route, params = match(routes, "POST", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "POST", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			if route != nil {
 				route.Handler(c)
@@ -181,7 +217,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 			// DELETE /api/charts/mychart/0.1.0
 			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart/0.1.0")
-			route, params = match(routes, "DELETE", r, contextPath, depth)
+			route, params = match(routes, "DELETE", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "DELETE", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
 			suite.NotNil(route)
 			if route != nil {
 				route.Handler(c)
@@ -195,7 +235,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 	// Test route repos named "api*"
 	r := "/apix/index.yaml"
-	route, params := match(routes, "GET", r, "", 1)
+	route, params := match(routes, "GET", r, "", 1, false)
+	routeWithDepthDynamic, paramsWithDepthDynamic := match(routes, "GET", r, "", 0, true)
+	suite.Equal(route, routeWithDepthDynamic)
+	suite.Equal(params, paramsWithDepthDynamic)
+
 	suite.NotNil(route)
 	if route != nil {
 		route.Handler(c)
@@ -206,7 +250,11 @@ func (suite *MatchTestSuite) TestMatch() {
 	suite.Equal([]gin.Param{{"repo", "apix"}}, params)
 
 	r = "/apix/charts/mychart-0.1.0.tgz"
-	route, params = match(routes, "GET", r, "", 1)
+	route, params = match(routes, "GET", r, "", 1, false)
+	routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, "", 0, true)
+	suite.Equal(route, routeWithDepthDynamic)
+	suite.Equal(params, paramsWithDepthDynamic)
+
 	suite.NotNil(route)
 	if route != nil {
 		route.Handler(c)
@@ -218,7 +266,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 	// Test route repos named just "api"
 	r = "/api/index.yaml"
-	route, params = match(routes, "GET", r, "", 1)
+	route, params = match(routes, "GET", r, "", 1, false)
+	routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, "", 0, true)
+	suite.Equal(route, routeWithDepthDynamic)
+	suite.Equal(params, paramsWithDepthDynamic)
+
 	suite.NotNil(route)
 	if route != nil {
 		route.Handler(c)
@@ -229,7 +281,11 @@ func (suite *MatchTestSuite) TestMatch() {
 	suite.Equal([]gin.Param{{"repo", "api"}}, params)
 
 	r = "/api/charts/mychart-0.1.0.tgz"
-	route, params = match(routes, "GET", r, "", 1)
+	route, params = match(routes, "GET", r, "", 1, false)
+	routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, "", 0, true)
+	suite.Equal(route, routeWithDepthDynamic)
+	suite.Equal(params, paramsWithDepthDynamic)
+
 	suite.NotNil(route)
 	if route != nil {
 		route.Handler(c)
@@ -241,7 +297,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 	// just "api" as repo name, depth=2
 	r = "/api/xyz/index.yaml"
-	route, params = match(routes, "GET", r, "", 2)
+	route, params = match(routes, "GET", r, "", 2, false)
+	routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, "", 0, true)
+	suite.Equal(route, routeWithDepthDynamic)
+	suite.Equal(params, paramsWithDepthDynamic)
+
 	suite.NotNil(route)
 	if route != nil {
 		route.Handler(c)
@@ -252,7 +312,11 @@ func (suite *MatchTestSuite) TestMatch() {
 	suite.Equal([]gin.Param{{"repo", "api/xyz"}}, params)
 
 	r = "/api/xyz/charts/mychart-0.1.0.tgz"
-	route, params = match(routes, "GET", r, "", 2)
+	route, params = match(routes, "GET", r, "", 2, false)
+	routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, "", 0, true)
+	suite.Equal(route, routeWithDepthDynamic)
+	suite.Equal(params, paramsWithDepthDynamic)
+
 	suite.NotNil(route)
 	if route != nil {
 		route.Handler(c)
@@ -264,7 +328,11 @@ func (suite *MatchTestSuite) TestMatch() {
 
 	// Test route repos named "health"
 	r = "/health/index.yaml"
-	route, params = match(routes, "GET", r, "", 1)
+	route, params = match(routes, "GET", r, "", 1, false)
+	routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, "", 0, true)
+	suite.Equal(route, routeWithDepthDynamic)
+	suite.Equal(params, paramsWithDepthDynamic)
+
 	suite.NotNil(route)
 	if route != nil {
 		route.Handler(c)
@@ -275,7 +343,11 @@ func (suite *MatchTestSuite) TestMatch() {
 	suite.Equal([]gin.Param{{"repo", "health"}}, params)
 
 	r = "/health/charts/mychart-0.1.0.tgz"
-	route, params = match(routes, "GET", r, "", 1)
+	route, params = match(routes, "GET", r, "", 1, false)
+	routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, "", 0, true)
+	suite.Equal(route, routeWithDepthDynamic)
+	suite.Equal(params, paramsWithDepthDynamic)
+
 	suite.NotNil(route)
 	if route != nil {
 		route.Handler(c)

@@ -59,6 +59,7 @@ type (
 		AuthRealm              string
 		AuthService            string
 		AuthCertPath           string
+		DepthDynamic           bool
 	}
 
 	// Server is a generic interface for web servers
@@ -99,6 +100,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		AuthRealm:     options.AuthRealm,
 		AuthService:   options.AuthService,
 		AuthCertPath:  options.AuthCertPath,
+		DepthDynamic:  options.DepthDynamic,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{

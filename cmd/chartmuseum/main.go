@@ -93,6 +93,7 @@ func cliHandler(c *cli.Context) {
 		AuthRealm:              conf.GetString("authrealm"),
 		AuthService:            conf.GetString("authservice"),
 		AuthCertPath:           conf.GetString("authcertpath"),
+		DepthDynamic:           conf.GetBool("depthdynamic"),
 	}
 
 	server, err := newServer(options)
