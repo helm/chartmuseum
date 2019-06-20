@@ -41,7 +41,6 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 		{"GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler, cm_auth.PullAction},
 		{"POST", "/api/:repo/charts", s.postRequestHandler, cm_auth.PushAction},
 		{"POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler, cm_auth.PushAction},
-		{"DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler, cm_auth.PushAction},
 	}
 
 	routes = append(routes, serverInfoRoutes...)
@@ -49,6 +48,10 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 
 	if s.APIEnabled {
 		routes = append(routes, chartManipulationRoutes...)
+	}
+
+	if s.APIEnabled && !s.DisableDelete {
+		routes = append(routes, &cm_router.Route{"DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler, cm_auth.PushAction})
 	}
 
 	return routes

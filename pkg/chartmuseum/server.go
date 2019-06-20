@@ -46,6 +46,7 @@ type (
 		EnableAPI              bool
 		UseStatefiles          bool
 		AllowOverwrite         bool
+		DisableDelete          bool
 		AllowForceOverwrite    bool
 		EnableMetrics          bool
 		AnonymousGet           bool
@@ -112,6 +113,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		IndexLimit:             options.IndexLimit,
 		GenIndex:               options.GenIndex,
 		EnableAPI:              options.EnableAPI,
+		DisableDelete:          options.DisableDelete,
 		UseStatefiles:          options.UseStatefiles,
 		AllowOverwrite:         options.AllowOverwrite,
 		AllowForceOverwrite:    options.AllowForceOverwrite,
