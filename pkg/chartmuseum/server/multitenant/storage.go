@@ -64,7 +64,7 @@ func (server *MultiTenantServer) getStorageObject(log cm_logger.LoggingFn, repo 
 
 	var contentType string
 	if isProvenanceFile {
-		contentType = chartPackageContentType
+		contentType = provenanceFileContentType
 	} else {
 		contentType = chartPackageContentType
 	}
