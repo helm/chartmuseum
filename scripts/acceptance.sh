@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-PY_REQUIRES="requests==2.20.1 robotframework==3.0.4"
+PY_REQUIRES="requests==2.22.0 robotframework==3.1.2"
 
 REQUIRED_TEST_STORAGE_ENV_VARS=(
     "TEST_STORAGE_AMAZON_BUCKET"
