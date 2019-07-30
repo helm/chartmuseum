@@ -283,7 +283,7 @@ chartmuseum --debug --port=8080 \
   --storage="etcd" \
   --storage-etcd-cafile="/path/to/ca.crt" \
   --storage-etcd-certfile="/path/to/server.crt" \
-  --storage-etcd-certfile="/path/to/server.key" \
+  --storage-etcd-keyfile="/path/to/server.key" \
   --storage-etcd-prefix="" \
   --storage-etcd-endpoint="http://localhost:2379"
 ```

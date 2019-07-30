@@ -221,7 +221,7 @@ func etcdBackendFromConfig(conf *config.Config) storage.Backend {
 		"storage.etcd.keyfile",
 		"storage.etcd.prefix"})
 	return storage.Backend(storage.NewEtcdCSBackend(
-		conf.GetString("storage.etcd.endpoints"),
+		conf.GetString("storage.etcd.endpoint"),
 		conf.GetString("storage.etcd.cafile"),
 		conf.GetString("storage.etcd.certfile"),
 		conf.GetString("storage.etcd.keyfile"),
