@@ -124,6 +124,22 @@ All command-line options can be specified as environment variables, which are de
 
 For example, the env var `STORAGE_AMAZON_BUCKET` can be used in place of `--storage-amazon-bucket`.
 
+##### Using config yaml file example
+When using a yaml file instead of the command line， Convert the `-` of the parameter in the command to `.`.
+Note that `--storage` is converted to `storage.backend`
+```yaml
+debug: true
+port: 8080
+storage.backend: local
+storage.local.rootdir: <storage_path>
+bearerauth: 1
+authrealm: <authorization server url>
+authservice: <authorization server service name>
+authcertpath: <path to authorization server public pem file> 
+depth: 2
+
+```
+
 #### Using with Amazon S3 or Compatible services like Minio
 Make sure your environment is properly setup to access `my-s3-bucket`
 
