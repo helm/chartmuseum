@@ -119,7 +119,9 @@ func (logger *Logger) Errorc(c *gin.Context, msg string, keysAndValues ...interf
 func transformLogcArgs(c *gin.Context, msg string, keysAndValues []interface{}) (string, []interface{}) {
 	if reqCount, exists := c.Get("requestcount"); exists {
 		msg = fmt.Sprintf("[%s] %s", reqCount, msg)
-		keysAndValues = append(keysAndValues, "reqID", c.MustGet("requestid"))
+		if reqID, exists := c.Get("requestid"); exists {
+			keysAndValues = append(keysAndValues, "reqID", reqID)
+		}
 	}
 	return msg, keysAndValues
 }
