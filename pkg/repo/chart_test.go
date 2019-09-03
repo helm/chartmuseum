@@ -112,6 +112,29 @@ func (suite *ChartTestSuite) TestChartVersionFromStorageObject() {
 	suite.Nil(err)
 	suite.Equal("my-long-hyphenated-chart-name", chartVersion.Name, "chart name as expected")
 	suite.Equal("crapversion", chartVersion.Version, "chart version as expected")
+
+	// Issue #261
+	hyphenDigitalObject := storage.Object{
+		Path:         "mychart-1x-1.0.4.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(hyphenDigitalObject)
+	suite.Nil(err)
+	suite.Equal("mychart-1x", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.0.4", chartVersion.Version, "chart version as expected")
+
+	hyphenDigitalObject.Path = "mychart-1x-1.0.4-rc1.tgz"
+	chartVersion, err = ChartVersionFromStorageObject(hyphenDigitalObject)
+	suite.Nil(err)
+	suite.Equal("mychart-1x", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.0.4-rc1", chartVersion.Version, "chart version as expected")
+
+	hyphenDigitalObject.Path = "mychart-1x-1.0.4-rc1-SNAPSHOT.tgz"
+	chartVersion, err = ChartVersionFromStorageObject(hyphenDigitalObject)
+	suite.Nil(err)
+	suite.Equal("mychart-1x", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.0.4-rc1-SNAPSHOT", chartVersion.Version, "chart version as expected")
 }
 
 func (suite *ChartTestSuite) TestStorageObjectFromChartVersion() {
