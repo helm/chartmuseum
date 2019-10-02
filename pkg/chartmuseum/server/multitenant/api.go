@@ -19,6 +19,7 @@ package multitenant
 import (
 	"fmt"
 	pathutil "path/filepath"
+	"sort"
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
@@ -26,16 +27,32 @@ import (
 	helm_repo "k8s.io/helm/pkg/repo"
 )
 
-func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo string) (map[string]helm_repo.ChartVersions, *HTTPError) {
+func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo string, offset int, limit int) (map[string]helm_repo.ChartVersions, *HTTPError) {
 	indexFile, err := server.getIndexFile(log, repo)
 	if err != nil {
 		return nil, &HTTPError{500, err.Message}
 	}
-	return indexFile.Entries, nil
+	if offset == 0 && limit == -1 {
+		return indexFile.Entries, nil
+	}
+	result := map[string]helm_repo.ChartVersions{}
+	var keys []string
+	for k := range indexFile.Entries {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	end := offset+limit
+	if len(keys) < end {
+		end = len(keys)
+	}
+	for i:=offset; i < end ; i++ {
+		result[keys[i]] = indexFile.Entries[keys[i]]
+	}
+	return result, nil
 }
 
 func (server *MultiTenantServer) getChart(log cm_logger.LoggingFn, repo string, name string) (helm_repo.ChartVersions, *HTTPError) {
-	allCharts, err := server.getAllCharts(log, repo)
+	allCharts, err := server.getAllCharts(log, repo, 0, -1)
 	if err != nil {
 		return nil, err
 	}
