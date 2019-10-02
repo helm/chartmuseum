@@ -844,6 +844,13 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/fakechart", apiPrefix), nil, "")
 	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/charts/fakechart", apiPrefix))
 
+	// HEAD /api/:repo/charts/:name
+	res = suite.doRequest(stype, "HEAD", fmt.Sprintf("%s/charts/mychart", apiPrefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 HEAD %s/charts/mychart", apiPrefix))
+
+	res = suite.doRequest(stype, "HEAD", fmt.Sprintf("%s/charts/fakechart", apiPrefix), nil, "")
+	suite.Equal(404, res.Status(), fmt.Sprintf("404 HEAD %s/charts/fakechart", apiPrefix))
+
 	// GET /api/:repo/charts/:name/:version
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/mychart/0.1.0", apiPrefix), nil, "")
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/charts/mychart/0.1.0", apiPrefix))
@@ -856,6 +863,19 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/fakechart/0.1.0", apiPrefix), nil, "")
 	suite.Equal(404, res.Status(), fmt.Sprintf("200 GET %s/charts/fakechart/0.1.0", apiPrefix))
+
+	// HEAD /api/:repo/charts/:name/:version
+	res = suite.doRequest(stype, "HEAD", fmt.Sprintf("%s/charts/mychart/0.1.0", apiPrefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 HEAD %s/charts/mychart/0.1.0", apiPrefix))
+
+	res = suite.doRequest(stype, "HEAD", fmt.Sprintf("%s/charts/mychart/latest", apiPrefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 HEAD %s/charts/mychart/latest", apiPrefix))
+
+	res = suite.doRequest(stype, "HEAD", fmt.Sprintf("%s/charts/mychart/0.1.1", apiPrefix), nil, "")
+	suite.Equal(404, res.Status(), fmt.Sprintf("200 HEAD %s/charts/mychart/0.1.1", apiPrefix))
+
+	res = suite.doRequest(stype, "HEAD", fmt.Sprintf("%s/charts/fakechart/0.1.0", apiPrefix), nil, "")
+	suite.Equal(404, res.Status(), fmt.Sprintf("200 HEAD %s/charts/fakechart/0.1.0", apiPrefix))
 
 	// DELETE /api/:repo/charts/:name/:version
 	res = suite.doRequest(stype, "DELETE", fmt.Sprintf("%s/charts/mychart/0.1.0", apiPrefix), nil, "")

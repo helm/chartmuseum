@@ -128,6 +128,18 @@ func (server *MultiTenantServer) getChartRequestHandler(c *gin.Context) {
 	c.JSON(200, chart)
 }
 
+func (server *MultiTenantServer) headChartRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	name := c.Param("name")
+	log := server.Logger.ContextLoggingFn(c)
+	_, err := server.getChart(log, repo, name)
+	if err != nil {
+		c.Status(err.Status)
+		return
+	}
+	c.Status(200)
+}
+
 func (server *MultiTenantServer) getChartVersionRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
@@ -139,6 +151,19 @@ func (server *MultiTenantServer) getChartVersionRequestHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(200, chartVersion)
+}
+
+func (server *MultiTenantServer) headChartVersionRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	name := c.Param("name")
+	version := c.Param("version")
+	log := server.Logger.ContextLoggingFn(c)
+	_, err := server.getChartVersion(log, repo, name, version)
+	if err != nil {
+		c.Status(err.Status)
+		return
+	}
+	c.Status(200)
 }
 
 func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context) {

@@ -37,7 +37,9 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 
 	chartManipulationRoutes := []*cm_router.Route{
 		{"GET", "/api/:repo/charts", s.getAllChartsRequestHandler, cm_auth.PullAction},
+		{"HEAD", "/api/:repo/charts/:name", s.headChartRequestHandler, cm_auth.PullAction},
 		{"GET", "/api/:repo/charts/:name", s.getChartRequestHandler, cm_auth.PullAction},
+		{"HEAD", "/api/:repo/charts/:name/:version", s.headChartVersionRequestHandler, cm_auth.PullAction},
 		{"GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler, cm_auth.PullAction},
 		{"POST", "/api/:repo/charts", s.postRequestHandler, cm_auth.PushAction},
 		{"POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler, cm_auth.PushAction},
