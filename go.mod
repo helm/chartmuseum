@@ -12,7 +12,6 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/size v0.0.0-20190528085907-355431950c57
 	github.com/gin-gonic/gin v1.4.0
-	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
@@ -27,5 +26,5 @@ require (
 	go.uber.org/zap v1.10.0
 	k8s.io/apimachinery v0.0.0-20190703205208-4cfb76a8bf76 // indirect
 	k8s.io/client-go v11.0.0+incompatible // indirect
-	k8s.io/helm v2.14.1+incompatible
+	k8s.io/helm v2.14.3+incompatible
 )
