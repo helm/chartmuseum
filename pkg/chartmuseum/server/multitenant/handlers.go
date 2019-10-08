@@ -111,7 +111,8 @@ func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	offset := 0
 	offsetString, offsetExists := c.GetQuery("offset")
 	if offsetExists {
-		offset, convErr := strconv.Atoi(offsetString)
+		var convErr error
+		offset, convErr = strconv.Atoi(offsetString)
 		if convErr != nil || offset < 0 {
 			c.JSON(400, gin.H{"error": "offset is not a valid non-negative integer"})
 			return
@@ -121,7 +122,8 @@ func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	limit := -1
 	limitString, limitExists := c.GetQuery("limit")
 	if limitExists {
-		limit, convErr := strconv.Atoi(limitString)
+		var convErr error
+		limit, convErr = strconv.Atoi(limitString)
 		if convErr != nil || limit <= 0 {
 			c.JSON(400, gin.H{"error": "limit is not a valid positive integer"})
 			return
