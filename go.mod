@@ -6,6 +6,7 @@ require (
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20180125190556-5a6b3ba71ee6 // indirect
 	github.com/alicebob/miniredis v2.5.0+incompatible
+	github.com/aws/aws-sdk-go v1.25.7 // indirect
 	github.com/chartmuseum/auth v0.2.0
 	github.com/chartmuseum/storage v0.5.0
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
