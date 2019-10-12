@@ -83,7 +83,6 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 	}
 
 	pathSplit := strings.Split(url, "/")
-	numParts := len(pathSplit)
 
 	if depthdynamic {
 		for _, route := range routes {
@@ -103,7 +102,7 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 		}
 	}
 
-	if numParts >= depth+startIndex {
+	if len(pathSplit) >= depth+startIndex {
 		repoParts := pathSplit[startIndex : depth+startIndex]
 		if len(repoParts) == depth {
 			tryRepoRoutes = true
