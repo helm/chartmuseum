@@ -837,6 +837,18 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts", apiPrefix), nil, "")
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/charts", apiPrefix))
 
+	// GET /api/:repo/charts?offset=10&limit=5
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts?offset=10&limit=5", apiPrefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/charts", apiPrefix))
+
+	// GET /api/:repo/charts?offset=-1
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts?offset=-1&limit=5", apiPrefix), nil, "")
+	suite.Equal(400, res.Status(), fmt.Sprintf("400 GET %s/charts?offset=-1", apiPrefix))
+
+	// GET /api/:repo/charts?limit=0
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts?offset=-1&limit=5", apiPrefix), nil, "")
+	suite.Equal(400, res.Status(), fmt.Sprintf("400 GET %s/charts?limit=0", apiPrefix))
+
 	// GET /api/:repo/charts/:name
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/mychart", apiPrefix), nil, "")
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/charts/mychart", apiPrefix))

@@ -22,6 +22,7 @@ import (
 	"io"
 	"net/http"
 	pathutil "path"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -107,8 +108,30 @@ func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) 
 
 func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
+	offset := 0
+	offsetString, offsetExists := c.GetQuery("offset")
+	if offsetExists {
+		var convErr error
+		offset, convErr = strconv.Atoi(offsetString)
+		if convErr != nil || offset < 0 {
+			c.JSON(400, gin.H{"error": "offset is not a valid non-negative integer"})
+			return
+		}
+	}
+
+	limit := -1
+	limitString, limitExists := c.GetQuery("limit")
+	if limitExists {
+		var convErr error
+		limit, convErr = strconv.Atoi(limitString)
+		if convErr != nil || limit <= 0 {
+			c.JSON(400, gin.H{"error": "limit is not a valid positive integer"})
+			return
+		}
+	}
+
 	log := server.Logger.ContextLoggingFn(c)
-	allCharts, err := server.getAllCharts(log, repo)
+	allCharts, err := server.getAllCharts(log, repo, offset, limit)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
