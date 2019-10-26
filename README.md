@@ -25,15 +25,17 @@ Powered by some great Go technology:
 ## API
 
 ### Helm Chart Repository
-- `GET /index.yaml` - retrieved when you run `helm repo add chartmuseum http://localhost:8080/`
-- `GET /charts/mychart-0.1.0.tgz` - retrieved when you run `helm install chartmuseum/mychart`
-- `GET /charts/mychart-0.1.0.tgz.prov` - retrieved when you run `helm install` with the `--verify` flag
+- `GET /<repo>/index.yaml` - retrieved when you run `helm repo add chartmuseum http://localhost:8080/`
+- `GET /<repo>/charts/mychart-0.1.0.tgz` - retrieved when you run `helm install chartmuseum/mychart`
+- `GET /<repo>/charts/mychart-0.1.0.tgz.prov` - retrieved when you run `helm install` with the `--verify` flag
 
 ### Chart Manipulation
-- `POST /api/charts` - upload a new chart version
-- `POST /api/prov` - upload a new provenance file
-- `DELETE /api/charts/<name>/<version>` - delete a chart version (and corresponding provenance file)
-- `GET /api/charts` - list all charts
+- `POST /api/<repo>/charts` - upload a new chart version
+- `POST /api/<repo>/prov` - upload a new provenance file
+- `HEAD /api/<repo>/charts/<name>` -  check if a chart is existed
+- `HEAD /api/<repo>/charts/<name>/<version>` - check a a chart version is existed  
+- `DELETE /api/<repo>/charts/<name>/<version>` - delete a chart version (and corresponding provenance file)
+- `GET /api/<repo>/charts` - list all charts
 - `GET /api/charts/<name>` - list all versions of a chart
 - `GET /api/charts/<name>/<version>` - describe a chart version
 
