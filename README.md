@@ -194,8 +194,8 @@ You need at least the following permissions inside your IAM Policy
 For DigitalOcean, set the credentials using environment variable and pass the `endpoint`.  
 Note below, that the region `us-east-1` needs to be set, since that is how the DigitalOcean cli implementation functions. The actual region of your spaces location is defined by the endpoint. Below we are using Frankfurt as an example.
 ```bash
-export AWS_ACCESS_KEY_ID=""
-export AWS_SECRET_ACCESS_KEY=""
+export AWS_ACCESS_KEY_ID="spaces_access_key"
+export AWS_SECRET_ACCESS_KEY="spaces_secret_access_key"
   chartmuseum --debug --port=8080 \
   --storage="amazon" \
   --storage-amazon-bucket="my_spaces_name" \
