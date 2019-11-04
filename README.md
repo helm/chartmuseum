@@ -140,7 +140,7 @@ depth: 2
 
 ```
 
-#### Using with Amazon S3 or Compatible services like Minio, or DigitalOcean
+#### Using with Amazon S3 or Compatible services like Minio
 Make sure your environment is properly setup to access `my-s3-bucket`
 
 For Amazon S3, `endpoint` is automatically inferred.
@@ -191,19 +191,6 @@ You need at least the following permissions inside your IAM Policy
   ]
 }
 ```
-For DigitalOcean, set the credentials using environment variable and pass the `endpoint`.  
-Note below, that the region `us-east-1` needs to be set, since that is how the DigitalOcean cli implementation functions. The actual region of your spaces location is defined by the endpoint. Below we are using Frankfurt as an example.
-```bash
-export AWS_ACCESS_KEY_ID="spaces_access_key"
-export AWS_SECRET_ACCESS_KEY="spaces_secret_key"
-  chartmuseum --debug --port=8080 \
-  --storage="amazon" \
-  --storage-amazon-bucket="my_spaces_name" \
-  --storage-amazon-prefix="my_spaces_name_subfolder" \
-  --storage-amazon-region="us-east-1" \
-  --storage-amazon-endpoint="https://fra1.digitaloceanspaces.com"
-```
-The acces_key and secret_key can be generated from the DigitalOcean console, under the section API/Spaces_access_keys.
 
 #### Using with Google Cloud Storage
 Make sure your environment is properly setup to access `my-gcs-bucket`.
