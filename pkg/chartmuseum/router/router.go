@@ -36,37 +36,39 @@ type (
 	// Router handles all incoming HTTP requests
 	Router struct {
 		*gin.Engine
-		Logger       *cm_logger.Logger
-		Authorizer   *cm_auth.Authorizer
-		Routes       []*Route
-		TlsCert      string
-		TlsKey       string
-		TlsCACert    string
-		ContextPath  string
-		Depth        int
-		DepthDynamic bool
+		Logger          *cm_logger.Logger
+		Authorizer      *cm_auth.Authorizer
+		Routes          []*Route
+		TlsCert         string
+		TlsKey          string
+		TlsCACert       string
+		ContextPath     string
+		Depth           int
+		DepthDynamic    bool
+		CORSAllowOrigin string
 	}
 
 	// RouterOptions are options for constructing a Router
 	RouterOptions struct {
-		Logger        *cm_logger.Logger
-		Username      string
-		Password      string
-		ContextPath   string
-		TlsCert       string
-		TlsKey        string
-		TlsCACert     string
-		PathPrefix    string
-		LogHealth     bool
-		EnableMetrics bool
-		AnonymousGet  bool
-		Depth         int
-		MaxUploadSize int
-		BearerAuth    bool
-		AuthRealm     string
-		AuthService   string
-		AuthCertPath  string
-		DepthDynamic  bool
+		Logger          *cm_logger.Logger
+		Username        string
+		Password        string
+		ContextPath     string
+		TlsCert         string
+		TlsKey          string
+		TlsCACert       string
+		PathPrefix      string
+		LogHealth       bool
+		EnableMetrics   bool
+		AnonymousGet    bool
+		Depth           int
+		MaxUploadSize   int
+		BearerAuth      bool
+		AuthRealm       string
+		AuthService     string
+		AuthCertPath    string
+		DepthDynamic    bool
+		CORSAllowOrigin string
 	}
 
 	// Route represents an application route
@@ -93,15 +95,16 @@ func NewRouter(options RouterOptions) *Router {
 	}
 
 	router := &Router{
-		Engine:       engine,
-		Routes:       []*Route{},
-		Logger:       options.Logger,
-		TlsCert:      options.TlsCert,
-		TlsKey:       options.TlsKey,
-		TlsCACert:    options.TlsCACert,
-		ContextPath:  options.ContextPath,
-		Depth:        options.Depth,
-		DepthDynamic: options.DepthDynamic,
+		Engine:          engine,
+		Routes:          []*Route{},
+		Logger:          options.Logger,
+		TlsCert:         options.TlsCert,
+		TlsKey:          options.TlsKey,
+		TlsCACert:       options.TlsCACert,
+		ContextPath:     options.ContextPath,
+		Depth:           options.Depth,
+		DepthDynamic:    options.DepthDynamic,
+		CORSAllowOrigin: options.CORSAllowOrigin,
 	}
 
 	var err error
@@ -219,6 +222,10 @@ func (router *Router) masterHandler(c *gin.Context) {
 			c.JSON(401, gin.H{"error": "unauthorized"})
 			return
 		}
+	}
+
+	if checkApiRoute(c.Request.URL.Path) && router.CORSAllowOrigin != "" {
+		c.Header("Access-Control-Allow-Origin", router.CORSAllowOrigin)
 	}
 
 	route.Handler(c)
