@@ -26,5 +26,5 @@ require (
 	go.uber.org/zap v1.10.0
 	k8s.io/apimachinery v0.0.0-20190703205208-4cfb76a8bf76 // indirect
 	k8s.io/client-go v11.0.0+incompatible // indirect
-	k8s.io/helm v2.14.3+incompatible
+	k8s.io/helm v2.16.1+incompatible
 )
