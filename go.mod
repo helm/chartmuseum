@@ -28,3 +28,5 @@ require (
 	k8s.io/client-go v11.0.0+incompatible // indirect
 	k8s.io/helm v2.16.1+incompatible
 )
+
+replace gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.2.7
