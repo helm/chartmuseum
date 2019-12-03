@@ -6,7 +6,7 @@
 
 <p align="center"><img align="center" src="logo2.png"></p><br/>
 
-*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/helm/helm-www/blob/master/content/docs/topics/chart_repository.md)** server written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage), and [Baidu Cloud BOS Storage](https://cloud.baidu.com/product/bos.html).
+*ChartMuseum* is an open-source **[Helm Chart Repository](https://github.com/helm/helm-www/blob/master/content/docs/topics/chart_repository.md)** server written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage), [Baidu Cloud BOS Storage](https://cloud.baidu.com/product/bos.html), [Tencent Cloud Object Storage](https://intl.cloud.tencent.com/product/cos), [DigitalOcean Spaces](https://www.digitalocean.com/products/spaces/), [Minio](https://min.io/), and [etcd](https://etcd.io/).
 
 Works as a valid Helm Chart Repository, and also provides an API for uploading charts.
 
@@ -142,7 +142,7 @@ depth: 2
 
 ```
 
-#### Using with Amazon S3 or Compatible services like Minio or Digitalocean.
+#### Using with Amazon S3 or Compatible services like Minio or DigitalOcean.
 Make sure your environment is properly setup to access `my-s3-bucket`
 
 For Amazon S3, `endpoint` is automatically inferred.
@@ -305,21 +305,6 @@ chartmuseum --debug --port=8080 \
   --storage-baidu-endpoint="bj.bcebos.com"
 ```
 
-#### Using with ETCD as backend
-
-To use ETCD as backend you need the CA certificate and the signed key pair.
-See [here](https://coreos.com/etcd/docs/latest/op-guide/security.html)
-
-```bash
-chartmuseum --debug --port=8080 \
-  --storage="etcd" \
-  --storage-etcd-cafile="/path/to/ca.crt" \
-  --storage-etcd-certfile="/path/to/server.crt" \
-  --storage-etcd-keyfile="/path/to/server.key" \
-  --storage-etcd-prefix="" \
-  --storage-etcd-endpoint="http://localhost:2379"
-```
-
 #### Using with Tencent Cloud COS Storage
 
 Make sure your environment is properly setup to access `my-cos-bucket`.
@@ -334,6 +319,21 @@ chartmuseum --debug --port=8080 \
   --storage-tencent-bucket="my-cos-bucket" \
   --storage-tencent-prefix="" \
   --storage-tencent-endpoint="cos.ap-beijing.myqcloud.com"
+```
+
+#### Using with etcd
+
+To use etcd as backend you need the CA certificate and the signed key pair.
+See [here](https://coreos.com/etcd/docs/latest/op-guide/security.html)
+
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="etcd" \
+  --storage-etcd-cafile="/path/to/ca.crt" \
+  --storage-etcd-certfile="/path/to/server.crt" \
+  --storage-etcd-keyfile="/path/to/server.key" \
+  --storage-etcd-prefix="" \
+  --storage-etcd-endpoint="http://localhost:2379"
 ```
 
 #### Using with local filesystem storage
