@@ -654,6 +654,15 @@ var configVars = map[string]configVar{
 			EnvVar: "DEPTH_DYNAMIC",
 		},
 	},
+	"cors.alloworigin": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "cors-alloworigin",
+			Usage:  "value to set in the Access-Control-Allow-Origin HTTP header",
+			EnvVar: "CORS_ALLOW_ORIGIN",
+		},
+	},
 }
 
 func populateCLIFlags() {

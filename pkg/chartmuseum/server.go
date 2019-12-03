@@ -60,6 +60,7 @@ type (
 		AuthService            string
 		AuthCertPath           string
 		DepthDynamic           bool
+		CORSAllowOrigin        string
 	}
 
 	// Server is a generic interface for web servers
@@ -84,23 +85,24 @@ func NewServer(options ServerOptions) (Server, error) {
 	}
 
 	router := cm_router.NewRouter(cm_router.RouterOptions{
-		Logger:        logger,
-		Username:      options.Username,
-		Password:      options.Password,
-		ContextPath:   contextPath,
-		TlsCert:       options.TlsCert,
-		TlsKey:        options.TlsKey,
-		TlsCACert:     options.TlsCACert,
-		LogHealth:     options.LogHealth,
-		EnableMetrics: options.EnableMetrics,
-		AnonymousGet:  options.AnonymousGet,
-		Depth:         options.Depth,
-		MaxUploadSize: options.MaxUploadSize,
-		BearerAuth:    options.BearerAuth,
-		AuthRealm:     options.AuthRealm,
-		AuthService:   options.AuthService,
-		AuthCertPath:  options.AuthCertPath,
-		DepthDynamic:  options.DepthDynamic,
+		Logger:          logger,
+		Username:        options.Username,
+		Password:        options.Password,
+		ContextPath:     contextPath,
+		TlsCert:         options.TlsCert,
+		TlsKey:          options.TlsKey,
+		TlsCACert:       options.TlsCACert,
+		LogHealth:       options.LogHealth,
+		EnableMetrics:   options.EnableMetrics,
+		AnonymousGet:    options.AnonymousGet,
+		Depth:           options.Depth,
+		MaxUploadSize:   options.MaxUploadSize,
+		BearerAuth:      options.BearerAuth,
+		AuthRealm:       options.AuthRealm,
+		AuthService:     options.AuthService,
+		AuthCertPath:    options.AuthCertPath,
+		DepthDynamic:    options.DepthDynamic,
+		CORSAllowOrigin: options.CORSAllowOrigin,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{

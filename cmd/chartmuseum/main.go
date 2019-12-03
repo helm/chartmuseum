@@ -94,6 +94,7 @@ func cliHandler(c *cli.Context) {
 		AuthService:            conf.GetString("authservice"),
 		AuthCertPath:           conf.GetString("authcertpath"),
 		DepthDynamic:           conf.GetBool("depthdynamic"),
+		CORSAllowOrigin:        conf.GetString("cors.alloworigin"),
 	}
 
 	server, err := newServer(options)
