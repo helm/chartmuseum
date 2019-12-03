@@ -36,6 +36,8 @@ Powered by some great Go technology:
 - `GET /api/charts` - list all charts
 - `GET /api/charts/<name>` - list all versions of a chart
 - `GET /api/charts/<name>/<version>` - describe a chart version
+- `HEAD /api/charts/<name>` - check if chart exists (any versions)
+- `HEAD /api/charts/<name>/<version>` - check if chart version exists
 
 ### Server Info
 - `GET /` - HTML welcome page
@@ -415,6 +417,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--index-limit=<number>` - limit the number of parallel indexers
 - `--context-path=<path>` - base context path (new root for application routes)
 - `--depth=<number>` - levels of nested repos for multitenancy
+- `--cors-alloworigin=<value>` - value to set in the Access-Control-Allow-Origin HTTP header
 
 ### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
@@ -487,6 +490,18 @@ To use the chart manipulation routes, simply place the name of the repo directly
 
 ```bash
 curl -F "chart=@mychart-0.1.0.tgz" http://localhost:8080/api/org1/repoa/charts
+```
+
+You may also experiment with the `--depth-dynamic` flag, which should allow for dynamic depth levels (i.e. all of `/api/charts`, `/api/myrepo/charts`, `/api/org1/repoa/charts`).
+
+## Pagination
+
+For large chart repositories, you may wish to paginate the results from the `GET /api/charts` route. 
+
+To do so, add the `offset` and `limit` query params to the request. For example, to retrieve a list of 5 charts total, skipping the first 5 charts, you could use the following:
+
+```
+GET /api/charts?offset=5&limit=5
 ```
 
 ## Cache
