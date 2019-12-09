@@ -23,7 +23,7 @@ import (
 
 	"github.com/chartmuseum/storage"
 	"github.com/stretchr/testify/suite"
-	helm_repo "k8s.io/helm/pkg/repo"
+	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
 type ChartTestSuite struct {

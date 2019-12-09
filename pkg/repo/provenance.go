@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"strings"
 
-	"k8s.io/helm/pkg/provenance"
+	"helm.sh/helm/v3/pkg/provenance"
 	"regexp"
 )
 

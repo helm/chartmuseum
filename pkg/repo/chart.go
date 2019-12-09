@@ -20,14 +20,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"helm.sh/helm/v3/pkg/chart/loader"
 	pathutil "path"
 	"strconv"
 	"strings"
 
 	"github.com/chartmuseum/storage"
-	"k8s.io/helm/pkg/chartutil"
-	helm_chart "k8s.io/helm/pkg/proto/hapi/chart"
-	helm_repo "k8s.io/helm/pkg/repo"
+	helm_chart "helm.sh/helm/v3/pkg/chart"
+	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
 var (
@@ -95,7 +95,7 @@ func StorageObjectFromChartVersion(chartVersion *helm_repo.ChartVersion) storage
 }
 
 func chartFromContent(content []byte) (*helm_chart.Chart, error) {
-	chart, err := chartutil.LoadArchive(bytes.NewBuffer(content))
+	chart, err := loader.LoadArchive(bytes.NewBuffer(content))
 	return chart, err
 }
 

@@ -24,7 +24,7 @@ import (
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
-	helm_repo "k8s.io/helm/pkg/repo"
+	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
 func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo string, offset int, limit int) (map[string]helm_repo.ChartVersions, *HTTPError) {
