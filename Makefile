@@ -22,6 +22,7 @@ build-windows: export GOPROXY=$(MOD_PROXY_URL)
 build-windows:
 	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
+	sha256sum bin/windows/amd64/chartmuseum || shasum -a 256 bin/windows/amd64/chartmuseum
 
 build-linux: export GOOS=linux
 build-linux: export GOARCH=amd64
@@ -31,6 +32,7 @@ build-linux: export GOPROXY=$(MOD_PROXY_URL)
 build-linux:
 	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
+	sha256sum bin/linux/amd64/chartmuseum || shasum -a 256 bin/linux/amd64/chartmuseum
 
 build-armv7: export GOOS=linux
 build-armv7: export GOARCH=arm
@@ -55,6 +57,7 @@ build-mac: export GOPROXY=$(MOD_PROXY_URL)
 build-mac:
 	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
+	sha256sum bin/darwin/amd64/chartmuseum || shasum -a 256 bin/darwin/amd64/chartmuseum
 
 .PHONY: clean
 clean:
