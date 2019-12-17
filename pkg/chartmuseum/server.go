@@ -61,6 +61,8 @@ type (
 		AuthCertPath           string
 		DepthDynamic           bool
 		CORSAllowOrigin        string
+		ReadTimeout            int
+		WriteTimeout           int
 	}
 
 	// Server is a generic interface for web servers
@@ -103,6 +105,8 @@ func NewServer(options ServerOptions) (Server, error) {
 		AuthCertPath:    options.AuthCertPath,
 		DepthDynamic:    options.DepthDynamic,
 		CORSAllowOrigin: options.CORSAllowOrigin,
+		ReadTimeout:     options.ReadTimeout,
+		WriteTimeout:    options.WriteTimeout,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{

@@ -23,13 +23,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"time"
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 
 	cm_auth "github.com/chartmuseum/auth"
-	"github.com/gin-contrib/size"
+	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
-	"github.com/zsais/go-gin-prometheus"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 type (
@@ -46,6 +47,8 @@ type (
 		Depth           int
 		DepthDynamic    bool
 		CORSAllowOrigin string
+		ReadTimeout     time.Duration
+		WriteTimeout    time.Duration
 	}
 
 	// RouterOptions are options for constructing a Router
@@ -68,6 +71,8 @@ type (
 		AuthService     string
 		AuthCertPath    string
 		DepthDynamic    bool
+		ReadTimeout     int
+		WriteTimeout    int
 		CORSAllowOrigin string
 	}
 
@@ -105,6 +110,8 @@ func NewRouter(options RouterOptions) *Router {
 		Depth:           options.Depth,
 		DepthDynamic:    options.DepthDynamic,
 		CORSAllowOrigin: options.CORSAllowOrigin,
+		ReadTimeout:     time.Duration(options.ReadTimeout) * time.Second,
+		WriteTimeout:    time.Duration(options.WriteTimeout) * time.Second,
 	}
 
 	var err error
@@ -159,6 +166,14 @@ func (router *Router) Start(port int) {
 	router.Logger.Infow("Starting ChartMuseum",
 		"port", port,
 	)
+
+	server := http.Server{
+		Addr:         fmt.Sprintf(":%d", port),
+		Handler:      router,
+		ReadTimeout:  router.ReadTimeout,
+		WriteTimeout: router.WriteTimeout,
+	}
+
 	if router.TlsCert != "" && router.TlsKey != "" {
 		if router.TlsCACert != "" {
 			keypair, _ := tls.LoadX509KeyPair(router.TlsCert, router.TlsKey)
@@ -167,21 +182,17 @@ func (router *Router) Start(port int) {
 			if !certpool.AppendCertsFromPEM(capem) {
 				router.Logger.Fatal("Can't parse CA certificate file")
 			}
-			server := http.Server{
-				Addr:    fmt.Sprintf(":%d", port),
-				Handler: router,
-				TLSConfig: &tls.Config{
-					Certificates: []tls.Certificate{keypair},
-					ClientAuth:   tls.RequireAndVerifyClientCert,
-					ClientCAs:    certpool,
-				},
+			server.TLSConfig = &tls.Config{
+				Certificates: []tls.Certificate{keypair},
+				ClientAuth:   tls.RequireAndVerifyClientCert,
+				ClientCAs:    certpool,
 			}
 			router.Logger.Fatal(server.ListenAndServeTLS("", ""))
 		} else {
-			router.Logger.Fatal(router.RunTLS(fmt.Sprintf(":%d", port), router.TlsCert, router.TlsKey))
+			router.Logger.Fatal(server.ListenAndServeTLS(router.TlsCert, router.TlsKey))
 		}
 	} else {
-		router.Logger.Fatal(router.Run(fmt.Sprintf(":%d", port)))
+		router.Logger.Fatal(server.ListenAndServe())
 	}
 }
 

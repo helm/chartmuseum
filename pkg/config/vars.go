@@ -139,6 +139,24 @@ var configVars = map[string]configVar{
 			EnvVar: "PORT",
 		},
 	},
+	"readtimeout": {
+		Type:    intType,
+		Default: 30,
+		CLIFlag: cli.IntFlag{
+			Name:   "read-timeout",
+			Usage:  "socket timeout in seconds",
+			EnvVar: "READ_TIMEOUT",
+		},
+	},
+	"writetimeout": {
+		Type:    intType,
+		Default: 30,
+		CLIFlag: cli.IntFlag{
+			Name:   "write-timeout",
+			Usage:  "socket timeout in seconds",
+			EnvVar: "WRITE_TIMEOUT",
+		},
+	},
 	"charturl": {
 		Type:    stringType,
 		Default: "",
