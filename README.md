@@ -398,7 +398,7 @@ If the above HTTPS values are provided in addition to below, the server will lis
 #### Just generating index.yaml
 You can specify the `--gen-index` option if you only wish to use _ChartMuseum_ to generate your index.yaml file. Note that this will only work with `--depth=0`.
 
-The contents of index.yaml will be printed to stdout and the program will exit. This is useful if you are satisfied with your current Helm CI/CD process and/or don't want to monitor another webservice.
+The contents of index.yaml will be printed to stdout and the program will exit. This is useful if you are satisfied with your current Helm CI/CD process and/or don't want to monitor another web service.
 
 #### Other CLI options
 - `--log-json` - output structured logs as json
