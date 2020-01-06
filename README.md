@@ -418,6 +418,8 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--context-path=<path>` - base context path (new root for application routes)
 - `--depth=<number>` - levels of nested repos for multitenancy
 - `--cors-alloworigin=<value>` - value to set in the Access-Control-Allow-Origin HTTP header
+- `--read-timeout=<number>` - socket read timeout for http server
+- `--write-timeout=<number>` - socker write timeout for http server
 
 ### Docker Image
 Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
