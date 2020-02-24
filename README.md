@@ -206,7 +206,14 @@ export AWS_SECRET_ACCESS_KEY="spaces_secret_key"
   --storage-amazon-region="us-east-1" \
   --storage-amazon-endpoint="https://fra1.digitaloceanspaces.com"
 ```
-The acces_key and secret_key can be generated from the DigitalOcean console, under the section API/Spaces_access_keys.  
+The access_key and secret_key can be generated from the DigitalOcean console, under the section API/Spaces_access_keys.
+
+Note: on certain S3-based storage backends, the `LastModified` field on objects
+is truncated to the nearest second. For more info, please see issue [#152](https://github.com/helm/chartmuseum/issues/152).
+
+In order to mitigate this, you may use the boolean flag `--storage-amazon-nearestsecond`
+(disabled by default).
+
 
 #### Using with Google Cloud Storage
 Make sure your environment is properly setup to access `my-gcs-bucket`.

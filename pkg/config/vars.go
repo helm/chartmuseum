@@ -320,6 +320,15 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_AMAZON_SSE",
 		},
 	},
+	"storage.amazon.nearestsecond": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "storage-amazon-nearestsecond",
+			Usage:  "calculate object diffs to the nearest second",
+			EnvVar: "STORAGE_AMAZON_NEARESTSECOND",
+		},
+	},
 	"storage.google.bucket": {
 		Type:    stringType,
 		Default: "",
