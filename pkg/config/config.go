@@ -72,6 +72,8 @@ func (conf *Config) UpdateFromCLIContext(c *cli.Context) error {
 					conf.Set(key, c.Int(name))
 				case boolType:
 					conf.Set(key, c.Bool(name))
+				case durationType:
+					conf.Set(key, c.Duration(name))
 				}
 			}
 		}

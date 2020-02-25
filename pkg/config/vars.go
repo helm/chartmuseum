@@ -17,6 +17,7 @@ limitations under the License.
 package config
 
 import (
+	"time"
 	"github.com/urfave/cli"
 )
 
@@ -34,9 +35,10 @@ type (
 var CLIFlags []cli.Flag
 
 var (
-	stringType configVarType = "string"
-	intType    configVarType = "int"
-	boolType   configVarType = "bool"
+	stringType   configVarType = "string"
+	intType      configVarType = "int"
+	boolType     configVarType = "bool"
+	durationType configVarType = "time.Duration"
 )
 
 var configVars = map[string]configVar{
@@ -264,6 +266,15 @@ var configVars = map[string]configVar{
 			Name:   "storage",
 			Usage:  "storage backend, can be one of: local, amazon, google, oracle",
 			EnvVar: "STORAGE",
+		},
+	},
+	"storage.timestamptolerance": {
+		Type:    durationType,
+		Default: time.Duration(0),
+		CLIFlag: cli.DurationFlag{
+			Name:   "storage-timestamp-tolerance",
+			Usage:  "timestamp drift tolerated between cached and generated index before invalidation",
+			EnvVar: "STORAGE_TIMESTAMP_TOLERANCE",
 		},
 	},
 	"storage.local.rootdir": {

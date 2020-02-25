@@ -18,7 +18,7 @@ package chartmuseum
 
 import (
 	"strings"
-
+	"time"
 	"github.com/chartmuseum/storage"
 	"helm.sh/chartmuseum/pkg/cache"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
@@ -31,6 +31,7 @@ type (
 	ServerOptions struct {
 		StorageBackend         storage.Backend
 		ExternalCacheStore     cache.Store
+		TimestampTolerance     time.Duration
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
@@ -114,6 +115,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		Router:                 router,
 		StorageBackend:         options.StorageBackend,
 		ExternalCacheStore:     options.ExternalCacheStore,
+		TimestampTolerance:     options.TimestampTolerance,
 		ChartURL:               strings.TrimSuffix(options.ChartURL, "/"),
 		ChartPostFormFieldName: options.ChartPostFormFieldName,
 		ProvPostFormFieldName:  options.ProvPostFormFieldName,
