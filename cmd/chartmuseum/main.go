@@ -65,6 +65,7 @@ func cliHandler(c *cli.Context) {
 	options := chartmuseum.ServerOptions{
 		StorageBackend:         backend,
 		ExternalCacheStore:     store,
+		TimestampTolerance:     conf.GetDuration("storage.timestamptolerance"),
 		ChartURL:               conf.GetString("charturl"),
 		TlsCert:                conf.GetString("tls.cert"),
 		TlsKey:                 conf.GetString("tls.key"),

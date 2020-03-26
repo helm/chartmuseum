@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"helm.sh/chartmuseum/pkg/cache"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
@@ -47,6 +48,7 @@ type (
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
+		TimestampTolerance     time.Duration
 		ExternalCacheStore     cache.Store
 		InternalCacheStore     map[string]*cacheEntry
 		MaxStorageObjects      int
@@ -70,6 +72,7 @@ type (
 		Router                 *cm_router.Router
 		StorageBackend         storage.Backend
 		ExternalCacheStore     cache.Store
+		TimestampTolerance     time.Duration
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
@@ -112,6 +115,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Logger:                 options.Logger,
 		Router:                 options.Router,
 		StorageBackend:         options.StorageBackend,
+		TimestampTolerance:     options.TimestampTolerance,
 		ExternalCacheStore:     options.ExternalCacheStore,
 		InternalCacheStore:     map[string]*cacheEntry{},
 		MaxStorageObjects:      options.MaxStorageObjects,

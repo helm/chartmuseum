@@ -225,6 +225,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -244,6 +245,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -261,6 +263,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -278,6 +281,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -326,6 +330,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -344,6 +349,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		AllowForceOverwrite:    true,
 		ChartPostFormFieldName: "chart",
@@ -362,6 +368,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
@@ -380,6 +387,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -399,6 +407,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Logger:                 logger,
 		Router:                 router,
 		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
@@ -423,7 +432,7 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 	suite.Nil(err, "no error on init cache entry")
 
 	objects, err := server.fetchChartsInStorage(log, "")
-	diff := storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	diff := storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index")
 
@@ -432,7 +441,7 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 	suite.Nil(err, "no error changing modtime on temp file")
 
 	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index with tarball updated")
 
@@ -441,21 +450,21 @@ func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {
 	suite.Nil(err, "no error creating new broken tarball in temp dir")
 	defer destFile.Close()
 	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball added")
 
 	err = os.Chtimes(brokenTarballFilename, newtime, newtime)
 	suite.Nil(err, "no error changing modtime on broken tarball")
 	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball updated")
 
 	err = os.Remove(brokenTarballFilename)
 	suite.Nil(err, "no error removing broken tarball")
 	objects, err = server.fetchChartsInStorage(log, "")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball removed")
 }
