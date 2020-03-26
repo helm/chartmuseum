@@ -163,7 +163,6 @@ func amazonBackendFromConfig(conf *config.Config) storage.Backend {
 		conf.GetString("storage.amazon.region"),
 		conf.GetString("storage.amazon.endpoint"),
 		conf.GetString("storage.amazon.sse"),
-		conf.GetBool("storage.amazon.nearestsecond"),
 	))
 }
 

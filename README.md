@@ -211,8 +211,7 @@ The access_key and secret_key can be generated from the DigitalOcean console, un
 Note: on certain S3-based storage backends, the `LastModified` field on objects
 is truncated to the nearest second. For more info, please see issue [#152](https://github.com/helm/chartmuseum/issues/152).
 
-In order to mitigate this, you may use the boolean flag `--storage-amazon-nearestsecond`
-(disabled by default).
+In order to mitigate this, you may use TODO.
 
 
 #### Using with Google Cloud Storage

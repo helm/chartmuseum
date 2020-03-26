@@ -18,6 +18,7 @@ package config
 
 import (
 	"time"
+
 	"github.com/urfave/cli"
 )
 
@@ -329,15 +330,6 @@ var configVars = map[string]configVar{
 			Name:   "storage-amazon-sse",
 			Usage:  "server side encryption algorithm",
 			EnvVar: "STORAGE_AMAZON_SSE",
-		},
-	},
-	"storage.amazon.nearestsecond": {
-		Type:    boolType,
-		Default: false,
-		CLIFlag: cli.BoolFlag{
-			Name:   "storage-amazon-nearestsecond",
-			Usage:  "calculate object diffs to the nearest second",
-			EnvVar: "STORAGE_AMAZON_NEARESTSECOND",
 		},
 	},
 	"storage.google.bucket": {
