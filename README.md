@@ -96,7 +96,7 @@ Install binary using [GoFish](https://gofi.sh/):
 ```
 gofish install chartmuseum
 ==> Installing chartmuseum...
-🐠  chartmuseum 0.11.0: installed in 95.431145ms
+🐠  chartmuseum 0.12.0: installed in 95.431145ms
 ```
 
 or manually:
@@ -115,7 +115,7 @@ mv ./chartmuseum /usr/local/bin
 ```
 Using `latest` in URLs above will get the latest binary (built from master branch).
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.11.0`). The stable checksums can be found [here](https://github.com/fishworks/fish-food/blob/master/Food/chartmuseum.lua).
+Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.12.0`). The stable checksums can be found [here](https://github.com/fishworks/fish-food/blob/master/Food/chartmuseum.lua).
 
 Determine your version with `chartmuseum --version`.
 
