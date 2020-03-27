@@ -192,7 +192,10 @@ You need at least the following permissions inside your IAM Policy
     }
   ]
 }
-```  
+```
+
+In order to work with AWS service accounts you may need to set `AWS_SDK_LOAD_CONFIG=1` in your environment.
+For more context, please see [here](https://github.com/helm/chartmuseum/issues/280#issuecomment-592292527).
 
 For DigitalOcean, set the credentials using environment variable and pass the `endpoint`.  
 Note below, that the region `us-east-1` needs to be set, since that is how the DigitalOcean cli implementation functions. The actual region of your spaces location is defined by the endpoint. Below we are using Frankfurt as an example.
@@ -211,8 +214,9 @@ The access_key and secret_key can be generated from the DigitalOcean console, un
 Note: on certain S3-based storage backends, the `LastModified` field on objects
 is truncated to the nearest second. For more info, please see issue [#152](https://github.com/helm/chartmuseum/issues/152).
 
-In order to mitigate this, you may use TODO.
-
+In order to mitigate this, you may use use the `--storage-timestamp-tolerance` option.
+For example, to round to the nearest second, you could use `--storage-timestamp-tolerance=1s`.
+For acceptable values to use for this field, please see [here](https://golang.org/pkg/time/#ParseDuration).
 
 #### Using with Google Cloud Storage
 Make sure your environment is properly setup to access `my-gcs-bucket`.
