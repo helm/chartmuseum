@@ -114,6 +114,7 @@ func (suite *MainTestSuite) TestMain() {
 	os.Args = []string{"chartmuseum", "--storage", "local", "--storage-local-rootdir", "../../.chartstorage", "--cache", "wallet"}
 	suite.Panics(main, "bad cache")
 	suite.Equal("Unsupported cache store: wallet", suite.LastCrashMessage, "crashes with bad cache")
+
 }
 
 func TestMainTestSuite(t *testing.T) {

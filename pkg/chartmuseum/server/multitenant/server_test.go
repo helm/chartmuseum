@@ -49,6 +49,7 @@ var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.
 var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
 var badTestTarballPath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
 var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
+var badTestSemver2Path = "../../../../testdata/badsemver2chart/semver-charts-0.x.x.tgz"
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
@@ -63,6 +64,7 @@ type MultiTenantServerTestSuite struct {
 	ChartURLServer       *MultiTenantServer
 	MaxObjectsServer     *MultiTenantServer
 	MaxUploadSizeServer  *MultiTenantServer
+	Semver2Server        *MultiTenantServer
 	TempDirectory        string
 	TestTarballFilename  string
 	TestProvfileFilename string
@@ -106,6 +108,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.MaxObjectsServer.Router.HandleContext(c)
 	case "maxuploadsize":
 		suite.MaxUploadSizeServer.Router.HandleContext(c)
+	case "semver2":
+		suite.Semver2Server.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -416,6 +420,20 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new max upload size server")
 	suite.MaxUploadSizeServer = server
+
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
+		EnableAPI:              true,
+		AllowOverwrite:         true,
+		ChartPostFormFieldName: "chart",
+		EnforceSemver2:         true,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error validating semantic version server")
+	suite.Semver2Server = server
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -639,6 +657,14 @@ func (suite *MultiTenantServerTestSuite) TestBadChartUpload() {
 	buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{badTestTarballPath, badTestProvfilePath})
 	res = suite.doRequest("depth0", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(400, res.Status(), "400 POST /api/charts")
+}
+
+func (suite *MultiTenantServerTestSuite) TestSemver2Validation() {
+	content, err := ioutil.ReadFile(badTestSemver2Path)
+	suite.Nil(err, "no error opening test path")
+	body := bytes.NewBuffer(content)
+	res := suite.doRequest("semver2", "POST", "/api/charts", body, "")
+	suite.Equal(400, res.Status(), "400 POST /api/charts bad semver validation")
 }
 
 func (suite *MultiTenantServerTestSuite) TestForceOverwriteServer() {
@@ -935,6 +961,14 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts?force", apiPrefix), body, "")
 	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/charts?force", apiPrefix))
+
+	// with bad semver but without enforce semver2
+	content, err = ioutil.ReadFile(badTestSemver2Path)
+	suite.Nil(err, "no error opening bad semver2 path")
+
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts", apiPrefix), body, "")
+	suite.Equal(201, res.Status(), fmt.Sprintf("201 POST %s/charts", apiPrefix))
 
 	// POST /api/:repo/prov
 	content, err = ioutil.ReadFile(testProvfilePath)
