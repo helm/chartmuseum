@@ -58,6 +58,7 @@ type (
 		APIEnabled             bool
 		DisableDelete          bool
 		UseStatefiles          bool
+		EnforceSemver2         bool
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
@@ -84,6 +85,7 @@ type (
 		EnableAPI              bool
 		DisableDelete          bool
 		UseStatefiles          bool
+		EnforceSemver2         bool
 	}
 
 	tenantInternals struct {
@@ -128,6 +130,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		APIEnabled:             options.EnableAPI,
 		DisableDelete:          options.DisableDelete,
 		UseStatefiles:          options.UseStatefiles,
+		EnforceSemver2:         options.EnforceSemver2,
 		Limiter:                make(chan struct{}, options.IndexLimit),
 		Tenants:                map[string]*tenantInternals{},
 		TenantCacheKeyLock:     &sync.Mutex{},

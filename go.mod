@@ -9,6 +9,7 @@ replace (
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.0.3
 	github.com/alicebob/gopher-json v0.0.0-20180125190556-5a6b3ba71ee6 // indirect
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.4.1

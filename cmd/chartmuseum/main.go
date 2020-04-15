@@ -98,6 +98,7 @@ func cliHandler(c *cli.Context) {
 		CORSAllowOrigin:        conf.GetString("cors.alloworigin"),
 		WriteTimeout:           conf.GetInt("writetimeout"),
 		ReadTimeout:            conf.GetInt("readtimeout"),
+		EnforceSemver2:         conf.GetBool("enforce-semver2"),
 	}
 
 	server, err := newServer(options)

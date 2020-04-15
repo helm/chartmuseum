@@ -21,6 +21,8 @@ import (
 	pathutil "path/filepath"
 	"sort"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/chartmuseum/storage"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
@@ -41,11 +43,11 @@ func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo stri
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	end := offset+limit
+	end := offset + limit
 	if len(keys) < end {
 		end = len(keys)
 	}
-	for i:=offset; i < end ; i++ {
+	for i := offset; i < end; i++ {
 		result[keys[i]] = indexFile.Entries[keys[i]]
 	}
 	return result, nil
@@ -109,6 +111,21 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 			return &HTTPError{409, "file already exists"}
 		}
 	}
+
+	if server.EnforceSemver2 {
+		version, err := cm_repo.ChartVersionFromStorageObject(storage.Object{
+			Content: content,
+			// Since we only need content to check for the chart version
+			// left the others fields to be default
+		})
+		if err != nil {
+			return &HTTPError{400, err.Error()}
+		}
+		if _, err := semver.StrictNewVersion(version.Metadata.Version); err != nil {
+			return &HTTPError{400, fmt.Errorf("semver2 validation: %w", err).Error()}
+		}
+	}
+
 	limitReached, err := server.checkStorageLimit(repo, filename, force)
 	if err != nil {
 		return &HTTPError{500, err.Error()}
