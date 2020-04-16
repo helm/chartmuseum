@@ -1,4 +1,4 @@
 apiVersion: v1
-name: semver_charts
+name: mybadsemver2chart
 version: 0.x.x
 

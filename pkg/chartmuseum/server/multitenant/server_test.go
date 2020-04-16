@@ -49,7 +49,7 @@ var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.
 var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
 var badTestTarballPath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
 var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
-var badTestSemver2Path = "../../../../testdata/badsemver2chart/semver-charts-0.x.x.tgz"
+var badTestSemver2Path = "../../../../testdata/charts/mybadsemver2chart/mybadsemver2chart-0.x.x.tgz"
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
@@ -344,6 +344,20 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.Nil(err, "no error creating new overwrite server")
 	suite.OverwriteServer = server
 
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
+		EnableAPI:              true,
+		AllowOverwrite:         true,
+		ChartPostFormFieldName: "chart",
+		EnforceSemver2:         true,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating semantic version server")
+	suite.Semver2Server = server
+
 	router = cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:        logger,
 		Depth:         0,
@@ -420,20 +434,6 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new max upload size server")
 	suite.MaxUploadSizeServer = server
-
-	server, err = NewMultiTenantServer(MultiTenantServerOptions{
-		Logger:                 logger,
-		Router:                 router,
-		StorageBackend:         backend,
-		TimestampTolerance:     time.Duration(0),
-		EnableAPI:              true,
-		AllowOverwrite:         true,
-		ChartPostFormFieldName: "chart",
-		EnforceSemver2:         true,
-	})
-	suite.NotNil(server)
-	suite.Nil(err, "no error validating semantic version server")
-	suite.Semver2Server = server
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
