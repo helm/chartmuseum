@@ -79,6 +79,15 @@ var configVars = map[string]configVar{
 			EnvVar: "LOG_HEALTH",
 		},
 	},
+	"loglatencyinteger": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "log-latency-integer",
+			Usage:  "log latency as an integer (nanoseconds) instead of a string",
+			EnvVar: "LOG_LATENCY_INTEGER",
+		},
+	},
 	"disablemetrics": {
 		Type:    boolType,
 		Default: false,

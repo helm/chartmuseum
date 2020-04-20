@@ -34,7 +34,7 @@ var (
 	requestServedMessage = "Request served"
 )
 
-func requestWrapper(logger *cm_logger.Logger, logHealth bool) func(c *gin.Context) {
+func requestWrapper(logger *cm_logger.Logger, logHealth bool, logLatencyInt bool) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		setupContext(c)
 
@@ -52,10 +52,16 @@ func requestWrapper(logger *cm_logger.Logger, logHealth bool) func(c *gin.Contex
 		meta := []interface{}{
 			"path", reqPath,
 			"comment", c.Errors.ByType(gin.ErrorTypePrivate).String(),
-			"latency", time.Now().Sub(start),
 			"clientIP", c.ClientIP(),
 			"method", c.Request.Method,
 			"statusCode", status,
+		}
+
+		latency := time.Now().Sub(start)
+		if logLatencyInt {
+			meta = append(meta, []interface{}{"latency", int64(latency)}...)
+		} else {
+			meta = append(meta, []interface{}{"latency", latency}...)
 		}
 
 		switch {

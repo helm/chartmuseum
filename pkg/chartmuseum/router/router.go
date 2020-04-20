@@ -53,27 +53,28 @@ type (
 
 	// RouterOptions are options for constructing a Router
 	RouterOptions struct {
-		Logger          *cm_logger.Logger
-		Username        string
-		Password        string
-		ContextPath     string
-		TlsCert         string
-		TlsKey          string
-		TlsCACert       string
-		PathPrefix      string
-		LogHealth       bool
-		EnableMetrics   bool
-		AnonymousGet    bool
-		Depth           int
-		MaxUploadSize   int
-		BearerAuth      bool
-		AuthRealm       string
-		AuthService     string
-		AuthCertPath    string
-		DepthDynamic    bool
-		ReadTimeout     int
-		WriteTimeout    int
-		CORSAllowOrigin string
+		Logger            *cm_logger.Logger
+		LogLatencyInteger bool
+		Username          string
+		Password          string
+		ContextPath       string
+		TlsCert           string
+		TlsKey            string
+		TlsCACert         string
+		PathPrefix        string
+		LogHealth         bool
+		EnableMetrics     bool
+		AnonymousGet      bool
+		Depth             int
+		MaxUploadSize     int
+		BearerAuth        bool
+		AuthRealm         string
+		AuthService       string
+		AuthCertPath      string
+		DepthDynamic      bool
+		ReadTimeout       int
+		WriteTimeout      int
+		CORSAllowOrigin   string
 	}
 
 	// Route represents an application route
@@ -90,7 +91,7 @@ func NewRouter(options RouterOptions) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	engine.Use(gin.Recovery())
-	engine.Use(requestWrapper(options.Logger, options.LogHealth))
+	engine.Use(requestWrapper(options.Logger, options.LogHealth, options.LogLatencyInteger))
 	engine.Use(limits.RequestSizeLimiter(int64(options.MaxUploadSize)))
 
 	if options.EnableMetrics {

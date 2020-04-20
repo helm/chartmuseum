@@ -44,6 +44,7 @@ type (
 		ContextPath            string
 		LogJSON                bool
 		LogHealth              bool
+		LogLatencyInteger      bool
 		Debug                  bool
 		EnableAPI              bool
 		UseStatefiles          bool
@@ -92,26 +93,27 @@ func NewServer(options ServerOptions) (Server, error) {
 	}
 
 	router := cm_router.NewRouter(cm_router.RouterOptions{
-		Logger:          logger,
-		Username:        options.Username,
-		Password:        options.Password,
-		ContextPath:     contextPath,
-		TlsCert:         options.TlsCert,
-		TlsKey:          options.TlsKey,
-		TlsCACert:       options.TlsCACert,
-		LogHealth:       options.LogHealth,
-		EnableMetrics:   options.EnableMetrics,
-		AnonymousGet:    options.AnonymousGet,
-		Depth:           options.Depth,
-		MaxUploadSize:   options.MaxUploadSize,
-		BearerAuth:      options.BearerAuth,
-		AuthRealm:       options.AuthRealm,
-		AuthService:     options.AuthService,
-		AuthCertPath:    options.AuthCertPath,
-		DepthDynamic:    options.DepthDynamic,
-		CORSAllowOrigin: options.CORSAllowOrigin,
-		ReadTimeout:     options.ReadTimeout,
-		WriteTimeout:    options.WriteTimeout,
+		Logger:            logger,
+		LogLatencyInteger: options.LogLatencyInteger,
+		Username:          options.Username,
+		Password:          options.Password,
+		ContextPath:       contextPath,
+		TlsCert:           options.TlsCert,
+		TlsKey:            options.TlsKey,
+		TlsCACert:         options.TlsCACert,
+		LogHealth:         options.LogHealth,
+		EnableMetrics:     options.EnableMetrics,
+		AnonymousGet:      options.AnonymousGet,
+		Depth:             options.Depth,
+		MaxUploadSize:     options.MaxUploadSize,
+		BearerAuth:        options.BearerAuth,
+		AuthRealm:         options.AuthRealm,
+		AuthService:       options.AuthService,
+		AuthCertPath:      options.AuthCertPath,
+		DepthDynamic:      options.DepthDynamic,
+		CORSAllowOrigin:   options.CORSAllowOrigin,
+		ReadTimeout:       options.ReadTimeout,
+		WriteTimeout:      options.WriteTimeout,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
