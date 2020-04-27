@@ -429,6 +429,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 #### Other CLI options
 - `--log-json` - output structured logs as json
 - `--log-health` - log incoming /health requests
+- `--log-latency-integer` - log latency as an integer (nanoseconds) instead of a string
 - `--disable-api` - disable all routes prefixed with /api
 - `--disable-delete` - explicitely disable the delete chart route
 - `--disable-statefiles` - disable use of index-cache.yaml

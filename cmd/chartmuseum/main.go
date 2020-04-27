@@ -77,6 +77,7 @@ func cliHandler(c *cli.Context) {
 		ContextPath:            conf.GetString("contextpath"),
 		LogJSON:                conf.GetBool("logjson"),
 		LogHealth:              conf.GetBool("loghealth"),
+		LogLatencyInteger:      conf.GetBool("loglatencyinteger"),
 		Debug:                  conf.GetBool("debug"),
 		EnableAPI:              !conf.GetBool("disableapi"),
 		DisableDelete:          conf.GetBool("disabledelete"),
