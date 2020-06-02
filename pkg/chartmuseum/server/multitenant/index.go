@@ -37,50 +37,48 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		)
 		return nil, &HTTPError{500, errStr}
 	}
+	// if cache is nil, regenerate it
+	if len(entry.RepoIndex.Entries) == 0 {
+		fo := <-server.getChartList(log, repo)
 
-	fo := <-server.getChartList(log, repo)
+		if fo.err != nil {
+			errStr := fo.err.Error()
+			log(cm_logger.ErrorLevel, errStr,
+				"repo", repo,
+			)
+			return nil, &HTTPError{500, errStr}
+		}
+		objects := server.getRepoObjectSlice(entry)
+		diff := cm_storage.GetObjectSliceDiff(objects, fo.objects, server.TimestampTolerance)
 
-	if fo.err != nil {
-		errStr := fo.err.Error()
-		log(cm_logger.ErrorLevel, errStr,
+		// return fast if no changes
+		if !diff.Change {
+			log(cm_logger.DebugLevel, "No change detected between cache and storage",
+				"repo", repo,
+			)
+			return entry.RepoIndex, nil
+		}
+		log(cm_logger.DebugLevel, "Change detected between cache and storage",
 			"repo", repo,
 		)
-		return nil, &HTTPError{500, errStr}
+		ir := <-server.regenerateRepositoryIndex(log, entry, diff)
+		if ir.err != nil {
+			errStr := ir.err.Error()
+			log(cm_logger.ErrorLevel, errStr,
+				"repo", repo,
+			)
+			return ir.index, &HTTPError{500, errStr}
+		}
+		entry.RepoIndex = ir.index
+
+		if server.UseStatefiles {
+			// Dont wait, save index-cache.yaml to storage in the background.
+			// It is not crucial if this does not succeed, we will just log any errors
+			go server.saveStatefile(log, repo, ir.index.Raw)
+		}
+
 	}
-
-	objects := server.getRepoObjectSlice(entry)
-	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects, server.TimestampTolerance)
-
-	// return fast if no changes
-	if !diff.Change {
-		log(cm_logger.DebugLevel, "No change detected between cache and storage",
-			"repo", repo,
-		)
-		return entry.RepoIndex, nil
-	}
-
-	log(cm_logger.DebugLevel, "Change detected between cache and storage",
-		"repo", repo,
-	)
-
-	ir := <-server.regenerateRepositoryIndex(log, entry, diff)
-	newRepoIndex := ir.index
-
-	if ir.err != nil {
-		errStr := ir.err.Error()
-		log(cm_logger.ErrorLevel, errStr,
-			"repo", repo,
-		)
-		return newRepoIndex, &HTTPError{500, errStr}
-	}
-
-	if server.UseStatefiles {
-		// Dont wait, save index-cache.yaml to storage in the background.
-		// It is not crucial if this does not succeed, we will just log any errors
-		go server.saveStatefile(log, repo, ir.index.Raw)
-	}
-
-	return ir.index, nil
+	return entry.RepoIndex, nil
 }
 
 func (server *MultiTenantServer) saveStatefile(log cm_logger.LoggingFn, repo string, content []byte) {

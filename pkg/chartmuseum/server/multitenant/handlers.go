@@ -19,12 +19,17 @@ package multitenant
 import (
 	"bytes"
 	"fmt"
+	cm_storage "github.com/chartmuseum/storage"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
+	"helm.sh/helm/v3/pkg/chart"
 	"io"
 	"net/http"
 	pathutil "path"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
+	helm_repo "helm.sh/helm/v3/pkg/repo"
+	"time"
 
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 )
@@ -199,6 +204,15 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
+
+	server.Producer(repo, DeleteChart, &helm_repo.ChartVersion{
+		Metadata: &chart.Metadata{
+			Name:    name,
+			Version: version,
+		},
+		// Since we only need name and version to delete the chart version from index
+		// left the others fields to be default
+	})
 	c.JSON(200, objectDeletedResponse)
 }
 
@@ -222,14 +236,26 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	}
 	log := server.Logger.ContextLoggingFn(c)
 	_, force := c.GetQuery("force")
-	err := server.uploadChartPackage(log, repo, content, force)
+	filename, err := server.uploadChartPackage(log, repo, content, force)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
+
+	chart, chartErr := cm_repo.ChartVersionFromStorageObject(cm_storage.Object{
+		Path:         pathutil.Join(repo, filename),
+		Content:      content,
+		LastModified: time.Now()})
+	if chartErr != nil {
+		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(chartErr), zap.Binary("content", content))
+	}
+
+	server.Producer(repo, AddChart, chart)
+
 	c.JSON(201, objectSavedResponse)
 }
 
+// TODO: whether need update cache
 func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	content, getContentErr := c.GetRawData()
@@ -251,9 +277,11 @@ func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context
 }
 
 func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.Context) {
+	log := server.Logger.ContextLoggingFn(&gin.Context{})
 	repo := c.Param("repo")
 	_, force := c.GetQuery("force")
-
+	var chartContent []byte
+	var path string
 	cpFiles, status, err := server.getChartAndProvFiles(c.Request, repo, force)
 	if status != 200 {
 		c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
@@ -290,7 +318,22 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 			c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
 			return
 		}
+		if ppf.field == defaultFormField {
+			// find the content of chart
+			chartContent = ppf.content
+			path = pathutil.Join(repo, ppf.filename)
+		}
 	}
+
+	chart, chartErr := cm_repo.ChartVersionFromStorageObject(cm_storage.Object{
+		Path:         path,
+		Content:      chartContent,
+		LastModified: time.Now()})
+	if chartErr != nil {
+		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(err), zap.Binary("content", chartContent))
+	}
+	server.Producer(repo, AddChart, chart)
+
 	c.JSON(201, objectSavedResponse)
 }
 
