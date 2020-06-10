@@ -18,9 +18,11 @@ package main
 
 import (
 	"fmt"
+	"helm.sh/chartmuseum/pkg/chartmuseum/server/multitenant"
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/chartmuseum/storage"
 	"helm.sh/chartmuseum/pkg/cache"
@@ -106,6 +108,18 @@ func cliHandler(c *cli.Context) {
 	if err != nil {
 		crash(err)
 	}
+
+	go func() {
+		t := time.NewTicker(time.Minute * 5)
+		for _ = range t.C {
+			server.(*multitenant.MultiTenantServer).RebuildIndex()
+		}
+	}()
+
+	go func() {
+		multitenant.InitUpdateObjectChan()
+		server.(*multitenant.MultiTenantServer).Consumer()
+	}()
 
 	server.Listen(conf.GetInt("port"))
 }
