@@ -17,6 +17,7 @@ limitations under the License.
 package multitenant
 
 import (
+	"net/http"
 	pathutil "path"
 
 	cm_storage "github.com/chartmuseum/storage"
@@ -35,7 +36,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		log(cm_logger.ErrorLevel, errStr,
 			"repo", repo,
 		)
-		return nil, &HTTPError{500, errStr}
+		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
 
 	fo := <-server.getChartList(log, repo)
@@ -45,7 +46,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		log(cm_logger.ErrorLevel, errStr,
 			"repo", repo,
 		)
-		return nil, &HTTPError{500, errStr}
+		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
 
 	objects := server.getRepoObjectSlice(entry)
@@ -71,7 +72,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		log(cm_logger.ErrorLevel, errStr,
 			"repo", repo,
 		)
-		return newRepoIndex, &HTTPError{500, errStr}
+		return newRepoIndex, &HTTPError{http.StatusInternalServerError, errStr}
 	}
 
 	if server.UseStatefiles {
