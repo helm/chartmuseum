@@ -17,6 +17,7 @@ limitations under the License.
 package multitenant
 
 import (
+	"net/http"
 	pathutil "path"
 	"strings"
 
@@ -46,7 +47,7 @@ func (server *MultiTenantServer) getStorageObject(log cm_logger.LoggingFn, repo 
 			"repo", repo,
 			"filename", filename,
 		)
-		return nil, &HTTPError{500, "unsupported file extension"}
+		return nil, &HTTPError{http.StatusInternalServerError, "unsupported file extension"}
 	}
 
 	objectPath := pathutil.Join(repo, filename)
@@ -59,7 +60,7 @@ func (server *MultiTenantServer) getStorageObject(log cm_logger.LoggingFn, repo 
 			"filename", filename,
 		)
 		// TODO determine if this is true 404
-		return nil, &HTTPError{404, "object not found"}
+		return nil, &HTTPError{http.StatusNotFound, "object not found"}
 	}
 
 	var contentType string

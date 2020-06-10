@@ -18,6 +18,7 @@ package multitenant
 
 import (
 	"fmt"
+	"net/http"
 	pathutil "path/filepath"
 	"sort"
 
@@ -32,7 +33,7 @@ import (
 func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo string, offset int, limit int) (map[string]helm_repo.ChartVersions, *HTTPError) {
 	indexFile, err := server.getIndexFile(log, repo)
 	if err != nil {
-		return nil, &HTTPError{500, err.Message}
+		return nil, &HTTPError{http.StatusInternalServerError, err.Message}
 	}
 	if offset == 0 && limit == -1 {
 		return indexFile.Entries, nil
@@ -60,7 +61,7 @@ func (server *MultiTenantServer) getChart(log cm_logger.LoggingFn, repo string, 
 	}
 	chart := allCharts[name]
 	if chart == nil {
-		return nil, &HTTPError{404, "chart not found"}
+		return nil, &HTTPError{http.StatusNotFound, "chart not found"}
 	}
 	return chart, nil
 }
@@ -68,14 +69,14 @@ func (server *MultiTenantServer) getChart(log cm_logger.LoggingFn, repo string, 
 func (server *MultiTenantServer) getChartVersion(log cm_logger.LoggingFn, repo string, name string, version string) (*helm_repo.ChartVersion, *HTTPError) {
 	indexFile, err := server.getIndexFile(log, repo)
 	if err != nil {
-		return nil, &HTTPError{500, err.Message}
+		return nil, &HTTPError{http.StatusInternalServerError, err.Message}
 	}
 	if version == "latest" {
 		version = ""
 	}
 	chartVersion, getErr := indexFile.Get(name, version)
 	if getErr != nil {
-		return nil, &HTTPError{404, getErr.Error()}
+		return nil, &HTTPError{http.StatusNotFound, getErr.Error()}
 	}
 	return chartVersion, nil
 }
@@ -87,7 +88,7 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 	)
 	deleteObjErr := server.StorageBackend.DeleteObject(filename)
 	if deleteObjErr != nil {
-		return &HTTPError{404, deleteObjErr.Error()}
+		return &HTTPError{http.StatusNotFound, deleteObjErr.Error()}
 	}
 	provFilename := pathutil.Join(repo, cm_repo.ProvenanceFilenameFromNameVersion(name, version))
 	server.StorageBackend.DeleteObject(provFilename) // ignore error here, may be no prov file
@@ -97,18 +98,18 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) *HTTPError {
 	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
 	if err != nil {
-		return &HTTPError{500, err.Error()}
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 
 	if pathutil.Base(filename) != filename {
 		// Name wants to break out of current directory
-		return &HTTPError{400, fmt.Sprintf("%s is improperly formatted", filename)}
+		return &HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
 	}
 
 	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
 		if err == nil {
-			return &HTTPError{409, "file already exists"}
+			return &HTTPError{http.StatusConflict, "file already exists"}
 		}
 	}
 
@@ -119,26 +120,26 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 			// left the others fields to be default
 		})
 		if err != nil {
-			return &HTTPError{400, err.Error()}
+			return &HTTPError{http.StatusBadRequest, err.Error()}
 		}
 		if _, err := semver.StrictNewVersion(version.Metadata.Version); err != nil {
-			return &HTTPError{400, fmt.Errorf("semver2 validation: %w", err).Error()}
+			return &HTTPError{http.StatusBadRequest, fmt.Errorf("semver2 validation: %w", err).Error()}
 		}
 	}
 
 	limitReached, err := server.checkStorageLimit(repo, filename, force)
 	if err != nil {
-		return &HTTPError{500, err.Error()}
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 	if limitReached {
-		return &HTTPError{507, "repo has reached storage limit"}
+		return &HTTPError{http.StatusInsufficientStorage, "repo has reached storage limit"}
 	}
 	log(cm_logger.DebugLevel, "Adding package to storage",
 		"package", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
 	if err != nil {
-		return &HTTPError{500, err.Error()}
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 	return nil
 }
@@ -146,33 +147,33 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, repo string, content []byte, force bool) *HTTPError {
 	filename, err := cm_repo.ProvenanceFilenameFromContent(content)
 	if err != nil {
-		return &HTTPError{500, err.Error()}
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 
 	if pathutil.Base(filename) != filename {
 		// Name wants to break out of current directory
-		return &HTTPError{400, fmt.Sprintf("%s is improperly formatted", filename)}
+		return &HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
 	}
 
 	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
 		if err == nil {
-			return &HTTPError{409, "file already exists"}
+			return &HTTPError{http.StatusConflict, "file already exists"}
 		}
 	}
 	limitReached, err := server.checkStorageLimit(repo, filename, force)
 	if err != nil {
-		return &HTTPError{500, err.Error()}
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 	if limitReached {
-		return &HTTPError{507, "repo has reached storage limit"}
+		return &HTTPError{http.StatusInsufficientStorage, "repo has reached storage limit"}
 	}
 	log(cm_logger.DebugLevel, "Adding provenance file to storage",
 		"provenance_file", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
 	if err != nil {
-		return &HTTPError{500, err.Error()}
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 	return nil
 }
