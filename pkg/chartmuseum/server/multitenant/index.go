@@ -17,6 +17,7 @@ limitations under the License.
 package multitenant
 
 import (
+	"net/http"
 	pathutil "path"
 
 	cm_storage "github.com/chartmuseum/storage"
@@ -35,30 +36,28 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		log(cm_logger.ErrorLevel, errStr,
 			"repo", repo,
 		)
-		return nil, &HTTPError{500, errStr}
+		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
+  
 	// if cache is nil, regenerate it
 	if len(entry.RepoIndex.Entries) == 0 {
-		fo := <-server.getChartList(log, repo)
 
-		if fo.err != nil {
-			errStr := fo.err.Error()
-			log(cm_logger.ErrorLevel, errStr,
-				"repo", repo,
-			)
-			return nil, &HTTPError{500, errStr}
-		}
-		objects := server.getRepoObjectSlice(entry)
-		diff := cm_storage.GetObjectSliceDiff(objects, fo.objects, server.TimestampTolerance)
+	fo := <-server.getChartList(log, repo)
 
-		// return fast if no changes
-		if !diff.Change {
-			log(cm_logger.DebugLevel, "No change detected between cache and storage",
-				"repo", repo,
-			)
-			return entry.RepoIndex, nil
-		}
-		log(cm_logger.DebugLevel, "Change detected between cache and storage",
+	if fo.err != nil {
+		errStr := fo.err.Error()
+		log(cm_logger.ErrorLevel, errStr,
+			"repo", repo,
+		)
+		return nil, &HTTPError{http.StatusInternalServerError, errStr}
+	}
+
+	objects := server.getRepoObjectSlice(entry)
+	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects, server.TimestampTolerance)
+
+	// return fast if no changes
+	if !diff.Change {
+		log(cm_logger.DebugLevel, "No change detected between cache and storage",
 			"repo", repo,
 		)
 		ir := <-server.regenerateRepositoryIndex(log, entry, diff)
@@ -67,7 +66,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 			log(cm_logger.ErrorLevel, errStr,
 				"repo", repo,
 			)
-			return ir.index, &HTTPError{500, errStr}
+			return ir.index, &HTTPError{http.StatusInternalServerError, errStr}
 		}
 		entry.RepoIndex = ir.index
 
@@ -76,7 +75,6 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 			// It is not crucial if this does not succeed, we will just log any errors
 			go server.saveStatefile(log, repo, ir.index.Raw)
 		}
-
 	}
 	return entry.RepoIndex, nil
 }
