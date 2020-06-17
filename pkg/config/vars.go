@@ -106,7 +106,7 @@ var configVars = map[string]configVar{
 			EnvVar: "DISABLE_API",
 		},
 	},
-	"disabldelete": {
+	"disabledelete": {
 		Type:    boolType,
 		Default: false,
 		CLIFlag: cli.BoolFlag{
