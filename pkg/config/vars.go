@@ -741,6 +741,40 @@ var configVars = map[string]configVar{
 	},
 }
 
+// aliasConfigVars is used to register aliases for all config keys that don't match the
+// advertised schema
+var aliasConfigVars = map[string]string{
+	"allow.overwrite":             "allowoverwrite",
+	"auth.anonymous.get":          "authanonymousget",
+	"auth.cert.path":              "authcertpath",
+	"auth.realm":                  "authrealm",
+	"auth.service":                "authservice",
+	"basic.auth.pass":             "basicauth.pass",
+	"basic.auth.user":             "basicauth.user",
+	"bearer.auth":                 "bearerauth",
+	"chart.post.form.field.name":  "chartpostformfieldname",
+	"chart.url":                   "charturl",
+	"context.path":                "contextpath",
+	"disable.delete":              "disabledelete",
+	"disable.api":                 "disableapi",
+	"disable.force.overwrite":     "disableforceoverwrite",
+	"disable.metrics":             "disablemetrics",
+	"disable.statefiles":          "disablestatefiles",
+	"enforce.semver2":             "enforce-semver2",
+	"gen.index":                   "genindex",
+	"index.limit":                 "indexlimit",
+	"log.health":                  "loghealth",
+	"log.json":                    "logjson",
+	"log.latency.integer":         "loglatencyinteger",
+	"max.storage.objects":         "maxstorageobjects",
+	"max.upload.size":             "maxuploadsize",
+	"prov.post.form.field.name":   "provpostformfieldname",
+	"read.timeout":                "readtimeout",
+	"storage.timestamp.tolerance": "storage.timestamptolerance",
+	"tls.ca.cert":                 "tls.cacert",
+	"write.timeout":               "writetimeout",
+}
+
 func populateCLIFlags() {
 	CLIFlags = []cli.Flag{
 		cli.StringFlag{

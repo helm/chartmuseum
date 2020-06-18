@@ -62,6 +62,7 @@ func (suite *ConfigTestSuite) TearDownSuite() {
 
 func (suite *ConfigTestSuite) TestGetCLIFlagFromVarName() {
 	suite.Equal("basic-auth-user", GetCLIFlagFromVarName("basicauth.user"))
+	suite.Equal("basic-auth-user", GetCLIFlagFromVarName("basic.auth.user"))
 	suite.Equal("", GetCLIFlagFromVarName("blah.blah.blah"))
 }
 
@@ -77,6 +78,7 @@ func (suite *ConfigTestSuite) TestUpdateFromCLIContext() {
 	err = conf.UpdateFromCLIContext(c)
 	suite.Nil(err)
 	suite.Equal("", conf.GetString("charturl"))
+	suite.Equal("", conf.GetString("chart.url"))
 	suite.Equal(8080, conf.GetInt("port"))
 	suite.Equal(false, conf.GetBool("debug"))
 
@@ -90,6 +92,7 @@ func (suite *ConfigTestSuite) TestUpdateFromCLIContext() {
 	conf.UpdateFromCLIContext(c)
 	suite.Nil(err)
 	suite.Equal("https://fakesite.com", conf.GetString("charturl"))
+	suite.Equal("https://fakesite.com", conf.GetString("chart.url"))
 	suite.Equal(8081, conf.GetInt("port"))
 	suite.Equal(true, conf.GetBool("debug"))
 
@@ -117,7 +120,9 @@ func (suite *ConfigTestSuite) TestUpdateFromCLIContext() {
 	err = conf.UpdateFromCLIContext(c)
 	suite.Nil(err)
 	suite.Equal("myuser", conf.GetString("basicauth.user"))
+	suite.Equal("myuser", conf.GetString("basic.auth.user"))
 	suite.Equal("mypass", conf.GetString("basicauth.pass"))
+	suite.Equal("mypass", conf.GetString("basic.auth.pass"))
 
 	// valid config file and populated context, context vars should override config file
 	conf = NewConfig()
@@ -128,7 +133,9 @@ func (suite *ConfigTestSuite) TestUpdateFromCLIContext() {
 	err = conf.UpdateFromCLIContext(c)
 	suite.Nil(err)
 	suite.Equal("otherdude", conf.GetString("basicauth.user"))
+	suite.Equal("otherdude", conf.GetString("basic.auth.user"))
 	suite.Equal("mypass", conf.GetString("basicauth.pass"))
+	suite.Equal("mypass", conf.GetString("basic.auth.pass"))
 }
 
 func getNewContext() *cli.Context {

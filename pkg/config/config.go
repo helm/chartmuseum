@@ -41,12 +41,17 @@ func NewConfig() *Config {
 	}
 	conf.SetConfigType("yaml")
 	conf.setDefaults()
+	conf.setAliases()
 	return conf
 }
 
 // GetCLIFlagFromVarName returns the name of the CLI flag associated with a config var
 func GetCLIFlagFromVarName(name string) string {
 	var val string
+	realKey, ok := aliasConfigVars[name]
+	if ok {
+		name = realKey
+	}
 	if configVar, ok := configVars[name]; ok {
 		if flag := configVar.CLIFlag; flag != nil {
 			val = flag.GetName()
@@ -106,5 +111,11 @@ func (conf *Config) readConfigFileFromCLIContext(c *cli.Context) error {
 func (conf *Config) setDefaults() {
 	for key, configVar := range configVars {
 		conf.SetDefault(key, configVar.Default)
+	}
+}
+
+func (conf *Config) setAliases() {
+	for alias, key := range aliasConfigVars {
+		conf.RegisterAlias(alias, key)
 	}
 }
