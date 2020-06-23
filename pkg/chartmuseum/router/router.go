@@ -163,13 +163,13 @@ func NewRouter(options RouterOptions) *Router {
 	return router
 }
 
-func (router *Router) Start(port int) {
+func (router *Router) Start(host string, port int) {
 	router.Logger.Infow("Starting ChartMuseum",
-		"port", port,
+		"host", host, "port", port,
 	)
 
 	server := http.Server{
-		Addr:         fmt.Sprintf(":%d", port),
+		Addr:         fmt.Sprintf("%s:%d", host, port),
 		Handler:      router,
 		ReadTimeout:  router.ReadTimeout,
 		WriteTimeout: router.WriteTimeout,

@@ -73,7 +73,7 @@ type (
 
 	// Server is a generic interface for web servers
 	Server interface {
-		Listen(port int)
+		Listen(host string, port int)
 	}
 )
 

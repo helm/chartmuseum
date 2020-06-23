@@ -739,6 +739,15 @@ var configVars = map[string]configVar{
 			EnvVar: "ENFORCE_SEMVER2",
 		},
 	},
+	"listen.host": {
+		Type:    stringType,
+		Default: "0.0.0.0",
+		CLIFlag: cli.StringFlag{
+			Name:   "listen-host",
+			Usage:  "specifies the host to listen on",
+			EnvVar: "LISTEN_HOST",
+		},
+	},
 }
 
 func populateCLIFlags() {

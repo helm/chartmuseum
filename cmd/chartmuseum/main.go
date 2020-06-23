@@ -107,7 +107,7 @@ func cliHandler(c *cli.Context) {
 		crash(err)
 	}
 
-	server.Listen(conf.GetInt("port"))
+	server.Listen(conf.GetString("listen.host"), conf.GetInt("port"))
 }
 
 func backendFromConfig(conf *config.Config) storage.Backend {
