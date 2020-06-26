@@ -285,6 +285,20 @@ chartmuseum --debug --port=8080 \
   --storage-openstack-region="myregion"
 ```
 
+For Swift V1 Auth you must set the following env vars:
+- `ST_AUTH`
+- `ST_USER`
+- `ST_KEY`
+
+```bash
+chartmuseum --debug --port=8080 \
+  --storage="openstack" \
+  --storage-openstack-auth="v1" \
+  --storage-openstack-container="mycontainer" \
+  --storage-openstack-prefix=""
+```
+
+
 #### Using with Oracle Cloud Infrastructure Object Storage
 
 Make sure your environment is properly setup to access `my-ocs-bucket`.
