@@ -24,11 +24,11 @@ import (
 	"go.uber.org/zap"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	"helm.sh/helm/v3/pkg/chart"
+	helm_repo "helm.sh/helm/v3/pkg/repo"
 	"io"
 	"net/http"
 	pathutil "path"
 	"strconv"
-	helm_repo "helm.sh/helm/v3/pkg/repo"
 	"time"
 
 	cm_repo "helm.sh/chartmuseum/pkg/repo"

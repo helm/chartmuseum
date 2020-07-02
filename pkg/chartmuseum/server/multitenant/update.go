@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	"helm.sh/helm/v3/pkg/repo"
+	"time"
 )
 
 type (
@@ -26,6 +27,22 @@ const (
 var (
 	updateObjectChan chan updateObject
 )
+
+func (server *MultiTenantServer) InitCacheTimer() {
+	// consume
+	InitUpdateObjectChan()
+	go func() {
+		server.Consumer()
+	}()
+
+	// delta update the cache every 5min (in case the files on the disk are manually manipulated)
+	go func() {
+		t := time.NewTicker(server.CacheInterval)
+		for _ = range t.C {
+			server.RebuildIndex()
+		}
+	}()
+}
 
 func InitUpdateObjectChan() {
 	updateObjectChan = make(chan updateObject, 100)
@@ -97,7 +114,6 @@ func (server *MultiTenantServer) Consumer() {
 		log(cm_logger.InfoLevel, "success update", zap.String("repo", repo), zap.Any("uo", uo))
 	}
 }
-
 
 func (server *MultiTenantServer) RebuildIndex() {
 	for repo, _ := range server.Tenants {

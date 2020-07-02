@@ -38,7 +38,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		)
 		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
-  
+
 	// if cache is nil, regenerate it
 	if len(entry.RepoIndex.Entries) == 0 {
 

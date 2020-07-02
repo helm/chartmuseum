@@ -18,16 +18,14 @@ package main
 
 import (
 	"fmt"
-	"helm.sh/chartmuseum/pkg/chartmuseum/server/multitenant"
-	"log"
-	"os"
-	"strings"
-	"time"
-
 	"github.com/chartmuseum/storage"
 	"helm.sh/chartmuseum/pkg/cache"
 	"helm.sh/chartmuseum/pkg/chartmuseum"
+	"helm.sh/chartmuseum/pkg/chartmuseum/server/multitenant"
 	"helm.sh/chartmuseum/pkg/config"
+	"log"
+	"os"
+	"strings"
 
 	"github.com/urfave/cli"
 )
@@ -102,25 +100,14 @@ func cliHandler(c *cli.Context) {
 		WriteTimeout:           conf.GetInt("writetimeout"),
 		ReadTimeout:            conf.GetInt("readtimeout"),
 		EnforceSemver2:         conf.GetBool("enforce-semver2"),
+		CacheInterval:          conf.GetDuration("cacheinterval"),
 	}
 
 	server, err := newServer(options)
 	if err != nil {
 		crash(err)
 	}
-
-	go func() {
-		t := time.NewTicker(time.Minute * 5)
-		for _ = range t.C {
-			server.(*multitenant.MultiTenantServer).RebuildIndex()
-		}
-	}()
-
-	go func() {
-		multitenant.InitUpdateObjectChan()
-		server.(*multitenant.MultiTenantServer).Consumer()
-	}()
-
+	server.(*multitenant.MultiTenantServer).InitCacheTimer()
 	server.Listen(conf.GetInt("port"))
 }
 
