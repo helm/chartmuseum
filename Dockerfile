@@ -1,6 +1,29 @@
-FROM alpine:3.12.0
-RUN apk add --no-cache cifs-utils ca-certificates \
-    && adduser -D -u 1000 chartmuseum
-COPY bin/linux/amd64/chartmuseum /chartmuseum
-USER 1000
+# This will be our builder image
+
+FROM golang:alpine
+
+ARG version=0.12.0
+
+ARG revision=master
+
+COPY . /go/src/github.com/helm/chartmuseum
+
+WORKDIR /go/src/github.com/helm/chartmuseum
+
+RUN CGO_ENABLED=0 GO111MODULE=on go build \
+   -v --ldflags="-w -X main.Version=${version} -X main.Revision=${revision}" \
+   -o /chartmuseum \
+   cmd/chartmuseum/main.go
+
+
+# This will be the final image
+
+FROM alpine:latest
+
+RUN apk add --no-cache cifs-utils ca-certificates
+
+COPY --from=0 /chartmuseum /chartmuseum
+
+USER 1000:1000
+
 ENTRYPOINT ["/chartmuseum"]
