@@ -100,6 +100,7 @@ func cliHandler(c *cli.Context) {
 		WriteTimeout:           conf.GetInt("writetimeout"),
 		ReadTimeout:            conf.GetInt("readtimeout"),
 		EnforceSemver2:         conf.GetBool("enforce-semver2"),
+		Host:                   conf.GetString("listen.host"),
 	}
 
 	server, err := newServer(options)
@@ -107,7 +108,7 @@ func cliHandler(c *cli.Context) {
 		crash(err)
 	}
 
-	server.Listen(conf.GetString("listen.host"), conf.GetInt("port"))
+	server.Listen(conf.GetInt("port"))
 }
 
 func backendFromConfig(conf *config.Config) storage.Backend {

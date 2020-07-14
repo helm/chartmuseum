@@ -49,6 +49,7 @@ type (
 		CORSAllowOrigin string
 		ReadTimeout     time.Duration
 		WriteTimeout    time.Duration
+		Host            string
 	}
 
 	// RouterOptions are options for constructing a Router
@@ -75,6 +76,7 @@ type (
 		ReadTimeout       int
 		WriteTimeout      int
 		CORSAllowOrigin   string
+		Host              string
 	}
 
 	// Route represents an application route
@@ -113,6 +115,7 @@ func NewRouter(options RouterOptions) *Router {
 		CORSAllowOrigin: options.CORSAllowOrigin,
 		ReadTimeout:     time.Duration(options.ReadTimeout) * time.Second,
 		WriteTimeout:    time.Duration(options.WriteTimeout) * time.Second,
+		Host:            options.Host,
 	}
 
 	var err error
@@ -163,13 +166,13 @@ func NewRouter(options RouterOptions) *Router {
 	return router
 }
 
-func (router *Router) Start(host string, port int) {
+func (router *Router) Start(port int) {
 	router.Logger.Infow("Starting ChartMuseum",
-		"host", host, "port", port,
+		"host", router.Host, "port", port,
 	)
 
 	server := http.Server{
-		Addr:         fmt.Sprintf("%s:%d", host, port),
+		Addr:         fmt.Sprintf("%s:%d", router.Host, port),
 		Handler:      router,
 		ReadTimeout:  router.ReadTimeout,
 		WriteTimeout: router.WriteTimeout,

@@ -69,11 +69,12 @@ type (
 		// EnforceSemver2 represents if the museum server always accept the Chart with [valid semantic version 2](https://semver.org/)
 		// More refers to : https://github.com/helm/chartmuseum/issues/320
 		EnforceSemver2 bool
+		Host           string
 	}
 
 	// Server is a generic interface for web servers
 	Server interface {
-		Listen(host string, port int)
+		Listen(port int)
 	}
 )
 
@@ -114,6 +115,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		CORSAllowOrigin:   options.CORSAllowOrigin,
 		ReadTimeout:       options.ReadTimeout,
 		WriteTimeout:      options.WriteTimeout,
+		Host:              options.Host,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{

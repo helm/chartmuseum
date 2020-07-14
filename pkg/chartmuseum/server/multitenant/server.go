@@ -147,8 +147,8 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 }
 
 // Listen starts the router on a given port
-func (server *MultiTenantServer) Listen(host string, port int) {
-	server.Router.Start(host, port)
+func (server *MultiTenantServer) Listen(port int) {
+	server.Router.Start(port)
 }
 
 func (server *MultiTenantServer) genIndex() {
