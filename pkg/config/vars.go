@@ -485,6 +485,15 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_OPENSTACK_CACERT",
 		},
 	},
+	"storage.openstack.auth": {
+		Type:    stringType,
+		Default: "auto",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-openstack-auth",
+			Usage:  "the OpenStack auth protocol to use. Set \"v1\" for v1 or \"auto\" for v2 and v3",
+			EnvVar: "STORAGE_OPENSTACK_AUTH",
+		},
+	},
 	"storage.baidu.prefix": {
 		Type:    stringType,
 		Default: "",
