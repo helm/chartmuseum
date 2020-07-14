@@ -100,6 +100,7 @@ func cliHandler(c *cli.Context) {
 		WriteTimeout:           conf.GetInt("writetimeout"),
 		ReadTimeout:            conf.GetInt("readtimeout"),
 		EnforceSemver2:         conf.GetBool("enforce-semver2"),
+		Host:                   conf.GetString("listen.host"),
 	}
 
 	server, err := newServer(options)
