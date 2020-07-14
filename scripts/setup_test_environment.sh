@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-HELM_VERSION="2.16.4"
+HELM_VERSION="2.16.9"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR/../
@@ -24,7 +24,8 @@ install_helm() {
         mkdir -p testbin/
         [ "$(uname)" == "Darwin" ] && PLATFORM="darwin" || PLATFORM="linux"
         TARBALL="helm-v${HELM_VERSION}-${PLATFORM}-amd64.tar.gz"
-        wget "https://storage.googleapis.com/kubernetes-helm/${TARBALL}"
+        wget "https://storage.googleapis.com/kubernetes-helm/${TARBALL}" || \
+          curl -O "https://storage.googleapis.com/kubernetes-helm/${TARBALL}"
         tar -C testbin/ -xzf $TARBALL
         rm -f $TARBALL
         pushd testbin/
