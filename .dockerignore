@@ -1,3 +1,10 @@
+# Don't bring in anything into the build context
+
 *
-!bin/**
-vendor
+
+# Bring in our source code and dependency listings
+
+!go.mod
+!go.sum
+!cmd/**
+!pkg/**

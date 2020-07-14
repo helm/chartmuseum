@@ -44,11 +44,6 @@ build-armv7:
 	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/armv7/chartmuseum cmd/chartmuseum/main.go  # linux
 
-container-armv7: build-armv7
-container-armv7:
-	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-	docker build . -t chartmuseum:v$(VERSION) -f Dockerfile.arm
-
 build-mac: export GOOS=darwin
 build-mac: export GOARCH=amd64
 build-mac: export CGO_ENABLED=0
