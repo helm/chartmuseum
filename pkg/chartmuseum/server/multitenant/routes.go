@@ -27,6 +27,7 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 
 	serverInfoRoutes := []*cm_router.Route{
 		{"GET", "/", s.getWelcomePageHandler, cm_auth.PullAction},
+		{"GET", "/info", s.getInfoHandler, ""},
 		{"GET", "/health", s.getHealthCheckHandler, ""},
 	}
 

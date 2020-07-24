@@ -33,6 +33,7 @@ var (
 	objectSavedResponse   = gin.H{"saved": true}
 	objectDeletedResponse = gin.H{"deleted": true}
 	healthCheckResponse   = gin.H{"healthy": true}
+	versionResponse       = gin.H{"version": "0.2.0"}
 	welcomePageHTML       = []byte(`<!DOCTYPE html>
 <html>
 <head>
@@ -77,6 +78,10 @@ type (
 
 func (server *MultiTenantServer) getWelcomePageHandler(c *gin.Context) {
 	c.Data(200, "text/html", welcomePageHTML)
+}
+
+func (server *MultiTenantServer) getInfoHandler(c *gin.Context) {
+	c.JSON(200, versionResponse)
 }
 
 func (server *MultiTenantServer) getHealthCheckHandler(c *gin.Context) {
