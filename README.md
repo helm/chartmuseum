@@ -41,7 +41,7 @@ Powered by some great Go technology:
 
 ### Server Info
 - `GET /` - HTML welcome page
-- `GET /info` - returns ChartMuseum server information
+- `GET /info` - returns current ChartMuseum version
 - `GET /health` - returns 200 OK
 
 ## Uploading a Chart Package
