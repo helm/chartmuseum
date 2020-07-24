@@ -41,6 +41,7 @@ Powered by some great Go technology:
 
 ### Server Info
 - `GET /` - HTML welcome page
+- `GET /info` - returns ChartMuseum server information
 - `GET /health` - returns 200 OK
 
 ## Uploading a Chart Package
@@ -445,7 +446,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--log-health` - log incoming /health requests
 - `--log-latency-integer` - log latency as an integer (nanoseconds) instead of a string
 - `--disable-api` - disable all routes prefixed with /api
-- `--disable-delete` - explicitely disable the delete chart route
+- `--disable-delete` - explicitly disable the delete chart route
 - `--disable-statefiles` - disable use of index-cache.yaml
 - `--allow-overwrite` - allow chart versions to be re-uploaded without ?force querystring
 - `--disable-force-overwrite` - do not allow chart versions to be re-uploaded, even with ?force querystring
