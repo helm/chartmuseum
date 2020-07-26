@@ -70,6 +70,7 @@ type (
 		// More refers to : https://github.com/helm/chartmuseum/issues/320
 		EnforceSemver2 bool
 		Host           string
+		Version        string
 	}
 
 	// Server is a generic interface for web servers
@@ -136,6 +137,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		AllowOverwrite:         options.AllowOverwrite,
 		AllowForceOverwrite:    options.AllowForceOverwrite,
 		EnforceSemver2:         options.EnforceSemver2,
+		Version:                options.Version,
 	})
 
 	return server, err
