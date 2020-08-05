@@ -106,7 +106,7 @@ var configVars = map[string]configVar{
 			EnvVar: "DISABLE_API",
 		},
 	},
-	"disabldelete": {
+	"disabledelete": {
 		Type:    boolType,
 		Default: false,
 		CLIFlag: cli.BoolFlag{
@@ -485,6 +485,15 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_OPENSTACK_CACERT",
 		},
 	},
+	"storage.openstack.auth": {
+		Type:    stringType,
+		Default: "auto",
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-openstack-auth",
+			Usage:  "the OpenStack auth protocol to use. Set \"v1\" for v1 or \"auto\" for v2 and v3",
+			EnvVar: "STORAGE_OPENSTACK_AUTH",
+		},
+	},
 	"storage.baidu.prefix": {
 		Type:    stringType,
 		Default: "",
@@ -746,6 +755,13 @@ var configVars = map[string]configVar{
 			Name:   "cacheinterval",
 			Usage:  "set the interval of delta updating the cache",
 			EnvVar: "CACHE_INTERVAL",
+	"listen.host": {
+		Type:    stringType,
+		Default: "0.0.0.0",
+		CLIFlag: cli.StringFlag{
+			Name:   "listen-host",
+			Usage:  "specifies the host to listen on",
+			EnvVar: "LISTEN_HOST",
 		},
 	},
 }

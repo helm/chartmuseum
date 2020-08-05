@@ -101,6 +101,7 @@ func cliHandler(c *cli.Context) {
 		ReadTimeout:            conf.GetInt("readtimeout"),
 		EnforceSemver2:         conf.GetBool("enforce-semver2"),
 		CacheInterval:          conf.GetDuration("cacheinterval"),
+		Host:                   conf.GetString("listen.host"),
 	}
 
 	server, err := newServer(options)
@@ -206,13 +207,27 @@ func alibabaBackendFromConfig(conf *config.Config) storage.Backend {
 }
 
 func openstackBackendFromConfig(conf *config.Config) storage.Backend {
-	crashIfConfigMissingVars(conf, []string{"storage.openstack.container", "storage.openstack.region"})
-	return storage.NewOpenstackOSBackend(
-		conf.GetString("storage.openstack.container"),
-		conf.GetString("storage.openstack.prefix"),
-		conf.GetString("storage.openstack.region"),
-		conf.GetString("storage.openstack.cacert"),
-	)
+	var backend storage.Backend
+	switch conf.GetString("storage.openstack.auth") {
+	case "v1":
+		crashIfConfigMissingVars(conf, []string{"storage.openstack.container"})
+		backend = storage.NewOpenstackOSBackendV1Auth(
+			conf.GetString("storage.openstack.container"),
+			conf.GetString("storage.openstack.prefix"),
+			conf.GetString("storage.openstack.cacert"),
+		)
+	case "auto":
+		crashIfConfigMissingVars(conf, []string{"storage.openstack.container", "storage.openstack.region"})
+		backend = storage.NewOpenstackOSBackend(
+			conf.GetString("storage.openstack.container"),
+			conf.GetString("storage.openstack.prefix"),
+			conf.GetString("storage.openstack.region"),
+			conf.GetString("storage.openstack.cacert"),
+		)
+	default:
+		crash("Unsupported OpenStack auth protocol: ", conf.GetString("storage.openstack.auth"))
+	}
+	return backend
 }
 
 func baiduBackendFromConfig(conf *config.Config) storage.Backend {
