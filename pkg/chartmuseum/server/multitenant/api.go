@@ -30,6 +30,18 @@ import (
 	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
+func (server *MultiTenantServer) getAllRepos(log cm_logger.LoggingFn, prefix string) ([]string, *HTTPError) {
+	folders, err := server.StorageBackend.ListFolders(prefix)
+	if err != nil {
+		return nil, &HTTPError{http.StatusInternalServerError, err.Error()}
+	}
+	repos := []string{}
+	for _, folder := range folders {
+			repos = append(repos, folder.Path)
+	}
+	return repos, nil
+}
+
 func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo string, offset int, limit int) (map[string]helm_repo.ChartVersions, *HTTPError) {
 	indexFile, err := server.getIndexFile(log, repo)
 	if err != nil {

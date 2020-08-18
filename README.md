@@ -29,6 +29,10 @@ Powered by some great Go technology:
 - `GET /charts/mychart-0.1.0.tgz` - retrieved when you run `helm install chartmuseum/mychart`
 - `GET /charts/mychart-0.1.0.tgz.prov` - retrieved when you run `helm install` with the `--verify` flag
 
+### Repository Manipulation
+- `GET /api/repos` - list chart repos (only works with multitenancy enabled).
+- `GET /api/<fragment>/repos` - list sub-repos within a repository (only works with multitenancy enabled).
+
 ### Chart Manipulation
 - `POST /api/charts` - upload a new chart version
 - `POST /api/prov` - upload a new provenance file

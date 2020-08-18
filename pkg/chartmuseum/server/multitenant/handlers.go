@@ -106,6 +106,16 @@ func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) 
 	c.Data(200, storageObject.ContentType, storageObject.Content)
 }
 
+func (server *MultiTenantServer) getAllReposRequestHandler(c *gin.Context) {
+	log := server.Logger.ContextLoggingFn(c)
+	repos, err := server.getAllRepos(log, c.Param("repofragment"))
+	if err != nil {
+		c.JSON(err.Status, gin.H{"error": err.Message})
+		return
+	}
+	c.JSON(200, repos)
+}
+
 func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	offset := 0
