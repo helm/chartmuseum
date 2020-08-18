@@ -17,10 +17,8 @@ limitations under the License.
 package router
 
 import (
-	"net/http"
 	"regexp"
 	"strings"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -52,11 +50,7 @@ For example, the route GET /:repo/index.yaml will be matched differently dependi
 	Repo: "myorg/myteam/myrepo"
 */
 func match(routes []*Route, method string, url string, contextPath string, depth int, depthdynamic bool) (*Route, []gin.Param) {
-	var noRepoPathSplit []string
-	var repo, repoPath, noRepoPath string
-	var startIndex, numNoRepoPathParts int
-	var tryRepoRoutes bool
-
+	// strip off contextPath prefix
 	if contextPath != "" {
 		if url == contextPath {
 			url = "/"
@@ -67,127 +61,136 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 		}
 	}
 
-	if url == "/health" && method == http.MethodGet {
-		for _, route := range routes {
-			if route.Path == "/health" {
-				return route, nil
-			}
-		}
-	}
+	isApiRequest := checkApiRoute(url)
 
-	isApiRoute := checkApiRoute(url)
-	if isApiRoute {
-		startIndex = 2
-	} else {
-		startIndex = 1
-	}
-
-	pathSplit := strings.Split(url, "/")
-
-	if depthdynamic {
-		for _, route := range routes {
-			if isApiRoute {
-				if !strings.HasPrefix(route.Path, "/api") {
-					continue
-				}
-			} else {
-				if strings.HasPrefix(route.Path, "/api") {
-					continue
-				}
-			}
-			depth = getDepth(url, route.Path)
-			if depth >= 0 {
-				break
-			}
-		}
-	}
-
-	if len(pathSplit) >= depth+startIndex {
-		repoParts := pathSplit[startIndex : depth+startIndex]
-		if len(repoParts) == depth {
-			tryRepoRoutes = true
-			repo = strings.Join(repoParts, "/")
-			noRepoPath = "/" + strings.Join(pathSplit[depth+startIndex:], "/")
-			repoPath = "/:repo" + noRepoPath
-			if isApiRoute {
-				repoPath = "/api" + repoPath
-				noRepoPath = "/api" + noRepoPath
-			}
-			noRepoPathSplit = strings.Split(noRepoPath, "/")
-			numNoRepoPathParts = len(noRepoPathSplit)
-		}
-	}
-
-	for _, route := range routes {
-		if route.Method != method {
+	requestPathComponents := splitPath(url)
+	var routePathComponents []string
+	var route *Route
+	for _, routeCandidate := range routes {
+		// if the methods don't match up, skip this route
+		if method != routeCandidate.Method {
 			continue
 		}
-		if route.Path == url {
-			return route, nil
-		} else if tryRepoRoutes {
-			if route.Path == repoPath {
-				return route, []gin.Param{{"repo", repo}}
-			} else {
-				p := strings.Replace(route.Path, "/:repo", "", 1)
-				if routeSplit := strings.Split(p, "/"); len(routeSplit) == numNoRepoPathParts {
-					isMatch := true
-					var params []gin.Param
-					for i, part := range routeSplit {
-						if paramSplit := strings.Split(part, ":"); len(paramSplit) > 1 {
-							params = append(params, gin.Param{Key: paramSplit[1], Value: noRepoPathSplit[i]})
-						} else if routeSplit[i] != noRepoPathSplit[i] {
-							isMatch = false
-							break
-						}
-					}
-					if isMatch {
-						params = append(params, gin.Param{Key: "repo", Value: repo})
-						return route, params
-					}
-				}
-			}
+		routePathComponents = splitPath(routeCandidate.Path)
+		// if the request is an API request and the route is not an API route, skip this route
+		if isApiRequest && (len(routePathComponents) > 0 && routePathComponents[0] != "api") {
+			continue
+		}
+		// if the request is not an API request and the route is an API route, skip it
+		if !isApiRequest && (len(routePathComponents) > 0 && routePathComponents[0] == "api") {
+			continue
+		}
+
+		if match, pathComponents, depthCandidate := comparePaths(
+			requestPathComponents,
+			routePathComponents,
+			":repo",
+		); match && (depthCandidate == -1 || depthdynamic || depthCandidate == depth) {
+			route = routeCandidate
+			requestPathComponents = pathComponents
+			break
+		}
+
+		if match, pathComponents, depthCandidate := comparePaths(
+			requestPathComponents,
+			routePathComponents,
+			":repofragment",
+		); match && (depthdynamic || depthCandidate < depth ){
+			route = routeCandidate
+			requestPathComponents = pathComponents
+			break
 		}
 	}
-
+	if route != nil {
+		params := []gin.Param{}
+		for i, _ := range routePathComponents {
+			if strings.HasPrefix(routePathComponents[i], ":"){
+				params = append(params, gin.Param{
+					Key: routePathComponents[i][1:],
+					Value: requestPathComponents[i],
+				})
+			}
+		}
+		if len(params) == 0 {
+			params = nil
+		}
+		return route, params
+	}
 	return nil, nil
 }
 
-func checkApiRoute(url string) bool {
-	return strings.HasPrefix(url, "/api/") && !validRepoRoute.MatchString(url)
+/*
+Given a list of request and route path components and a "variable length
+placeholder" name, meaning a placeholder that can represent multiple path
+components; determine whether the request matches the route.
+
+Returns a boolean, as well as a modified requestPathComponents, with the
+multiple values represented by the variable length placholder combined into a
+single element delimited by slashes, and an int representing the number of
+components that were combined.
+*/
+func comparePaths(requestPathComponents []string, routePathComponents []string, variableLengthPlaceholder string) (bool, []string, int) {
+	if len(routePathComponents) == 0 {
+		if len(requestPathComponents) == 0 {
+			return true, requestPathComponents, -1
+		} else {
+			return false, []string{}, -1
+		}
+	}
+	var placeholderLength int
+	if startIndex := indexOfString(routePathComponents, variableLengthPlaceholder); startIndex >= 0 {
+		placeholderLength = len(requestPathComponents) - (len(routePathComponents) - 1)
+		if placeholderLength < 0 {
+			return false, []string{}, -1
+		}
+		// replace the slice of request path component strings representing the
+		// variable length placeholder with a single slash-delimited string
+		var newRequestPathComponents []string
+		for _, component := range requestPathComponents[:startIndex] {
+			newRequestPathComponents = append(newRequestPathComponents, component)
+		}
+		newRequestPathComponents = append(newRequestPathComponents, strings.Join(requestPathComponents[startIndex:startIndex + placeholderLength], "/"))
+		for _, component := range requestPathComponents[startIndex + placeholderLength:] {
+			newRequestPathComponents = append(newRequestPathComponents, component)
+		}
+		requestPathComponents = newRequestPathComponents
+	} else {
+		// if the route we're looking at doesn't have a variable length
+		// placeholder, it's only valid if the request and route paths have the
+		// same number of components
+		if len(requestPathComponents) != len(routePathComponents) {
+			return false, []string{}, -1
+		}
+		placeholderLength = -1
+	}
+	for i, _ := range routePathComponents {
+		if strings.HasPrefix(routePathComponents[i], ":") {
+			continue
+		}
+		if routePathComponents[i] != requestPathComponents[i] {
+			return false, []string{}, -1
+		}
+	}
+	return true, requestPathComponents, placeholderLength
 }
 
 func splitPath(key string) []string {
-	key = strings.Trim(key, "/ ")
+	key = strings.Trim(key, "/")
 	if key == "" {
 		return []string{}
 	}
 	return strings.Split(key, "/")
 }
 
-func url2pattern(url string) string {
-	urls := splitPath(url)
-	var patternItems []string
-	for _, item := range urls {
-		if strings.HasPrefix(item, ":") {
-			if strings.EqualFold(item[1:], "repo") {
-				patternItems = append(patternItems, ".*")
-			} else {
-				patternItems = append(patternItems, `[^/]+`)
-			}
-		} else {
-			patternItems = append(patternItems, item)
+func indexOfString(slice []string, str string) int {
+	for index, item := range(slice) {
+		if item == str {
+			return index
 		}
 	}
-	return strings.Replace("^/"+strings.Join(patternItems, "/")+"$",
-		"/.*", "(/.*){0,1}", -1)
+	return -1
 }
 
-func getDepth(url, routePath string) int {
-	r, _ := regexp.Compile(url2pattern(routePath))
-	if r.MatchString(url) {
-		oriNum := len(strings.Split(routePath, "/"))
-		patNum := len(strings.Split(url, "/"))
-		return patNum - oriNum + 1
-	}
-	return -1
+func checkApiRoute(url string) bool {
+	return strings.HasPrefix(url, "/api/") && !validRepoRoute.MatchString(url)
 }
