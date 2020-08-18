@@ -84,27 +84,31 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 		if match, pathComponents, depthCandidate := comparePaths(
 			requestPathComponents,
 			routePathComponents,
-			":repo",
-		); match && (depthCandidate == -1 || depthdynamic || depthCandidate == depth) {
-			route = routeCandidate
-			requestPathComponents = pathComponents
+			":repofragment",
+		); match {
+			if depthdynamic || depthCandidate < depth {
+				route = routeCandidate
+				requestPathComponents = pathComponents
+			}
 			break
 		}
 
 		if match, pathComponents, depthCandidate := comparePaths(
 			requestPathComponents,
 			routePathComponents,
-			":repofragment",
-		); match && (depthdynamic || depthCandidate < depth ){
-			route = routeCandidate
-			requestPathComponents = pathComponents
+			":repo",
+		); match {
+			if depthCandidate == -1 || depthdynamic || depthCandidate == depth {
+				route = routeCandidate
+				requestPathComponents = pathComponents
+			}
 			break
 		}
 	}
 	if route != nil {
 		params := []gin.Param{}
 		for i, _ := range routePathComponents {
-			if strings.HasPrefix(routePathComponents[i], ":"){
+			if strings.HasPrefix(routePathComponents[i], ":") {
 				params = append(params, gin.Param{
 					Key: routePathComponents[i][1:],
 					Value: requestPathComponents[i],
