@@ -755,6 +755,8 @@ var configVars = map[string]configVar{
 			Name:   "cacheinterval",
 			Usage:  "set the interval of delta updating the cache",
 			EnvVar: "CACHE_INTERVAL",
+		},
+	},
 	"listen.host": {
 		Type:    stringType,
 		Default: "0.0.0.0",
