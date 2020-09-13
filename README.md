@@ -1,6 +1,5 @@
 # ChartMuseum
 
-[![Codefresh build status](https://g.codefresh.io/api/badges/pipeline/chartmuseum/helm%2Fchartmuseum%2Fmaster?type=cf-1)](https://g.codefresh.io/public/accounts/chartmuseum/pipelines/helm/chartmuseum/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/helm/chartmuseum)](https://goreportcard.com/report/github.com/helm/chartmuseum)
 [![GoDoc](https://godoc.org/github.com/helm/chartmuseum?status.svg)](https://godoc.org/github.com/helm/chartmuseum)
 
