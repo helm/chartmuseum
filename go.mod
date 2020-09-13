@@ -1,6 +1,6 @@
 module helm.sh/chartmuseum
 
-go 1.14
+go 1.15
 
 replace (
 	github.com/NetEase-Object-Storage/nos-golang-sdk => github.com/karuppiah7890/nos-golang-sdk v0.0.0-20191116042345-0792ba35abcc
@@ -12,20 +12,20 @@ require (
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.4.2
-	github.com/chartmuseum/storage v0.9.0
+	github.com/chartmuseum/storage v0.9.1
 	github.com/ghodss/yaml v1.0.0
-	github.com/gin-contrib/size v0.0.0-20200514145931-e0be654e00a7
+	github.com/gin-contrib/size v0.0.0-20200815104238-dc717522c4e2
 	github.com/gin-gonic/gin v1.6.3
-	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gomodule/redigo v1.8.2 // indirect
-	github.com/prometheus/client_golang v1.0.0
-	github.com/sirupsen/logrus v1.4.2
-	github.com/spf13/viper v1.7.0
+	github.com/prometheus/client_golang v1.7.1
+	github.com/sirupsen/logrus v1.6.0
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
-	github.com/urfave/cli v1.20.0
-	github.com/yuin/gopher-lua v0.0.0-20200603152657-dc2b0ca8b37e // indirect
+	github.com/urfave/cli v1.22.4
+	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	github.com/zsais/go-gin-prometheus v0.1.0
-	go.uber.org/zap v1.10.0
-	helm.sh/helm/v3 v3.2.4
+	go.uber.org/zap v1.16.0
+	helm.sh/helm/v3 v3.3.1
 )

@@ -69,6 +69,7 @@ type (
 		// EnforceSemver2 represents if the museum server always accept the Chart with [valid semantic version 2](https://semver.org/)
 		// More refers to : https://github.com/helm/chartmuseum/issues/320
 		EnforceSemver2 bool
+		CacheInterval  time.Duration
 		Host           string
 		Version        string
 	}
@@ -138,6 +139,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		AllowForceOverwrite:    options.AllowForceOverwrite,
 		EnforceSemver2:         options.EnforceSemver2,
 		Version:                options.Version,
+		CacheInterval:          options.CacheInterval,
 	})
 
 	return server, err

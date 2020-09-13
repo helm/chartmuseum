@@ -2,7 +2,7 @@
 VERSION=0.12.0
 REVISION := $(shell git rev-parse --short HEAD;)
 
-# MOD_PROXY_URL ?= "https://gocenter.io"
+#MOD_PROXY_URL ?= https://gocenter.io
 
 CM_LOADTESTING_HOST ?= http://localhost:8080
 
@@ -10,7 +10,7 @@ CM_LOADTESTING_HOST ?= http://localhost:8080
 bootstrap: export GO111MODULE=on
 bootstrap: export GOPROXY=$(MOD_PROXY_URL)
 bootstrap:
-	@go mod download
+	@go mod download && go mod vendor
 
 .PHONY: build
 build: build-linux build-mac build-windows
