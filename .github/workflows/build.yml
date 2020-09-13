@@ -9,7 +9,7 @@ on:
       - v*
 
 jobs:
-  unit-test-acceptance-test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,11 +38,6 @@ jobs:
           name: chartmuseum-acceptance-report-${{ github.sha }}
           path: .robot/
         if: always()
-  build-push-multiarch-images:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
       - name: Prepare
         id: prepare
         run: |
