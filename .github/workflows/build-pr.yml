@@ -3,7 +3,7 @@ name: build-pr
 on:
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   unit-test-acceptance-test:
