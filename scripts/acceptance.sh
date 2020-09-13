@@ -43,3 +43,4 @@ if [ ! -d .venv/ ]; then
   virtualenv -p $(which python3) .venv/
   .venv/bin/python .venv/bin/pip install $PY_REQUIRES
 fi
+.venv/bin/robot --outputdir=.robot/ acceptance_tests/
