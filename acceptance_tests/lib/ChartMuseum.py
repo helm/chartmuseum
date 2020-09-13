@@ -59,10 +59,7 @@ class ChartMuseum(common.CommandRunner):
             seconds_waited += 1
 
     def stop_chartmuseum(self):
-        if os.getenv('IS_BUSYBOX'):
-            self.run_command('pkill -9 KILLME')
-        else:
-            self.run_command('pkill -9 chartmuseum')
+        self.run_command('pkill -9 chartmuseum')
         shutil.rmtree(common.STORAGE_DIR, ignore_errors=True)
 
     def remove_chartmuseum_logs(self):

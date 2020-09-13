@@ -25,7 +25,7 @@ jobs:
       - name: build binary
         run: make build-linux
       - name: run acceptance tests
-        run: make acceptance
+        run: sudo pip install virtualenv && make acceptance
       - name: upload coverage report
         uses: actions/upload-artifact@master
         with:
