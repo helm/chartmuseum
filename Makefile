@@ -2,7 +2,7 @@
 VERSION=0.12.0
 REVISION := $(shell git rev-parse --short HEAD;)
 
-MOD_PROXY_URL ?= https://gocenter.io
+#MOD_PROXY_URL ?= https://gocenter.io
 
 CM_LOADTESTING_HOST ?= http://localhost:8080
 
