@@ -7,15 +7,9 @@ cd $DIR/../
 
 export PATH="$PWD/testbin:$PATH"
 
-if [ -x "$(command -v busybox)" ]; then
-  export IS_BUSYBOX=1
-fi
-
 main() {
-    if [ "$IS_BUSYBOX" != "1" ]; then
-        export HELM_HOME="$PWD/.helm"
-        install_helm
-    fi
+    export HELM_HOME="$PWD/.helm"
+    install_helm
     package_test_charts
 }
 
