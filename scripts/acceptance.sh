@@ -40,7 +40,6 @@ mkdir -p .robot/
 export HELM_HOME="$PWD/.helm"
 helm init --client-only
 if [ ! -d .venv/ ]; then
-  virtualenv -h >/dev/null || pip install virtualenv
   virtualenv -p $(which python3) .venv/
   .venv/bin/python .venv/bin/pip install $PY_REQUIRES
 fi
