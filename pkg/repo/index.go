@@ -99,6 +99,17 @@ func (index *Index) AddEntry(chartVersion *helm_repo.ChartVersion) {
 	if _, ok := index.Entries[chartVersion.Name]; !ok {
 		index.Entries[chartVersion.Name] = helm_repo.ChartVersions{}
 	}
+	//
+	entries := index.Entries[chartVersion.Name]
+	l := len(entries)
+	for i := 1; i <= 5 && l-i >= 0; i++ {
+		cv := entries[l-i]
+		if cv.Version == chartVersion.Version {
+			index.setChartURL(chartVersion)
+			entries[l-i] = chartVersion
+			return
+		}
+	}
 	index.setChartURL(chartVersion)
 	index.Entries[chartVersion.Name] = append(index.Entries[chartVersion.Name], chartVersion)
 }

@@ -95,21 +95,21 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 	return nil
 }
 
-func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) *HTTPError {
+func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) (string, *HTTPError ){
 	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
 	if err != nil {
-		return &HTTPError{http.StatusInternalServerError, err.Error()}
+		return filename,&HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 
 	if pathutil.Base(filename) != filename {
 		// Name wants to break out of current directory
-		return &HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
+		return filename,&HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
 	}
 
 	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
 		if err == nil {
-			return &HTTPError{http.StatusConflict, "file already exists"}
+			return filename, &HTTPError{http.StatusConflict, "file already exists"}
 		}
 	}
 
@@ -120,28 +120,27 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 			// left the others fields to be default
 		})
 		if err != nil {
-			return &HTTPError{http.StatusBadRequest, err.Error()}
+			return filename, &HTTPError{http.StatusBadRequest, err.Error()}
 		}
 		if _, err := semver.StrictNewVersion(version.Metadata.Version); err != nil {
-			return &HTTPError{http.StatusBadRequest, fmt.Errorf("semver2 validation: %w", err).Error()}
+			return filename, &HTTPError{http.StatusBadRequest, fmt.Errorf("semver2 validation: %w", err).Error()}
 		}
 	}
 
 	limitReached, err := server.checkStorageLimit(repo, filename, force)
 	if err != nil {
-		return &HTTPError{http.StatusInternalServerError, err.Error()}
+		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 	if limitReached {
-		return &HTTPError{http.StatusInsufficientStorage, "repo has reached storage limit"}
+		return filename, &HTTPError{http.StatusInsufficientStorage, "repo has reached storage limit"}
 	}
 	log(cm_logger.DebugLevel, "Adding package to storage",
 		"package", filename,
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
 	if err != nil {
-		return &HTTPError{http.StatusInternalServerError, err.Error()}
-	}
-	return nil
+		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}	}
+	return filename, nil
 }
 
 func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, repo string, content []byte, force bool) *HTTPError {

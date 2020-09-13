@@ -748,6 +748,15 @@ var configVars = map[string]configVar{
 			EnvVar: "ENFORCE_SEMVER2",
 		},
 	},
+	"cacheinterval": {
+		Type:    durationType,
+		Default: time.Duration(1*60*10e8),
+		CLIFlag: cli.DurationFlag{
+			Name:   "cacheinterval",
+			Usage:  "set the interval of delta updating the cache",
+			EnvVar: "CACHE_INTERVAL",
+		},
+	},
 	"listen.host": {
 		Type:    stringType,
 		Default: "0.0.0.0",

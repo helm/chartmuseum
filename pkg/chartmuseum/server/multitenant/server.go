@@ -65,6 +65,7 @@ type (
 		Limiter                chan struct{}
 		Tenants                map[string]*tenantInternals
 		TenantCacheKeyLock     *sync.Mutex
+		CacheInterval          time.Duration
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -86,6 +87,7 @@ type (
 		DisableDelete          bool
 		UseStatefiles          bool
 		EnforceSemver2         bool
+		CacheInterval          time.Duration
 	}
 
 	tenantInternals struct {
@@ -134,6 +136,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Limiter:                make(chan struct{}, options.IndexLimit),
 		Tenants:                map[string]*tenantInternals{},
 		TenantCacheKeyLock:     &sync.Mutex{},
+		CacheInterval:          options.CacheInterval,
 	}
 
 	server.Router.SetRoutes(server.Routes())
