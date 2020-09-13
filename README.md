@@ -641,3 +641,4 @@ The following subprojects are maintained by *ChartMuseum*:
 
 ## Community
 You can reach the *ChartMuseum* community and developers in the [Kubernetes Slack](https://slack.k8s.io) **#chartmuseum** channel.
+
