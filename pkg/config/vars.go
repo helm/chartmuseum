@@ -750,9 +750,9 @@ var configVars = map[string]configVar{
 	},
 	"cacheinterval": {
 		Type:    durationType,
-		Default: time.Duration(1*60*10e8),
+		Default: time.Duration(0),
 		CLIFlag: cli.DurationFlag{
-			Name:   "cacheinterval",
+			Name:   "cache-interval",
 			Usage:  "set the interval of delta updating the cache",
 			EnvVar: "CACHE_INTERVAL",
 		},

@@ -19,19 +19,20 @@ package multitenant
 import (
 	"bytes"
 	"fmt"
-	cm_storage "github.com/chartmuseum/storage"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
-	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
-	"helm.sh/helm/v3/pkg/chart"
-	helm_repo "helm.sh/helm/v3/pkg/repo"
 	"io"
 	"net/http"
 	pathutil "path"
 	"strconv"
 	"time"
 
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
+
+	cm_storage "github.com/chartmuseum/storage"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"helm.sh/helm/v3/pkg/chart"
+	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
 var (
@@ -205,7 +206,7 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		return
 	}
 
-	server.Producer(repo, DeleteChart, &helm_repo.ChartVersion{
+	server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
 		Metadata: &chart.Metadata{
 			Name:    name,
 			Version: version,
@@ -249,8 +250,7 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	if chartErr != nil {
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(chartErr), zap.Binary("content", content))
 	}
-
-	server.Producer(repo, AddChart, chart)
+	server.emitEvent(c, repo, addChart, chart)
 
 	c.JSON(201, objectSavedResponse)
 }
@@ -332,7 +332,8 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	if chartErr != nil {
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(err), zap.Binary("content", chartContent))
 	}
-	server.Producer(repo, AddChart, chart)
+
+	server.emitEvent(c, repo, addChart, chart)
 
 	c.JSON(201, objectSavedResponse)
 }

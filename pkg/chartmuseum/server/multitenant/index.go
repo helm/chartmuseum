@@ -39,8 +39,8 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
 
-	// if cache is nil, regenerate it
-	if len(entry.RepoIndex.Entries) == 0 {
+	// if cache is nil, and not on a timer, regenerate it
+	if len(entry.RepoIndex.Entries) == 0 && server.CacheInterval == 0 {
 
 		fo := <-server.getChartList(log, repo)
 
@@ -60,6 +60,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 			log(cm_logger.DebugLevel, "No change detected between cache and storage",
 				"repo", repo,
 			)
+		} else {
 			ir := <-server.regenerateRepositoryIndex(log, entry, diff)
 			if ir.err != nil {
 				errStr := ir.err.Error()

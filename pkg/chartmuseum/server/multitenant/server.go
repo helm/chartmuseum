@@ -66,6 +66,7 @@ type (
 		Tenants                map[string]*tenantInternals
 		TenantCacheKeyLock     *sync.Mutex
 		CacheInterval          time.Duration
+		EventChan              chan event
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -145,6 +146,10 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 	if options.GenIndex && server.Router.Depth == 0 {
 		server.genIndex()
 	}
+
+	server.EventChan = make(chan event, server.IndexLimit)
+	go server.startEventListener()
+	server.initCacheTimer()
 
 	return server, err
 }
