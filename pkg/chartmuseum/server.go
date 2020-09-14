@@ -71,6 +71,7 @@ type (
 		EnforceSemver2 bool
 		CacheInterval  time.Duration
 		Host           string
+		Version        string
 	}
 
 	// Server is a generic interface for web servers
@@ -137,6 +138,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		AllowOverwrite:         options.AllowOverwrite,
 		AllowForceOverwrite:    options.AllowForceOverwrite,
 		EnforceSemver2:         options.EnforceSemver2,
+		Version:                options.Version,
 		CacheInterval:          options.CacheInterval,
 	})
 

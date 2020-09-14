@@ -62,6 +62,7 @@ type (
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
+		Version                string
 		Limiter                chan struct{}
 		Tenants                map[string]*tenantInternals
 		TenantCacheKeyLock     *sync.Mutex
@@ -79,6 +80,7 @@ type (
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
+		Version                string
 		MaxStorageObjects      int
 		IndexLimit             int
 		GenIndex               bool
@@ -134,6 +136,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		DisableDelete:          options.DisableDelete,
 		UseStatefiles:          options.UseStatefiles,
 		EnforceSemver2:         options.EnforceSemver2,
+		Version:                options.Version,
 		Limiter:                make(chan struct{}, options.IndexLimit),
 		Tenants:                map[string]*tenantInternals{},
 		TenantCacheKeyLock:     &sync.Mutex{},

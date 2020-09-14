@@ -85,6 +85,11 @@ func (server *MultiTenantServer) getWelcomePageHandler(c *gin.Context) {
 	c.Data(200, "text/html", welcomePageHTML)
 }
 
+func (server *MultiTenantServer) getInfoHandler(c *gin.Context) {
+	versionResponse := gin.H{"version": server.Version}
+	c.JSON(200, versionResponse)
+}
+
 func (server *MultiTenantServer) getHealthCheckHandler(c *gin.Context) {
 	c.JSON(200, healthCheckResponse)
 }

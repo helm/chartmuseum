@@ -62,6 +62,7 @@ func cliHandler(c *cli.Context) {
 	store := storeFromConfig(conf)
 
 	options := chartmuseum.ServerOptions{
+		Version:                Version,
 		StorageBackend:         backend,
 		ExternalCacheStore:     store,
 		TimestampTolerance:     conf.GetDuration("storage.timestamptolerance"),
