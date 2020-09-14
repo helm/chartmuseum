@@ -21,7 +21,6 @@ import (
 	"github.com/chartmuseum/storage"
 	"helm.sh/chartmuseum/pkg/cache"
 	"helm.sh/chartmuseum/pkg/chartmuseum"
-	"helm.sh/chartmuseum/pkg/chartmuseum/server/multitenant"
 	"helm.sh/chartmuseum/pkg/config"
 	"log"
 	"os"
@@ -109,7 +108,7 @@ func cliHandler(c *cli.Context) {
 	if err != nil {
 		crash(err)
 	}
-	server.(*multitenant.MultiTenantServer).InitCacheTimer()
+
 	server.Listen(conf.GetInt("port"))
 }
 

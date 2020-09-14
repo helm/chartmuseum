@@ -437,8 +437,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
-	err := os.RemoveAll(suite.TempDirectory)
-	suite.Nil(err, "no error deleting temp directory for local storage")
+	os.RemoveAll(suite.TempDirectory)
 }
 
 func (suite *MultiTenantServerTestSuite) TestRegenerateRepositoryIndex() {

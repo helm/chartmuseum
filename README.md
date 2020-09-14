@@ -554,6 +554,17 @@ By default, the contents of `index.yaml` (per-tenant) will be stored in memory. 
 
 You may wish to offload this to an external cache store, especially for large, multitenant installations.
 
+### Cache Interval
+
+When dealing with thousands of charts, you may experience latency with the default settings. This is because upon each request, the storage backend is scanned for changes compared to the cache.
+
+If you are ok with `index.yaml` being out-of-date for a fixed period of time, you can improve performance by using the `--cache-interval=<interval>` option.
+When this setting is enabled, the charts available for each tenant are refreshed on a timer.
+
+For example, to only check storage every 5 minutes, you can use `--cache-interval=5m`.
+
+For valid values to use for this setting, please see [here](https://godoc.org/time#ParseDuration).
+
 ### Using Redis
 
 Example of using Redis as an external cache store:
