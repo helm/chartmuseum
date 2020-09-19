@@ -150,8 +150,8 @@ github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XL
 github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5/go.mod h1:/iP1qXHoty45bqomnu2LM+VVyAEdWN+vtSHGlQgyxbw=
 github.com/chartmuseum/auth v0.4.2 h1:Ch7sh2BpoYLN20zc6U6NQyB3JPEdBJ0quWH6+NQHcQ0=
 github.com/chartmuseum/auth v0.4.2/go.mod h1:nO+nNadtlcIQrnVdL2QxI+XYoe/4sd8kypYT956miQM=
-github.com/chartmuseum/storage v0.9.1 h1:RgnG4jC6Xhvw0sMS8A+tA0pO5xg+NU0rNz/X+iPEG/8=
-github.com/chartmuseum/storage v0.9.1/go.mod h1:rEOwJVPHU569BC22tUhl6g64sYPxFzZKrxxzjz+zvWQ=
+github.com/chartmuseum/storage v0.9.2-0.20201014231951-6dd385da21c3 h1:+CGbrnh/pOLmE50kU5KIjzwSMNTcXAAXvVVpYW7/1bk=
+github.com/chartmuseum/storage v0.9.2-0.20201014231951-6dd385da21c3/go.mod h1:rEOwJVPHU569BC22tUhl6g64sYPxFzZKrxxzjz+zvWQ=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=

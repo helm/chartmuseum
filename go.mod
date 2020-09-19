@@ -7,6 +7,8 @@ replace (
 	go.etcd.io/etcd => github.com/eddycjy/etcd v0.5.0-alpha.5.0.20200218102753-4258cdd2efdf
 )
 
+replace github.com/chartmuseum/storage => github.com/chartmuseum/storage v0.9.2-0.20201014231951-6dd385da21c3
+
 require (
 	github.com/Masterminds/semver/v3 v3.1.0
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
