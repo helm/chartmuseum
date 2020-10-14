@@ -13,7 +13,7 @@ bootstrap:
 	@go mod download && go mod vendor
 
 .PHONY: build
-build: build-linux build-mac build-windows
+build: build-linux build-mac build-windows build-linux-mips
 
 build-windows: export GOOS=windows
 build-windows: export GOARCH=amd64
@@ -33,6 +33,16 @@ build-linux:
 	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
 	sha256sum bin/linux/amd64/chartmuseum || shasum -a 256 bin/linux/amd64/chartmuseum
+
+build-linux-mips: export GOOS=linux
+build-linux-mips: export GOARCH=mips64le
+build-linux-mips: export CGO_ENABLED=0
+build-linux-mips: export GO111MODULE=on
+build-linux-mips: export GOPROXY=$(MOD_PROXY_URL)
+build-linux-mips: 
+	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+		-o bin/linux/mips64/chartmuseum cmd/chartmuseum/main.go  # linux
+	sha256sum bin/linux/mips64/chartmuseum || shasum -a 256 bin/linux/mips64/chartmuseum
 
 build-armv7: export GOOS=linux
 build-armv7: export GOARCH=arm
