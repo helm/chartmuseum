@@ -53,14 +53,13 @@ Test Helm integration
     Upload test charts to ChartMuseum
     Upload provenance files to ChartMuseum
     Upload bad test charts to ChartMuseum
-    Upload test customized version charts to ChartMuseum
     Upload bad provenance files to ChartMuseum
     Able to update ChartMuseum repo
     Helm search returns test charts
     Able to fetch and verify test charts
     Delete test charts from ChartMuseum
-    Ensure delete customized version chart
     Able to update ChartMuseum repo
+    Ensure test charts deleted
     Helm search does not return test charts
     Unable to fetch and verify test charts
 
@@ -78,17 +77,14 @@ Upload provenance files to ChartMuseum
 Upload bad test charts to ChartMuseum
     ChartMuseum.upload bad test charts
 
-Upload test customized version charts to ChartMuseum
-    ChartMuseum.upload test more version charts
-
 Upload bad provenance files to ChartMuseum
     ChartMuseum.upload bad provenance files
 
 Delete test charts from ChartMuseum
     ChartMuseum.delete test charts
 
-Ensure delete customized version chart
-    ChartMuseum.delete test version charts
+Ensure test charts deleted
+    ChartMuseum.ensure charts deleted
 
 Able to add ChartMuseum as Helm chart repo
     Helm.add chart repo
@@ -106,6 +102,8 @@ Helm search returns test charts
 Helm search does not return test charts
     Helm.search for chart  mychart
     Helm.output does not contain  mychart
+    Helm.search for chart  mychart2
+    Helm.output does not contain  mychart2
 
 Able to fetch and verify test charts
     Helm.fetch and verify chart  mychart

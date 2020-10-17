@@ -89,25 +89,6 @@ class ChartMuseum(common.CommandRunner):
                     self.http_status_code_should_be(201, response.status_code)
             os.chdir('../')
 
-    def upload_test_more_version_charts(self):
-        charts_endpoint = '%s/api/charts' % common.HELM_REPO_URL
-        testcharts_dir = os.path.join(self.rootdir, common.TESTMOREVERSIONCHARTS_DIR)
-        os.chdir(testcharts_dir)
-        for d in os.listdir('.'):
-            if not os.path.isdir(d):
-                continue
-            os.chdir(d)
-            tgzs = glob.glob('*.tgz')
-            for tgz in tgzs:
-                print(('Uploading more version chart package "%s"' % tgz))
-                with open(tgz, 'rb') as f:
-                    response = requests.post(url=charts_endpoint, data=f.read())
-                    print(('POST %s' % charts_endpoint))
-                    print(('HTTP STATUS: %s' % response.status_code))
-                    print(('HTTP CONTENT: %s' % response.content))
-                    self.http_status_code_should_be(201, response.status_code)
-            os.chdir('../')
-
     def upload_bad_test_charts(self):
         charts_endpoint = '%s/api/charts' % common.HELM_REPO_URL
         testcharts_dir = os.path.join(self.rootdir, common.TESTBADCHARTS_DIR)
@@ -170,6 +151,7 @@ class ChartMuseum(common.CommandRunner):
         testcharts_dir = os.path.join(self.rootdir, common.TESTCHARTS_DIR)
         os.chdir(testcharts_dir)
         for d in os.listdir('.'):
+            # delete all charts inside /mychart (also includes mychart2)
             if not os.path.isdir(d):
                 continue
             os.chdir(d)
@@ -187,27 +169,21 @@ class ChartMuseum(common.CommandRunner):
                     self.http_status_code_should_be(200, response.status_code)
             os.chdir('../')
 
-    def delete_test_version_charts(self):
+    def ensure_charts_deleted(self):
         endpoint = '%s/api/charts' % common.HELM_REPO_URL
-        testcharts_dir = os.path.join(self.rootdir, common.TESTMOREVERSIONCHARTS_DIR)
+        testcharts_dir = os.path.join(self.rootdir, common.TESTCHARTS_DIR)
         os.chdir(testcharts_dir)
-        f = open("Chart.yaml","r")
-        name = ''
-        version = ''
-        for lines in f:
-            v_prefix = 'version: '
-            name_prefix = 'name: '
-            if lines.startswith(v_prefix):
-                version = lines[len(v_prefix):]
-            elif lines.startswith(name_prefix):
-                name = lines[len(name_prefix):]
-        print(('Delete test chart "%s-%s"' % (name, version)))
-        epoint = '%s/%s/%s' % (endpoint, name, version)
-        response = requests.delete(url=epoint)
-        print(('HTTP STATUS: %s' % response.status_code))
-        print(('HTTP CONTENT: %s' % response.content))
-        self.http_status_code_should_be(200, response.status_code)
-        # checks if the chart still exists
-        response = requests.get(url=epoint)
-        self.http_status_code_should_be(404, response.status_code)
-        os.chdir('../')
+        for d in os.listdir('.'):
+            if not os.path.isdir(d):
+                continue
+            os.chdir(d)
+            tgzs = glob.glob('*.tgz')
+            for tgz in tgzs:
+                tmp = tgz[:-4].rsplit('-', 1)
+                name = tmp[0]
+                version = tmp[1]
+                with open(tgz):
+                    epoint = '%s/%s/%s' % (endpoint, name, version)
+                    response = requests.get(url=epoint)
+                    self.http_status_code_should_be(404, response.status_code)
+            os.chdir('../')

@@ -513,7 +513,11 @@ func (server *MultiTenantServer) startEventListener() {
 		}
 		index := entry.RepoIndex
 
-		tenant := server.Tenants[e.RepoName]
+		tenant, ok := server.Tenants[e.RepoName]
+		if !ok {
+			log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.Error(err), zap.String("repo", repo))
+			continue
+		}
 		tenant.RegenerationLock.Lock()
 
 		if e.ChartVersion == nil {
