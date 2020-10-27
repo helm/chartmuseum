@@ -54,29 +54,30 @@ type (
 
 	// RouterOptions are options for constructing a Router
 	RouterOptions struct {
-		Logger            *cm_logger.Logger
-		LogLatencyInteger bool
-		Username          string
-		Password          string
-		ContextPath       string
-		TlsCert           string
-		TlsKey            string
-		TlsCACert         string
-		PathPrefix        string
-		LogHealth         bool
-		EnableMetrics     bool
-		AnonymousGet      bool
-		Depth             int
-		MaxUploadSize     int
-		BearerAuth        bool
-		AuthRealm         string
-		AuthService       string
-		AuthCertPath      string
-		DepthDynamic      bool
-		ReadTimeout       int
-		WriteTimeout      int
-		CORSAllowOrigin   string
-		Host              string
+		Logger            		*cm_logger.Logger
+		LogLatencyInteger 		bool
+		Username          		string
+		Password          		string
+		ContextPath       		string
+		TlsCert           		string
+		TlsKey            		string
+		TlsCACert         		string
+		PathPrefix        		string
+		LogHealth         		bool
+		EnableMetrics     		bool
+		AnonymousGet      		bool
+		Depth             		int
+		MaxUploadSize     		int
+		BearerAuth        		bool
+		AuthRealm         		string
+		AuthService       		string
+		AuthCertPath      		string
+		AuthActionsSearchPath	string
+		DepthDynamic      		bool
+		ReadTimeout       		int
+		WriteTimeout      		int
+		CORSAllowOrigin   		string
+		Host              		string
 	}
 
 	// Route represents an application route
@@ -142,6 +143,7 @@ func NewRouter(options RouterOptions) *Router {
 			Realm:         options.AuthRealm,
 			Service:       options.AuthService,
 			PublicKeyPath: options.AuthCertPath,
+			AllowedActionsSearchPath: options.AuthActionsSearchPath,
 		})
 	} else if options.Username != "" && options.Password != "" {
 		authorizer, err = cm_auth.NewAuthorizer(&cm_auth.AuthorizerOptions{

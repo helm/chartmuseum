@@ -62,6 +62,7 @@ type (
 		AuthRealm              string
 		AuthService            string
 		AuthCertPath           string
+		AuthActionsSearchPath  string
 		DepthDynamic           bool
 		CORSAllowOrigin        string
 		ReadTimeout            int
@@ -96,28 +97,29 @@ func NewServer(options ServerOptions) (Server, error) {
 	}
 
 	router := cm_router.NewRouter(cm_router.RouterOptions{
-		Logger:            logger,
-		LogLatencyInteger: options.LogLatencyInteger,
-		Username:          options.Username,
-		Password:          options.Password,
-		ContextPath:       contextPath,
-		TlsCert:           options.TlsCert,
-		TlsKey:            options.TlsKey,
-		TlsCACert:         options.TlsCACert,
-		LogHealth:         options.LogHealth,
-		EnableMetrics:     options.EnableMetrics,
-		AnonymousGet:      options.AnonymousGet,
-		Depth:             options.Depth,
-		MaxUploadSize:     options.MaxUploadSize,
-		BearerAuth:        options.BearerAuth,
-		AuthRealm:         options.AuthRealm,
-		AuthService:       options.AuthService,
-		AuthCertPath:      options.AuthCertPath,
-		DepthDynamic:      options.DepthDynamic,
-		CORSAllowOrigin:   options.CORSAllowOrigin,
-		ReadTimeout:       options.ReadTimeout,
-		WriteTimeout:      options.WriteTimeout,
-		Host:              options.Host,
+		Logger:            		logger,
+		LogLatencyInteger: 		options.LogLatencyInteger,
+		Username:          		options.Username,
+		Password:          		options.Password,
+		ContextPath:       		contextPath,
+		TlsCert:           		options.TlsCert,
+		TlsKey:            		options.TlsKey,
+		TlsCACert:         		options.TlsCACert,
+		LogHealth:         		options.LogHealth,
+		EnableMetrics:     		options.EnableMetrics,
+		AnonymousGet:      		options.AnonymousGet,
+		Depth:             		options.Depth,
+		MaxUploadSize:     		options.MaxUploadSize,
+		BearerAuth:        		options.BearerAuth,
+		AuthRealm:         		options.AuthRealm,
+		AuthService:       		options.AuthService,
+		AuthCertPath:      		options.AuthCertPath,
+		AuthActionsSearchPath: 	options.AuthActionsSearchPath,
+		DepthDynamic:      		options.DepthDynamic,
+		CORSAllowOrigin:   		options.CORSAllowOrigin,
+		ReadTimeout:       		options.ReadTimeout,
+		WriteTimeout:      		options.WriteTimeout,
+		Host:              		options.Host,
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{

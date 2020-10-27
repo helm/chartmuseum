@@ -5,6 +5,7 @@ go 1.15
 replace (
 	github.com/NetEase-Object-Storage/nos-golang-sdk => github.com/karuppiah7890/nos-golang-sdk v0.0.0-20191116042345-0792ba35abcc
 	go.etcd.io/etcd => github.com/eddycjy/etcd v0.5.0-alpha.5.0.20200218102753-4258cdd2efdf
+	github.com/chartmuseum/auth => github.com/marcoklaassen/auth v0.5.0
 )
 
 require (

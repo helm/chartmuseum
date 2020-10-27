@@ -95,6 +95,7 @@ func cliHandler(c *cli.Context) {
 		AuthRealm:              conf.GetString("authrealm"),
 		AuthService:            conf.GetString("authservice"),
 		AuthCertPath:           conf.GetString("authcertpath"),
+		AuthActionsSearchPath: 	conf.GetString("authactionssearchpath"),
 		DepthDynamic:           conf.GetBool("depthdynamic"),
 		CORSAllowOrigin:        conf.GetString("cors.alloworigin"),
 		WriteTimeout:           conf.GetInt("writetimeout"),
