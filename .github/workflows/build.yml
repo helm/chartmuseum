@@ -60,8 +60,20 @@ jobs:
           echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
             --build-arg revision=$(git rev-parse --short HEAD) \
             ${TAGS} .
-      - name: Set up Docker Buildx
-        uses: crazy-max/ghaction-docker-buildx@v3
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+      -
+        name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
       - name: Docker Buildx (build)
         run: |
           docker buildx build --no-cache --pull --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
