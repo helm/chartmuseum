@@ -20,12 +20,12 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gomodule/redigo v1.8.2 // indirect
 	github.com/prometheus/client_golang v1.7.1
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli v1.22.4
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	github.com/zsais/go-gin-prometheus v0.1.0
 	go.uber.org/zap v1.16.0
-	helm.sh/helm/v3 v3.3.1
+	helm.sh/helm/v3 v3.4.1
 )
