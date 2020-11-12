@@ -82,12 +82,12 @@ helm repo add chartmuseum http://localhost:8080
 
 Search for charts:
 ```bash
-helm search chartmuseum/
+helm search repo chartmuseum/
 ```
 
 Install chart:
 ```bash
-helm install chartmuseum/mychart
+helm install chartmuseum/mychart --generate-name
 ```
 
 ## How to Run
