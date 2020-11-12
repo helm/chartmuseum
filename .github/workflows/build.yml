@@ -1,8 +1,11 @@
 name: build
 
 on:
-  schedule:
-    - cron: '0 0 * * *' # everyday at midnight UTC
+
+  # TODO: renable cron after moving off of Docker Hub
+  # schedule:
+  #   - cron: '0 0 * * *' # everyday at midnight UTC
+
   push:
     branches: main
     tags:
@@ -17,7 +20,7 @@ jobs:
       - name: setup go environment
         uses: actions/setup-go@v1
         with:
-          go-version: '1.15.2'
+          go-version: '1.15.4'
       - name: download dependencies
         run: make bootstrap
       - name: run unit tests
