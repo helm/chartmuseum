@@ -61,6 +61,11 @@ func ChartPackageFilenameFromContent(content []byte) (string, error) {
 // ChartVersionFromStorageObject returns a chart version from a storage object
 func ChartVersionFromStorageObject(object storage.Object) (*helm_repo.ChartVersion, error) {
 	if len(object.Content) == 0 {
+		if object.Meta.Version != "" && object.Meta.Name != "" {
+			return &helm_repo.ChartVersion{
+				Metadata: &helm_chart.Metadata{Name: object.Meta.Name, Version: object.Meta.Version},
+			}, nil
+		}
 		chartVersion := emptyChartVersionFromPackageFilename(object.Path)
 		if chartVersion.Name == "" || chartVersion.Version == "" {
 			return nil, ErrorInvalidChartPackage
@@ -86,7 +91,13 @@ func ChartVersionFromStorageObject(object storage.Object) (*helm_repo.ChartVersi
 
 // StorageObjectFromChartVersion returns a storage object from a chart version (empty content)
 func StorageObjectFromChartVersion(chartVersion *helm_repo.ChartVersion) storage.Object {
+	meta := storage.Metadata{}
+	if chartVersion.Metadata != nil {
+		meta.Name = chartVersion.Name
+		meta.Version = chartVersion.Version
+	}
 	object := storage.Object{
+		Meta:         meta,
 		Path:         pathutil.Base(chartVersion.URLs[0]),
 		Content:      []byte{},
 		LastModified: chartVersion.Created,

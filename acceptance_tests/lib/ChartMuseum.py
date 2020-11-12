@@ -151,6 +151,7 @@ class ChartMuseum(common.CommandRunner):
         testcharts_dir = os.path.join(self.rootdir, common.TESTCHARTS_DIR)
         os.chdir(testcharts_dir)
         for d in os.listdir('.'):
+            # delete all charts inside /mychart (also includes mychart2)
             if not os.path.isdir(d):
                 continue
             os.chdir(d)
@@ -166,4 +167,23 @@ class ChartMuseum(common.CommandRunner):
                     print(('HTTP STATUS: %s' % response.status_code))
                     print(('HTTP CONTENT: %s' % response.content))
                     self.http_status_code_should_be(200, response.status_code)
+            os.chdir('../')
+
+    def ensure_charts_deleted(self):
+        endpoint = '%s/api/charts' % common.HELM_REPO_URL
+        testcharts_dir = os.path.join(self.rootdir, common.TESTCHARTS_DIR)
+        os.chdir(testcharts_dir)
+        for d in os.listdir('.'):
+            if not os.path.isdir(d):
+                continue
+            os.chdir(d)
+            tgzs = glob.glob('*.tgz')
+            for tgz in tgzs:
+                tmp = tgz[:-4].rsplit('-', 1)
+                name = tmp[0]
+                version = tmp[1]
+                with open(tgz):
+                    epoint = '%s/%s/%s' % (endpoint, name, version)
+                    response = requests.get(url=epoint)
+                    self.http_status_code_should_be(404, response.status_code)
             os.chdir('../')

@@ -36,10 +36,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"go.uber.org/zap"
+	"fmt"
 	pathutil "path"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
@@ -201,6 +203,11 @@ func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, r
 	filteredObjects := []cm_storage.Object{}
 	for _, object := range allObjects {
 		if object.HasExtension(cm_repo.ChartPackageFileExtension) {
+			// Since ListObject cannot fetch the content from file list
+			object, err = server.StorageBackend.GetObject(object.Path)
+			if err != nil {
+				return nil, fmt.Errorf("backend storage: chart not found: %q", err)
+			}
 			filteredObjects = append(filteredObjects, object)
 		}
 	}
@@ -506,7 +513,11 @@ func (server *MultiTenantServer) startEventListener() {
 		}
 		index := entry.RepoIndex
 
-		tenant := server.Tenants[e.RepoName]
+		tenant, ok := server.Tenants[e.RepoName]
+		if !ok {
+			log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.Error(err), zap.String("repo", repo))
+			continue
+		}
 		tenant.RegenerationLock.Lock()
 
 		if e.ChartVersion == nil {
