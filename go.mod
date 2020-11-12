@@ -20,7 +20,7 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gomodule/redigo v1.8.2 // indirect
 	github.com/prometheus/client_golang v1.7.1
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli v1.22.4
