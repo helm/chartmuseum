@@ -497,7 +497,7 @@ You can also view it on [Helm Hub](https://hub.helm.sh/charts/stable/chartmuseum
 
 To install:
 ```bash
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add stable https://charts.helm.sh/stable
 helm install stable/chartmuseum
 ```
 
