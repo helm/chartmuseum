@@ -491,17 +491,17 @@ docker run --rm -it \
 ```
 
 ### Helm Chart
-There is a [Helm chart for *ChartMuseum*](https://github.com/helm/charts/tree/master/stable/chartmuseum) itself which can be found in the official Helm charts repository.
+There is a [Helm chart for *ChartMuseum*](https://github.com/chartmuseum/charts/tree/main/src/chartmuseum) itself.
 
-You can also view it on [Helm Hub](https://hub.helm.sh/charts/stable/chartmuseum).
+You can also view it on [Artifact Hub](https://artifacthub.io/packages/helm/chartmuseum/chartmuseum).
 
 To install:
 ```bash
-helm repo add stable https://charts.helm.sh/stable
-helm install stable/chartmuseum
+helm repo add chartmuseum https://chartmuseum.github.io/charts
+helm install chartmuseum/chartmuseum
 ```
 
-If interested in making changes, please submit a PR to [helm/charts](https://github.com/helm/charts). Before doing any work, please check for any [currently open pull requests](https://github.com/helm/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
+If interested in making changes, please submit a PR to [chartmuseum/charts](https://github.com/chartmuseum/charts). Before doing any work, please check for any [currently open pull requests](https://github.com/chartmuseum/charts/pulls?q=is%3Apr+is%3Aopen). Thanks!
 
 ## Multitenancy
 Multitenancy is supported with the `--depth` flag.
