@@ -28,5 +28,5 @@ require (
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	github.com/zsais/go-gin-prometheus v0.1.0
 	go.uber.org/zap v1.16.0
-	helm.sh/helm/v3 v3.4.1
+	helm.sh/helm/v3 v3.4.2
 )
