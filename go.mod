@@ -18,7 +18,7 @@ require (
 	github.com/gin-contrib/size v0.0.0-20200916080119-37b334d93b20
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/gofrs/uuid v3.3.0+incompatible
+	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/gomodule/redigo v1.8.2 // indirect
 	github.com/prometheus/client_golang v1.8.0
 	github.com/sirupsen/logrus v1.7.0
