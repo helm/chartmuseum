@@ -104,11 +104,11 @@ verifySupported() {
 checkDesiredVersion() {
   if [ "x$DESIRED_VERSION" == "x" ]; then
     # Get tag from release URL
-    local latest_release_url="https://github.com/helm/chartmuseum/releases"
+    local latest_release_url="https://github.com/jdolitsky/chartmuseum/releases"
     if [ "${HAS_CURL}" == "true" ]; then
-      TAG=$(curl -Ls $latest_release_url | grep 'href="/helm/chartmuseum/releases/tag/v3.[0-9]*.[0-9]*\"' | grep -v no-underline | head -n 1 | cut -d '"' -f 2 | awk '{n=split($NF,a,"/");print a[n]}' | awk 'a !~ $0{print}; {a=$0}')
+      TAG=$(curl -Ls $latest_release_url | grep 'href="/jdolitsky/chartmuseum/releases/tag/v3.[0-9]*.[0-9]*\"' | grep -v no-underline | head -n 1 | cut -d '"' -f 2 | awk '{n=split($NF,a,"/");print a[n]}' | awk 'a !~ $0{print}; {a=$0}')
     elif [ "${HAS_WGET}" == "true" ]; then
-      TAG=$(wget $latest_release_url -O - 2>&1 | grep 'href="/helm/chartmuseum/releases/tag/v3.[0-9]*.[0-9]*\"' | grep -v no-underline | head -n 1 | cut -d '"' -f 2 | awk '{n=split($NF,a,"/");print a[n]}' | awk 'a !~ $0{print}; {a=$0}')
+      TAG=$(wget $latest_release_url -O - 2>&1 | grep 'href="/jdolitsky/chartmuseum/releases/tag/v3.[0-9]*.[0-9]*\"' | grep -v no-underline | head -n 1 | cut -d '"' -f 2 | awk '{n=split($NF,a,"/");print a[n]}' | awk 'a !~ $0{print}; {a=$0}')
     fi
   else
     TAG=$DESIRED_VERSION
@@ -135,12 +135,12 @@ checkChartmuseumInstalledVersion() {
 # downloadFile downloads the latest binary package and also the checksum
 # for that binary.
 downloadFile() {
-  CHARTMUSEUM_DIST="charmuseum-$TAG-$OS-$ARCH.tar.gz"
+  CHARTMUSEUM_DIST="chartmuseum-$TAG-$OS-$ARCH.tar.gz"
   DOWNLOAD_URL="https://get.helm.sh/$CHARTMUSEUM_DIST"
-  CHECKSUM_URL="$DOWNLOAD_URL.sha256"
+  CHECKSUM_URL="$DOWNLOAD_URL.sha256sum"
   CHARTMUSEUM_TMP_ROOT="$(mktemp -dt chartmuseum-installer-XXXXXX)"
   CHARTMUSEUM_TMP_FILE="$CHARTMUSEUM_TMP_ROOT/$CHARTMUSEUM_DIST"
-  CHARTMUSEUM_SUM_FILE="$CHARTMUSEUM_TMP_ROOT/$CHARTMUSEUM_DIST.sha256"
+  CHARTMUSEUM_SUM_FILE="$CHARTMUSEUM_TMP_ROOT/$CHARTMUSEUM_DIST.sha256sum"
   echo "Downloading $DOWNLOAD_URL"
   if [ "${HAS_CURL}" == "true" ]; then
     curl -SsL "$CHECKSUM_URL" -o "$CHARTMUSEUM_SUM_FILE"
@@ -178,7 +178,7 @@ installFile() {
 verifyChecksum() {
   printf "Verifying checksum... "
   local sum=$(openssl sha1 -sha256 ${CHARTMUSEUM_TMP_FILE} | awk '{print $2}')
-  local expected_sum=$(cat ${CHARTMUSEUM_SUM_FILE})
+  local expected_sum=$(cat ${CHARTMUSEUM_SUM_FILE} | awk '{print $1}')
   if [ "$sum" != "$expected_sum" ]; then
     echo "SHA sum of ${CHARTMUSEUM_TMP_FILE} does not match. Aborting."
     exit 1
@@ -192,7 +192,7 @@ verifyChecksum() {
 verifySignatures() {
   printf "Verifying signatures... "
   local keys_filename="KEYS"
-  local github_keys_url="https://raw.githubusercontent.com/helm/chartmuseum/main/${keys_filename}"
+  local github_keys_url="https://raw.githubusercontent.com/jdolitsky/chartmuseum/v0.13.0-prep/${keys_filename}"
   if [ "${HAS_CURL}" == "true" ]; then
     curl -SsL "${github_keys_url}" -o "${CHARTMUSEUM_TMP_ROOT}/${keys_filename}"
   elif [ "${HAS_WGET}" == "true" ]; then
@@ -207,19 +207,19 @@ verifySignatures() {
   fi
   gpg --batch --quiet --homedir="${gpg_homedir}" --import "${CHARTMUSEUM_TMP_ROOT}/${keys_filename}" 2> "${gpg_stderr_device}"
   gpg --batch --no-default-keyring --keyring "${gpg_homedir}/pubring.kbx" --export > "${gpg_keyring}"
-  local github_release_url="https://github.com/helm/chartmuseum/releases/download/${TAG}"
+  local github_release_url="https://github.com/jdolitsky/chartmuseum/releases/download/${TAG}"
   if [ "${HAS_CURL}" == "true" ]; then
-    curl -SsL "${github_release_url}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256.asc" -o "${CHARTMUSEUM_TMP_ROOT}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256.asc"
+    curl -SsL "${github_release_url}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256sum.asc" -o "${CHARTMUSEUM_TMP_ROOT}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256sum.asc"
     curl -SsL "${github_release_url}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.asc" -o "${CHARTMUSEUM_TMP_ROOT}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.asc"
   elif [ "${HAS_WGET}" == "true" ]; then
-    wget -q -O "${CHARTMUSEUM_TMP_ROOT}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256.asc" "${github_release_url}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256.asc"
+    wget -q -O "${CHARTMUSEUM_TMP_ROOT}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256sum.asc" "${github_release_url}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256sum.asc"
     wget -q -O "${CHARTMUSEUM_TMP_ROOT}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.asc" "${github_release_url}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.asc"
   fi
   local error_text="If you think this might be a potential security issue,"
   error_text="${error_text}\nplease see here: https://github.com/helm/community/blob/master/SECURITY.md"
-  local num_goodlines_sha=$(gpg --verify --keyring="${gpg_keyring}" --status-fd=1 "${CHARTMUSEUM_TMP_ROOT}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256.asc" 2> "${gpg_stderr_device}" | grep -c -E '^\[GNUPG:\] (GOODSIG|VALIDSIG)')
+  local num_goodlines_sha=$(gpg --verify --keyring="${gpg_keyring}" --status-fd=1 "${CHARTMUSEUM_TMP_ROOT}/chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256sum.asc" 2> "${gpg_stderr_device}" | grep -c -E '^\[GNUPG:\] (GOODSIG|VALIDSIG)')
   if [[ ${num_goodlines_sha} -lt 2 ]]; then
-    echo "Unable to verify the signature of chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256!"
+    echo "Unable to verify the signature of chartmuseum-${TAG}-${OS}-${ARCH}.tar.gz.sha256sum!"
     echo -e "${error_text}"
     exit 1
   fi
