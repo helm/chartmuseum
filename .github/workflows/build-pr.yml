@@ -14,7 +14,7 @@ jobs:
       - name: setup go environment
         uses: actions/setup-go@v1
         with:
-          go-version: '1.15.4'
+          go-version: '1.15.7'
       - name: download dependencies
         run: make bootstrap
       - name: run unit tests
@@ -35,4 +35,3 @@ jobs:
           name: chartmuseum-acceptance-report-${{ github.sha }}
           path: .robot/
         if: always()
-

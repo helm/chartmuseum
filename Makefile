@@ -2,9 +2,27 @@
 VERSION=0.12.0
 REVISION := $(shell git rev-parse --short HEAD;)
 
+BINDIR      := $(CURDIR)/bin
+BINNAME     ?= chartmuseum
+
+TARGETS     := darwin/amd64 linux/amd64 linux/386 linux/arm linux/arm64 linux/mips64le linux/ppc64le linux/s390x windows/amd64
+TARGET_OBJS ?= darwin-amd64.tar.gz darwin-amd64.tar.gz.sha256sum linux-amd64.tar.gz linux-amd64.tar.gz.sha256sum linux-386.tar.gz linux-386.tar.gz.sha256sum linux-arm.tar.gz linux-arm.tar.gz.sha256sum linux-arm64.tar.gz linux-arm64.tar.gz.sha256sum linux-mips64le.tar.gz linux-mips64le.tar.gz.sha256sum linux-ppc64le.tar.gz linux-ppc64le.tar.gz.sha256sum linux-s390x.tar.gz linux-s390x.tar.gz.sha256sum windows-amd64.zip windows-amd64.zip.sha256sum
+
+DIST_DIRS   := find * -type d -exec
+
+
+GOBIN         = $(shell go env GOBIN)
+ifeq ($(GOBIN),)
+GOBIN         = $(shell go env GOPATH)/bin
+endif
+GOX           = $(GOBIN)/gox
+
 #MOD_PROXY_URL ?= https://gocenter.io
 
 CM_LOADTESTING_HOST ?= http://localhost:8080
+
+$(GOX):
+	(cd /; GO111MODULE=on go get -u github.com/mitchellh/gox)
 
 .PHONY: bootstrap
 bootstrap: export GO111MODULE=on
@@ -113,3 +131,56 @@ version-released:
 .PHONY: get-version
 get-version:
 	@echo $(VERSION)
+
+.PHONY: build-cross
+build-cross: LDFLAGS += -extldflags "-static"
+build-cross: $(GOX)
+	GO111MODULE=on CGO_ENABLED=0 $(GOX) -parallel=3 -output="_dist/{{.OS}}-{{.Arch}}/$(BINNAME)" -osarch='$(TARGETS)' $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' ./cmd/chartmuseum
+
+.PHONY: dist
+dist:
+	( \
+		cd _dist && \
+		$(DIST_DIRS) cp ../LICENSE {} \; && \
+		$(DIST_DIRS) cp ../README.md {} \; && \
+		$(DIST_DIRS) tar -zcf chartmuseum-${VERSION}-{}.tar.gz {} \; && \
+		$(DIST_DIRS) zip -r chartmuseum-${VERSION}-{}.zip {} \; \
+	)
+
+.PHONY: fetch-dist
+fetch-dist:
+	mkdir -p _dist
+	cd _dist && \
+	for obj in ${TARGET_OBJS} ; do \
+		curl -sSL -o helm-${VERSION}-$${obj} https://get.helm.sh/chartmuseum-${VERSION}-$${obj} ; \
+	done
+
+# The contents of the .sha256sum file are compatible with tools like
+# shasum. For example, using the following command will verify
+# the file helm-3.1.0-rc.1-darwin-amd64.tar.gz:
+#   shasum -a 256 -c helm-3.1.0-rc.1-darwin-amd64.tar.gz.sha256sum
+.PHONY: checksum
+checksum:
+	for f in $$(ls _dist/*.{gz,zip} 2>/dev/null) ; do \
+		shasum -a 256 "$${f}" | sed 's/_dist\///' > "$${f}.sha256sum" ; \
+	done
+
+.PHONY: sign
+sign:
+	for f in $$(ls _dist/*.{gz,zip,sha256,sha256sum} 2>/dev/null) ; do \
+		gpg --armor --detach-sign $${f} ; \
+	done
+
+.PHONY: release-notes
+release-notes:
+		@if [ ! -d "./_dist" ]; then \
+			echo "please run 'make fetch-dist' first" && \
+			exit 1; \
+		fi
+		@if [ -z "${PREVIOUS_RELEASE}" ]; then \
+			echo "please set PREVIOUS_RELEASE environment variable" \
+			&& exit 1; \
+		fi
+
+		@./scripts/release-notes.sh ${PREVIOUS_RELEASE} ${VERSION}
+
