@@ -163,7 +163,7 @@ fetch-dist:
 	mkdir -p _dist
 	cd _dist && \
 	for obj in ${TARGET_OBJS} ; do \
-		curl -sSL -o helm-${VERSION}-$${obj} https://get.helm.sh/chartmuseum-${VERSION}-$${obj} ; \
+		curl -sSL -o chartmuseum-${VERSION}-$${obj} https://get.helm.sh/chartmuseum-${VERSION}-$${obj} ; \
 	done
 
 # The contents of the .sha256sum file are compatible with tools like
