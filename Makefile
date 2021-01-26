@@ -178,7 +178,7 @@ checksum:
 
 .PHONY: sign
 sign:
-	for f in $$(ls _dist/*.{gz,zip,sha256,sha256sum} 2>/dev/null) ; do \
+	for f in $$(ls _dist/*.{gz,zip,sha256sum} 2>/dev/null) ; do \
 		gpg --armor --detach-sign $${f} ; \
 	done
 
