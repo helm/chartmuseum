@@ -89,6 +89,8 @@ Download ChartMuseum ${RELEASE}. The common platform binaries are here:
 - [Linux s390x](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz) ([checksum](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz.sha256sum) / $(cat _dist/chartmuseum-${RELEASE}-darwin-amd64.tar.gz.sha256sum | awk '{print $1}'))
 - [Windows amd64](https://get.helm.sh/chartmuseum-${RELEASE}-windows-amd64.zip) ([checksum](https://get.helm.sh/chartmuseum-${RELEASE}-windows-amd64.zip.sha256sum) / $(cat _dist/chartmuseum-${RELEASE}-windows-amd64.zip.sha256sum | awk '{print $1}'))
 
+You can use a [script to install](https://raw.githubusercontent.com/helm/chartmuseum/main/scripts/get-chartmuseum) on any system with \`bash\`.
+
 ## What's Next
 
 - ${MAJOR}.${MINOR}.$(expr ${PATCH} + 1) will contain only bug fixes.
