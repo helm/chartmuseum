@@ -4,22 +4,21 @@ REVISION := $(shell git rev-parse --short HEAD;)
 BINDIR      := $(CURDIR)/bin
 BINNAME     ?= chartmuseum
 
+# Required for globs to work correctly
+SHELL      = /usr/bin/env bash
+
 #TARGETS     := darwin/amd64 linux/amd64 linux/386 linux/arm linux/arm64 linux/mips64le linux/ppc64le linux/s390x windows/amd64
 #TARGET_OBJS ?= darwin-amd64.tar.gz darwin-amd64.tar.gz.sha256sum linux-amd64.tar.gz linux-amd64.tar.gz.sha256sum linux-386.tar.gz linux-386.tar.gz.sha256sum linux-arm.tar.gz linux-arm.tar.gz.sha256sum linux-arm64.tar.gz linux-arm64.tar.gz.sha256sum linux-mips64le.tar.gz linux-mips64le.tar.gz.sha256sum linux-ppc64le.tar.gz linux-ppc64le.tar.gz.sha256sum linux-s390x.tar.gz linux-s390x.tar.gz.sha256sum windows-amd64.zip windows-amd64.zip.sha256sum
 TARGETS     := darwin/amd64
 TARGET_OBJS ?= darwin-amd64.tar.gz darwin-amd64.tar.gz.sha256sum
 
-
 DIST_DIRS   := find * -type d -exec
-
 
 GOBIN         = $(shell go env GOBIN)
 ifeq ($(GOBIN),)
 GOBIN         = $(shell go env GOPATH)/bin
 endif
 GOX           = $(GOBIN)/gox
-
-#MOD_PROXY_URL ?= https://gocenter.io
 
 CM_LOADTESTING_HOST ?= http://localhost:8080
 
