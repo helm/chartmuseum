@@ -184,14 +184,13 @@ sign:
 
 .PHONY: release-notes
 release-notes:
-		@if [ ! -d "./_dist" ]; then \
-			echo "please run 'make fetch-dist' first" && \
-			exit 1; \
-		fi
-		@if [ -z "${PREVIOUS_RELEASE}" ]; then \
-			echo "please set PREVIOUS_RELEASE environment variable" \
-			&& exit 1; \
-		fi
+	@if [ ! -d "./_dist" ]; then \
+		echo "please run 'make fetch-dist' first" && \
+		exit 1; \
+	fi
+	@if [ -z "${PREVIOUS_RELEASE}" ]; then \
+		echo "please set PREVIOUS_RELEASE environment variable" \
+		&& exit 1; \
+	fi
 
-		@./scripts/release-notes.sh ${PREVIOUS_RELEASE} ${VERSION}
-
+	@./scripts/release-notes.sh ${PREVIOUS_RELEASE} ${VERSION}

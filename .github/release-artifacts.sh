@@ -17,16 +17,7 @@ set -euo pipefail
 
 : ${AZURE_STORAGE_CONNECTION_STRING:?"AZURE_STORAGE_CONNECTION_STRING environment variable is not set"}
 : ${AZURE_STORAGE_CONTAINER_NAME:?"AZURE_STORAGE_CONTAINER_NAME environment variable is not set"}
-
-VERSION=
-if [[ -n "${CIRCLE_TAG:-}" ]]; then
-  VERSION="${CIRCLE_TAG}"
-elif [[ "${CIRCLE_BRANCH:-}" == "main" ]]; then
-  VERSION="canary"
-else
-  echo "Skipping deploy step; this is neither a releasable branch or a tag"
-  exit
-fi
+: ${VERSION:?"VERSION environment variable is not set"}
 
 echo "Installing Azure CLI"
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ stretch main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
