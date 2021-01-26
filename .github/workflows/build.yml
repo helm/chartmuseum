@@ -46,6 +46,9 @@ jobs:
             ${TAGS} .
       - name: Release artifacts
         id: release-artifacts
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
         run: |
           VERSION="${{ steps.prepare.outputs.version }}" ./.github/release-artifacts.sh
 #      - name: Set up QEMU
