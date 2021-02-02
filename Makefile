@@ -1,4 +1,4 @@
-VERSION ?= 0.13.0-rc5
+VERSION ?= 0.13.0-rc7
 REVISION := $(shell git rev-parse --short HEAD;)
 
 BINDIR      := $(CURDIR)/bin
