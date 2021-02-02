@@ -2,7 +2,7 @@
 
 FROM golang:alpine
 
-ARG version=0.13.0-rc3
+ARG version=0.13.0-rc4
 
 ARG revision=main
 
