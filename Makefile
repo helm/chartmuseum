@@ -126,18 +126,6 @@ goviz:
 	#@go get -u github.com/RobotsAndPencils/goviz
 	@goviz -i helm.sh/chartmuseum/cmd/chartmuseum -l | dot -Tpng -o goviz.png
 
-.PHONY: release-latest
-release-latest:
-	@scripts/release.sh latest
-
-.PHONY: release-stable
-release-stable:
-	@scripts/release.sh $(VERSION)
-
-.PHONY: version-released
-version-released:
-	@scripts/version_released.sh $(VERSION)
-
 .PHONY: get-version
 get-version:
 	@echo $(VERSION)
@@ -152,8 +140,13 @@ dist:
 		cd _dist && \
 		$(DIST_DIRS) cp ../LICENSE {} \; && \
 		$(DIST_DIRS) cp ../README.md {} \; && \
-		$(DIST_DIRS) tar -zcf chartmuseum-${VERSION}-{}.tar.gz {} \; && \
-		$(DIST_DIRS) zip -r chartmuseum-${VERSION}-{}.zip {} \; \
+		$(DIST_DIRS) tar -zcf chartmuseum-v${VERSION}-{}.tar.gz {} \; && \
+		$(DIST_DIRS) zip -r chartmuseum-v${VERSION}-{}.zip {} \; && \
+		for f in `find *.zip`; do \
+			if [[ $${f} != *"windows"* ]]; then \
+				rm -f $${f} \
+			fi \
+		done; \
 	)
 
 .PHONY: fetch-dist
@@ -161,13 +154,13 @@ fetch-dist:
 	mkdir -p _dist
 	cd _dist && \
 	for obj in ${TARGET_OBJS} ; do \
-		curl -sSL -o chartmuseum-${VERSION}-$${obj} https://get.helm.sh/chartmuseum-${VERSION}-$${obj} ; \
+		curl -sSL -o chartmuseum-v${VERSION}-$${obj} https://get.helm.sh/chartmuseum-v${VERSION}-$${obj} ; \
 	done
 
 # The contents of the .sha256sum file are compatible with tools like
 # shasum. For example, using the following command will verify
-# the file chartmuseum-3.1.0-rc.1-darwin-amd64.tar.gz:
-#   shasum -a 256 -c chartmuseum-3.1.0-rc.1-darwin-amd64.tar.gz.sha256sum
+# the file chartmuseum-v0.13.0-darwin-amd64.tar.gz:
+#   shasum -a 256 -c chartmuseum-v0.13.0-darwin-amd64.tar.gz.sha256sum
 .PHONY: checksum
 checksum:
 	for f in $$(ls _dist/*.{gz,zip} 2>/dev/null) ; do \
@@ -192,4 +185,4 @@ release-notes:
 		&& exit 1; \
 	fi
 
-	@./scripts/release-notes.sh ${PREVIOUS_RELEASE} ${VERSION}
+	@./scripts/release-notes.sh ${PREVIOUS_RELEASE} v${VERSION}
