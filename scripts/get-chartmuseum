@@ -186,7 +186,7 @@ verifyChecksum() {
   echo "Done."
 }
 
-# verifySignatures obtains the latest KEYS file from GitHub master branch
+# verifySignatures obtains the latest KEYS file from GitHub main branch
 # as well as the signature .asc files from the specific GitHub release,
 # then verifies that the release artifacts were signed by a maintainer's key.
 verifySignatures() {
