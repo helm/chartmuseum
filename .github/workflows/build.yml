@@ -73,14 +73,24 @@ jobs:
           username: ${{ secrets.CR_USER_SCBIZU }}
           password: ${{ secrets.CR_PAT_SCBIZU }}
       - name: Docker Buildx (push)
-        if: always()
         run: |
           docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
       - name: Docker Check Manifest
-        if: always()
         run: |
           docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
       - name: Clear
         if: always()
         run: |
           rm -f ${HOME}/.docker/config.json
+      - name: upload coverage report
+        uses: actions/upload-artifact@master
+        with:
+          name: chartmuseum-coverage-report-${{ github.sha }}
+          path: .cover/
+        if: always()
+      - name: upload acceptance test report
+        uses: actions/upload-artifact@master
+        with:
+          name: chartmuseum-acceptance-report-${{ github.sha }}
+          path: .robot/
+        if: always()

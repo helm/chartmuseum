@@ -1,4 +1,4 @@
-VERSION ?= 0.13.0-rc4
+VERSION ?= 0.13.0-rc5
 REVISION := $(shell git rev-parse --short HEAD;)
 
 BINDIR      := $(CURDIR)/bin
@@ -142,11 +142,7 @@ dist:
 		$(DIST_DIRS) cp ../README.md {} \; && \
 		$(DIST_DIRS) tar -zcf chartmuseum-v${VERSION}-{}.tar.gz {} \; && \
 		$(DIST_DIRS) zip -r chartmuseum-v${VERSION}-{}.zip {} \; && \
-		for f in `find *.zip`; do \
-			if [[ $${f} != *"windows"* ]]; then \
-				rm -f $${f} \
-			fi \
-		done; \
+		for f in `find *.zip`; do if [[ $${f} != *"windows"* ]]; then rm -f $${f}; fi; done \
 	)
 
 .PHONY: fetch-dist
