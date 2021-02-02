@@ -13,7 +13,7 @@ require (
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.4.4
-	github.com/chartmuseum/storage v0.10.0
+	github.com/chartmuseum/storage v0.10.2
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/size v0.0.0-20200916080119-37b334d93b20
 	github.com/gin-gonic/gin v1.6.3
@@ -23,7 +23,7 @@ require (
 	github.com/prometheus/client_golang v1.9.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	github.com/zsais/go-gin-prometheus v0.1.0
