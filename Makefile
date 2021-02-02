@@ -140,8 +140,8 @@ dist:
 		cd _dist && \
 		$(DIST_DIRS) cp ../LICENSE {} \; && \
 		$(DIST_DIRS) cp ../README.md {} \; && \
-		$(DIST_DIRS) tar -zcf chartmuseum-v${VERSION}-{}.tar.gz {} \; && \
-		$(DIST_DIRS) zip -r chartmuseum-v${VERSION}-{}.zip {} \; && \
+		$(DIST_DIRS) tar -zcf chartmuseum-${VERSION}-{}.tar.gz {} \; && \
+		$(DIST_DIRS) zip -r chartmuseum-${VERSION}-{}.zip {} \; && \
 		for f in `find *.zip`; do if [[ $${f} != *"windows"* ]]; then rm -f $${f}; fi; done \
 	)
 

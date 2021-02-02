@@ -35,7 +35,7 @@ jobs:
           VERSION=canary
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
+            VERSION=${GITHUB_REF#refs/tags/}
           fi
 
           TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
