@@ -161,7 +161,7 @@ func NewRouter(options RouterOptions) *Router {
 
 	router.Authorizer = authorizer
 
-	router.NoRoute(router.masterHandler)
+	router.NoRoute(router.rootHandler)
 
 	return router
 }
@@ -206,7 +206,7 @@ func (router *Router) SetRoutes(routes []*Route) {
 }
 
 // all incoming requests are passed through this handler
-func (router *Router) masterHandler(c *gin.Context) {
+func (router *Router) rootHandler(c *gin.Context) {
 	route, params := match(router.Routes, c.Request.Method, c.Request.URL.Path, router.ContextPath, router.Depth,
 		router.DepthDynamic)
 	if route == nil {

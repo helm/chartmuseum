@@ -41,7 +41,7 @@ import (
 
 var maxUploadSize = 1024 * 1024 * 20
 
-// These are generated from scripts/setup_test_environment.sh
+// These are generated from scripts/setup-test-environment.sh
 var testTarballPath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz"
 var testTarballPathV2 = "../../../../testdata/charts/mychart/mychart-0.2.0.tgz"
 var testProvfilePath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.prov"
