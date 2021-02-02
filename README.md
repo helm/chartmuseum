@@ -625,11 +625,11 @@ The `--gen-index` CLI option (described above) can be used to generate and print
 Upon index regeneration, *ChartMuseum* will, however, save a statefile in storage called `index-cache.yaml` used for cache optimization. This file is only meant for internal use, but may be able to be used for migration to simple storage.
 
 ## Mirroring the official Kubernetes repositories
-Please see `scripts/mirror_k8s_repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).
+Please see `scripts/mirror-k8s-repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).
 
 You can then use *ChartMuseum* to serve up an internal mirror:
 ```
-scripts/mirror_k8s_repos.sh
+scripts/mirror-k8s-repos.sh
 chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mirror"
  ```
 

@@ -88,7 +88,7 @@ clean:
 
 .PHONY: setup-test-environment
 setup-test-environment:
-	@./scripts/setup_test_environment.sh
+	@./scripts/setup-test-environment.sh
 
 .PHONY: test
 test: export CGO_ENABLED=0
@@ -143,9 +143,8 @@ get-version:
 	@echo $(VERSION)
 
 .PHONY: build-cross
-build-cross: LDFLAGS += -extldflags "-static"
 build-cross: $(GOX)
-	GO111MODULE=on CGO_ENABLED=0 $(GOX) -parallel=3 -output="_dist/{{.OS}}-{{.Arch}}/$(BINNAME)" -osarch='$(TARGETS)' $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' ./cmd/chartmuseum
+	GO111MODULE=on CGO_ENABLED=0 $(GOX) -parallel=3 -output="_dist/{{.OS}}-{{.Arch}}/$(BINNAME)" -osarch='$(TARGETS)' $(GOFLAGS) -tags '$(TAGS)' -ldflags='-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION) -extldflags "-static"' ./cmd/chartmuseum
 
 .PHONY: dist
 dist:
