@@ -22,3 +22,4 @@ mirror/
 testbin/
 cmd/chartmuseum/debug
 vendor
+_dist/
