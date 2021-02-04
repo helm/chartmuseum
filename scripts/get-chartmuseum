@@ -119,7 +119,10 @@ checkDesiredVersion() {
 # if it needs to be changed.
 checkChartmuseumInstalledVersion() {
   if [[ -f "${CHARTMUSEUM_INSTALL_DIR}/${BINARY_NAME}" ]]; then
-    local version=v$("${CHARTMUSEUM_INSTALL_DIR}/${BINARY_NAME}" version | awk '{print $3}')
+    local version=$("${CHARTMUSEUM_INSTALL_DIR}/${BINARY_NAME}" --version | awk '{print $3}')
+    if [[ ! "${version}" =~ ^v.* ]]; then
+      version="v${version}" # fix for older versions
+    fi
     if [[ "$version" == "$TAG" ]]; then
       echo "ChartMuseum ${version} is already ${DESIRED_VERSION:-latest}"
       return 0
