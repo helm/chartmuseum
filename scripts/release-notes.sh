@@ -86,7 +86,7 @@ Download ChartMuseum ${RELEASE}. The common platform binaries are here:
 - [Linux i386](https://get.helm.sh/chartmuseum-${RELEASE}-linux-386.tar.gz) ([checksum](https://get.helm.sh/chartmuseum-${RELEASE}-linux-386.tar.gz.sha256sum) / $(cat _dist/chartmuseum-${RELEASE}-linux-386.tar.gz.sha256sum | awk '{print $1}'))
 - [Linux mips64le](https://get.helm.sh/chartmuseum-${RELEASE}-linux-mips64le.tar.gz) ([checksum](https://get.helm.sh/chartmuseum-${RELEASE}-linux-mips64le.tar.gz.sha256sum) / $(cat _dist/chartmuseum-${RELEASE}-linux-mips64le.tar.gz.sha256sum | awk '{print $1}'))
 - [Linux ppc64le](https://get.helm.sh/chartmuseum-${RELEASE}-linux-ppc64le.tar.gz) ([checksum](https://get.helm.sh/chartmuseum-${RELEASE}-linux-ppc64le.tar.gz.sha256sum) / $(cat _dist/chartmuseum-${RELEASE}-linux-ppc64le.tar.gz.sha256sum | awk '{print $1}'))
-- [Linux s390x](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz) ([checksum](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz.sha256sum) / $(cat _dist/chartmuseum-${RELEASE}-darwin-amd64.tar.gz.sha256sum | awk '{print $1}'))
+- [Linux s390x](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz) ([checksum](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz.sha256sum) / $(cat _dist/chartmuseum-${RELEASE}-linux-s390x.tar.gz.sha256sum | awk '{print $1}'))
 - [Windows amd64](https://get.helm.sh/chartmuseum-${RELEASE}-windows-amd64.zip) ([checksum](https://get.helm.sh/chartmuseum-${RELEASE}-windows-amd64.zip.sha256sum) / $(cat _dist/chartmuseum-${RELEASE}-windows-amd64.zip.sha256sum | awk '{print $1}'))
 
 You can use a [script to install](https://raw.githubusercontent.com/helm/chartmuseum/main/scripts/get-chartmuseum) on any system with \`bash\`.
