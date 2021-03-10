@@ -1,4 +1,4 @@
-VERSION ?= 0.13.0
+VERSION ?= 0.13.1
 REVISION := $(shell git rev-parse --short HEAD;)
 
 BINDIR      := $(CURDIR)/bin
@@ -155,8 +155,8 @@ fetch-dist:
 
 # The contents of the .sha256sum file are compatible with tools like
 # shasum. For example, using the following command will verify
-# the file chartmuseum-v0.13.0-darwin-amd64.tar.gz:
-#   shasum -a 256 -c chartmuseum-v0.13.0-darwin-amd64.tar.gz.sha256sum
+# the file chartmuseum-v0.13.1-darwin-amd64.tar.gz:
+#   shasum -a 256 -c chartmuseum-v0.13.1-darwin-amd64.tar.gz.sha256sum
 .PHONY: checksum
 checksum:
 	for f in $$(ls _dist/*.{gz,zip} 2>/dev/null) ; do \
