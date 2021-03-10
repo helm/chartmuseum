@@ -203,11 +203,14 @@ func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, r
 	filteredObjects := []cm_storage.Object{}
 	for _, object := range allObjects {
 		if object.HasExtension(cm_repo.ChartPackageFileExtension) {
+			log(cm_logger.DebugLevel, "GetObject From Storage Backend", "repo", repo, "path", object.Path)
 			// Since ListObject cannot fetch the content from file list
-			object, err = server.StorageBackend.GetObject(object.Path)
+			objectDetail, err := server.StorageBackend.GetObject(pathutil.Join(repo, object.Path))
 			if err != nil {
 				return nil, fmt.Errorf("backend storage: chart not found: %q", err)
 			}
+			// do not change other object field except content
+			object.Content = objectDetail.Content
 			filteredObjects = append(filteredObjects, object)
 		}
 	}
