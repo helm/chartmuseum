@@ -1,13 +1,9 @@
 name: build
 
 on:
-
-  # TODO: renable cron after moving off of Docker Hub
-  # schedule:
-  #   - cron: '0 0 * * *' # everyday at midnight UTC
-
   push:
-    branches: main
+    branches:
+      - main
     tags:
       - v*
 
@@ -20,7 +16,7 @@ jobs:
       - name: setup go environment
         uses: actions/setup-go@v1
         with:
-          go-version: '1.15.4'
+          go-version: '1.15.7'
       - name: download dependencies
         run: make bootstrap
       - name: run unit tests
@@ -29,6 +25,61 @@ jobs:
         run: make build-linux
       - name: run acceptance tests
         run: sudo pip install virtualenv && make acceptance
+      - name: Prepare
+        id: prepare
+        run: |
+          DOCKER_IMAGE=ghcr.io/helm/chartmuseum
+          DOCKER_PLATFORMS=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386
+          VERSION=canary
+
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+
+          TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
+
+          echo ::set-output name=docker_image::${DOCKER_IMAGE}
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
+            --build-arg revision=$(git rev-parse --short HEAD) \
+            ${TAGS} .
+      - name: Release artifacts
+        id: release-artifacts
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+        run: |
+          VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+      - name: Docker Buildx (build)
+        run: |
+          docker buildx build --no-cache --pull --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
+      - name: Docker Login
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PASSWORD }}
+      - name: Docker Buildx (push)
+        run: |
+          docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
+      - name: Docker Check Manifest
+        run: |
+          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+      - name: Clear
+        if: always()
+        run: |
+          rm -f ${HOME}/.docker/config.json
       - name: upload coverage report
         uses: actions/upload-artifact@master
         with:
@@ -41,62 +92,3 @@ jobs:
           name: chartmuseum-acceptance-report-${{ github.sha }}
           path: .robot/
         if: always()
-      - name: Prepare
-        id: prepare
-        run: |
-          DOCKER_IMAGE=chartmuseum/chartmuseum
-          DOCKER_PLATFORMS=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386
-          VERSION=edge
-
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-          fi
-
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            VERSION=nightly
-          fi
-
-          TAGS="--tag ${DOCKER_IMAGE}:${VERSION} --tag ${DOCKER_IMAGE}:latest"
-
-          echo ::set-output name=docker_image::${DOCKER_IMAGE}
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
-            --build-arg revision=$(git rev-parse --short HEAD) \
-            ${TAGS} .
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
-      -
-        name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          version: latest
-      -
-        name: Available platforms
-        run: echo ${{ steps.buildx.outputs.platforms }}
-      - name: Docker Buildx (build)
-        run: |
-          docker buildx build --no-cache --pull --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
-      - name: Docker Login
-        if: success() && github.event_name != 'pull_request'
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
-      - name: Docker Buildx (push)
-        if: success() && github.event_name != 'pull_request'
-        run: |
-          docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
-      - name: Docker Check Manifest
-        if: always() && github.event_name != 'pull_request'
-        run: |
-          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
-      - name: Clear
-        if: always() && github.event_name != 'pull_request'
-        run: |
-          rm -f ${HOME}/.docker/config.json
-

@@ -97,26 +97,16 @@ Install binary using [GoFish](https://gofi.sh/):
 ```
 gofish install chartmuseum
 ==> Installing chartmuseum...
-🐠  chartmuseum 0.12.0: installed in 95.431145ms
+🐠  chartmuseum 0.13.0: installed in 95.431145ms
 ```
 
-or manually:
-```bash
-# on Linux
-curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/linux/amd64/chartmuseum
-
-# on macOS
-curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/darwin/amd64/chartmuseum
-
-# on Windows
-curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/windows/amd64/chartmuseum
-
-chmod +x ./chartmuseum
-mv ./chartmuseum /usr/local/bin
+or you can use the installer script:
 ```
-Using `latest` in URLs above will get the latest binary (built from master branch).
+curl https://raw.githubusercontent.com/helm/chartmuseum/main/scripts/get-chartmuseum | bash
+```
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.12.0`). The stable checksums can be found [here](https://github.com/fishworks/fish-food/blob/master/Food/chartmuseum.lua).
+or download manually from the [releases page](https://github.com/helm/chartmuseum/releases),
+which also contains all package checksums and signatures.
 
 Determine your version with `chartmuseum --version`.
 
@@ -464,7 +454,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--write-timeout=<number>` - socker write timeout for http server
 
 ### Docker Image
-Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
+Available via [GitHub Container Registry (GHCR)](https://github.com/orgs/helm/packages/container/package/chartmuseum).
 
 Example usage (local storage):
 ```bash
@@ -474,7 +464,7 @@ docker run --rm -it \
   -e STORAGE=local \
   -e STORAGE_LOCAL_ROOTDIR=/charts \
   -v $(pwd)/charts:/charts \
-  chartmuseum/chartmuseum:latest
+  ghcr.io/helm/chartmuseum:v0.13.0
 ```
 
 Example usage (S3):
@@ -487,7 +477,7 @@ docker run --rm -it \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/home/chartmuseum/.aws:ro \
-  chartmuseum/chartmuseum:latest
+  ghcr.io/helm/chartmuseum:v0.13.0
 ```
 
 ### Helm Chart
@@ -625,11 +615,11 @@ The `--gen-index` CLI option (described above) can be used to generate and print
 Upon index regeneration, *ChartMuseum* will, however, save a statefile in storage called `index-cache.yaml` used for cache optimization. This file is only meant for internal use, but may be able to be used for migration to simple storage.
 
 ## Mirroring the official Kubernetes repositories
-Please see `scripts/mirror_k8s_repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).
+Please see `scripts/mirror-k8s-repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).
 
 You can then use *ChartMuseum* to serve up an internal mirror:
 ```
-scripts/mirror_k8s_repos.sh
+scripts/mirror-k8s-repos.sh
 chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mirror"
  ```
 
