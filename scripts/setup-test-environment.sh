@@ -45,6 +45,13 @@ package_test_charts() {
     # add another version to repo for metric tests
     helm package --sign --key helm-test --keyring ../pgp/helm-test-key.secret --version 0.2.0 -d mychart/ mychart/.
     popd
+
+    pushd testdata/badcharts/
+    for d in $(find . -maxdepth 1 -mindepth 1 -type d); do
+        pushd $d
+        helm package --sign --key helm-test --keyring ../../pgp/helm-test-key.secret . || true
+        popd
+    done
 }
 
 main
