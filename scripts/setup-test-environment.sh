@@ -49,7 +49,11 @@ package_test_charts() {
     pushd testdata/badcharts/
     for d in $(find . -maxdepth 1 -mindepth 1 -type d); do
         pushd $d
-        helm package --sign --key helm-test --keyring ../../pgp/helm-test-key.secret . || true
+        # TODO: remove in v0.14.0. We do not generate .prov file for this chart
+        # since prov validation is not enabled, and it breaks acceptance tests
+        if grep "mybadsemver2chart" Chart.yaml; then
+            helm package . || true
+        fi
         popd
     done
 }

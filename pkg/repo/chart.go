@@ -51,7 +51,7 @@ func ChartPackageFilenameFromNameVersion(name string, version string) string {
 func ChartPackageFilenameFromContent(content []byte) (string, error) {
 	chart, err := chartFromContent(content)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Could not build chart from content: %s" + err.Error()))
+		return "", err
 	}
 	meta := chart.Metadata
 	filename := fmt.Sprintf("%s-%s.%s", meta.Name, meta.Version, ChartPackageFileExtension)

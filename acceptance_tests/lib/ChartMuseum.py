@@ -18,7 +18,7 @@ class ChartMuseum(common.CommandRunner):
     def start_chartmuseum(self, storage):
         self.stop_chartmuseum()
         os.chdir(self.rootdir)
-        cmd = 'KILLME=1 chartmuseum --debug --port=%d --storage="%s" ' % (common.PORT, storage)
+        cmd = 'KILLME=1 chartmuseum --debug --enforce-semver2 --port=%d --storage="%s" ' % (common.PORT, storage)
         if storage == 'local':
             shutil.rmtree(common.STORAGE_DIR, ignore_errors=True)
             cmd += '--storage-local-rootdir=%s >> %s 2>&1' % (common.STORAGE_DIR, common.LOGFILE)
