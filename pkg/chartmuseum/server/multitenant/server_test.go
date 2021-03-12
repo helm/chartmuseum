@@ -49,7 +49,7 @@ var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.
 var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
 var badTestTarballPath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
 var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
-var badTestSemver2Path = "../../../../testdata/charts/mybadsemver2chart/mybadsemver2chart-0.x.x.tgz"
+var badTestSemver2Path = "../../../../testdata/badcharts/mybadsemver2chart/mybadsemver2chart-0.x.x.tgz"
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
