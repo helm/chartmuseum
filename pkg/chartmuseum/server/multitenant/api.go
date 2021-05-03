@@ -95,15 +95,15 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 	return nil
 }
 
-func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) (string, *HTTPError ){
+func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) (string, *HTTPError) {
 	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
 	if err != nil {
-		return filename,&HTTPError{http.StatusInternalServerError, err.Error()}
+		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 
 	if pathutil.Base(filename) != filename {
 		// Name wants to break out of current directory
-		return filename,&HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
+		return filename, &HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
 	}
 
 	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
@@ -139,7 +139,8 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
 	if err != nil {
-		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}	}
+		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}
+	}
 	return filename, nil
 }
 
