@@ -242,10 +242,22 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	}
 	log := server.Logger.ContextLoggingFn(c)
 	_, force := c.GetQuery("force")
+	action := addChart
 	filename, err := server.uploadChartPackage(log, repo, content, force)
 	if err != nil {
-		c.JSON(err.Status, gin.H{"error": err.Message})
-		return
+		// here should check both err.Status and err.Message
+		// The http.StatusConflict status means the chart is existed but overwrite is not sed OR chart is existed and overwrite is set
+		// err.Status == http.StatusConflict only denotes for chart is existed now.
+		if err.Status == http.StatusConflict {
+			if err.Message != "" {
+				c.JSON(err.Status, gin.H{"error": err.Message})
+				return
+			}
+			action = updateChart
+		} else {
+			c.JSON(err.Status, gin.H{"error": err.Message})
+			return
+		}
 	}
 
 	chart, chartErr := cm_repo.ChartVersionFromStorageObject(cm_storage.Object{
@@ -255,7 +267,7 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	if chartErr != nil {
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(chartErr), zap.Binary("content", content))
 	}
-	server.emitEvent(c, repo, addChart, chart)
+	server.emitEvent(c, repo, action, chart)
 
 	c.JSON(201, objectSavedResponse)
 }

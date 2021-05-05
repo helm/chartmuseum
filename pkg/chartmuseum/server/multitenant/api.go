@@ -95,22 +95,29 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 	return nil
 }
 
-func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) (string, *HTTPError ){
+func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) (string, *HTTPError) {
 	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
 	if err != nil {
-		return filename,&HTTPError{http.StatusInternalServerError, err.Error()}
+		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 
 	if pathutil.Base(filename) != filename {
 		// Name wants to break out of current directory
-		return filename,&HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
+		return filename, &HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
 	}
 
-	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
-		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
-		if err == nil {
+	// we should ensure that whether chart is existed even if the `overwrite` option is set
+	// For `overwrite` option , here will increase one `storage.GetObject` than before ; others should be equalvarant with the previous version.
+	var found bool
+	_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
+	// found
+	if err == nil {
+		found = true
+		// For those no-overwrite servers, return the Conflict error.
+		if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
 			return filename, &HTTPError{http.StatusConflict, "file already exists"}
 		}
+		// continue with the `overwrite` servers
 	}
 
 	if server.EnforceSemver2 {
@@ -139,7 +146,13 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	)
 	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
 	if err != nil {
-		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}	}
+		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}
+	}
+	if found {
+		// here is a fake conflict error for outside call
+		// In order to not add another return `bool` check (API Compatibility)
+		return filename, &HTTPError{http.StatusConflict, ""}
+	}
 	return filename, nil
 }
 

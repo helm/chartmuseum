@@ -339,6 +339,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
+		CacheInterval:          time.Duration(time.Second),
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new overwrite server")
@@ -627,6 +628,14 @@ func (suite *MultiTenantServerTestSuite) TestDisabledDeleteServer() {
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 }
 
+func (suite *MultiTenantServerTestSuite) extractRepoEntryFromInternalCache(repo string) *cacheEntry {
+	local, ok := suite.OverwriteServer.InternalCacheStore[repo]
+	if ok {
+		return local
+	}
+	return nil
+}
+
 func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 	// Check if files can be overwritten
 	content, err := ioutil.ReadFile(testTarballPath)
@@ -637,6 +646,16 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("overwrite", "POST", "/api/charts", body, "")
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	{
+		// waiting for the emit event
+		// the event is transferred via a channel , here do a simple wait for not changing the original structure
+		// only for testing purpose
+		time.Sleep(time.Second)
+		// depth: 0
+		e := suite.extractRepoEntryFromInternalCache("")
+		suite.Equal(1, len(e.RepoIndex.Entries), "overwrite entries validation")
+	}
 
 	content, err = ioutil.ReadFile(testProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
