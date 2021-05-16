@@ -54,6 +54,7 @@ func (suite *ServerTestSuite) TestNewServer() {
 	serverOptions := ServerOptions{
 		StorageBackend: suite.Backend,
 		Logger:         log,
+		CacheInterval:  time.Second ,
 	}
 
 	multiTenantServer, err := NewServer(serverOptions)

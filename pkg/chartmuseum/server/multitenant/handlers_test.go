@@ -43,7 +43,9 @@ func (suite *HandlerTestSuite) getServer(depth int) *MultiTenantServer {
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
 		IndexLimit:             1,
+		CacheInterval:          time.Second,
 	})
+	suite.NoError(err, "no error creating server")
 	return serverDepth
 }
 

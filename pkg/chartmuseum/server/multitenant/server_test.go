@@ -68,6 +68,8 @@ type MultiTenantServerTestSuite struct {
 	Semver2Server           *MultiTenantServer
 	PerChartLimitServer     *MultiTenantServer
 	ArtifactHubRepoIDServer *MultiTenantServer
+	UpdateToDateServer      *MultiTenantServer
+	CacheInternalServer     *MultiTenantServer
 	TempDirectory           string
 	TestTarballFilename     string
 	TestProvfileFilename    string
@@ -76,6 +78,7 @@ type MultiTenantServerTestSuite struct {
 	LastPrinted             string
 	LastExitCode            int
 	ArtifactHubIds          map[string]string
+	AlwaysRegenerateIndex   bool
 }
 
 func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string, output ...*bytes.Buffer) gin.ResponseWriter {
@@ -118,6 +121,10 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.PerChartLimitServer.Router.HandleContext(c)
 	case "artifacthub":
 		suite.ArtifactHubRepoIDServer.Router.HandleContext(c)
+	case "chart-up-to-date":
+		suite.UpdateToDateServer.Router.HandleContext(c)
+	case "cache-interval":
+		suite.CacheInternalServer.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -256,6 +263,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ProvPostFormFieldName:  "prov",
 		IndexLimit:             1,
 		ArtifactHubRepoID:      suite.ArtifactHubIds,
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=0) server")
@@ -276,6 +284,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
 		ArtifactHubRepoID:      suite.ArtifactHubIds,
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=1) server")
@@ -295,6 +304,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
 		ArtifactHubRepoID:      suite.ArtifactHubIds,
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=2) server")
@@ -314,6 +324,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
 		ArtifactHubRepoID:      suite.ArtifactHubIds,
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=3) server")
@@ -330,6 +341,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		Router:         router,
 		StorageBackend: backend,
 		EnableAPI:      false,
+		CacheInterval:  time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new disabled server")
@@ -345,6 +357,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		StorageBackend: backend,
 		EnableAPI:      true,
 		DisableDelete:  true,
+		CacheInterval:  time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new disabled delete server")
@@ -364,7 +377,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
-		CacheInterval:          time.Duration(time.Second),
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new overwrite server")
@@ -384,6 +397,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating semantic version server")
@@ -403,7 +417,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		EnableAPI:              true,
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
-		CacheInterval:          time.Duration(time.Second),
+		CacheInterval:          time.Second,
 		PerChartLimit:          2,
 	})
 	suite.NotNil(server)
@@ -424,6 +438,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		AllowForceOverwrite:    true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new forceoverwrite server")
@@ -443,6 +458,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
 		ChartURL:               "https://chartmuseum.com",
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new custom chart URL server")
@@ -463,6 +479,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
 		MaxStorageObjects:      1,
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new max objects server")
@@ -482,6 +499,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new max upload size server")
@@ -502,10 +520,50 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
 		ArtifactHubRepoID:      suite.ArtifactHubIds,
+		CacheInterval:          time.Second,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new artifact hub repo id server")
 	suite.ArtifactHubRepoIDServer = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
+		MaxUploadSize: 1,
+	})
+
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
+		EnableAPI:              true,
+		AllowOverwrite:         true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+		AlwaysRegenerateIndex:  true,
+		CacheInterval:          time.Second,
+	})
+
+	suite.NotNil(server)
+	suite.Nil(err, "can not create server with keep chart always up to date")
+	suite.UpdateToDateServer = server
+
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
+		EnableAPI:              true,
+		AllowOverwrite:         true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+		CacheInterval:          time.Second,
+	})
+
+	suite.NotNil(server)
+	suite.Nil(err, "cannot create cache interval server")
+	suite.CacheInternalServer = server
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -591,6 +649,7 @@ func (suite *MultiTenantServerTestSuite) TestGenIndex() {
 		Router:         router,
 		StorageBackend: suite.Depth0Server.StorageBackend,
 		GenIndex:       true,
+		CacheInterval:  time.Second,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
 	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
@@ -628,6 +687,7 @@ generated: "2018-05-23T15:14:46-05:00"`)
 		StorageBackend: suite.Depth0Server.StorageBackend,
 		UseStatefiles:  true,
 		GenIndex:       true,
+		CacheInterval:  time.Second,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
 	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
@@ -649,6 +709,7 @@ generated: "2018-05-23T15:14:46-05:00"`)
 		StorageBackend: suite.Depth0Server.StorageBackend,
 		UseStatefiles:  true,
 		GenIndex:       true,
+		CacheInterval:  time.Second,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
 	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
@@ -665,6 +726,7 @@ generated: "2018-05-23T15:14:46-05:00"`)
 		StorageBackend: suite.Depth0Server.StorageBackend,
 		UseStatefiles:  true,
 		GenIndex:       true,
+		CacheInterval:  time.Second,
 	})
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
 	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
@@ -948,6 +1010,16 @@ func (suite *MultiTenantServerTestSuite) TestMetrics() {
 
 	// Ensure that the b repo has no charts
 	suite.True(strings.Contains(metrics, "chartmuseum_chart_versions_served_total{repo=\"b\"} 0"))
+}
+
+func (suite *MultiTenantServerTestSuite) TestAlwaysUpToDateChart() {
+	res := suite.doRequest("chart-up-to-date", "GET", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-0.1.0")
+}
+
+func (suite *MultiTenantServerTestSuite) TestCacheInterval() {
+	res := suite.doRequest("cache-interval", "GET", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-0.1.0")
 }
 
 func (suite *MultiTenantServerTestSuite) TestArtifactHubRepoID() {

@@ -118,6 +118,7 @@ func cliHandler(c *cli.Context) {
 		PerChartLimit:          conf.GetInt("per-chart-limit"),
 		WebTemplatePath:        conf.GetString("web-template-path"),
 		ArtifactHubRepoID:      conf.GetStringMapString("artifact-hub-repo-id"),
+		AlwaysRegenerateIndex:  conf.GetBool("always-regenerate-index"),
 	}
 
 	server, err := newServer(options)

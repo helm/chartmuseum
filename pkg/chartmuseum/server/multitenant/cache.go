@@ -477,10 +477,11 @@ func (server *MultiTenantServer) initCacheTimer() {
 		// (in case the files on the disk are manually manipulated)
 		go func() {
 			t := time.NewTicker(server.CacheInterval)
-			for _ = range t.C {
+			for range t.C {
 				server.rebuildIndex()
 			}
 		}()
+
 	}
 }
 
@@ -496,7 +497,6 @@ func (server *MultiTenantServer) emitEvent(c *gin.Context, repo string, operatio
 func (server *MultiTenantServer) startEventListener() {
 	server.Router.Logger.Debug("Starting internal event listener")
 	for {
-
 		e := <-server.EventChan
 		log := server.Logger.ContextLoggingFn(e.Context)
 
