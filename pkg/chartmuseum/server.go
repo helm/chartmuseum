@@ -69,9 +69,12 @@ type (
 		// EnforceSemver2 represents if the museum server always accept the Chart with [valid semantic version 2](https://semver.org/)
 		// More refers to : https://github.com/helm/chartmuseum/issues/320
 		EnforceSemver2 bool
-		CacheInterval  time.Duration
-		Host           string
-		Version        string
+		// KeepChartAlwaysUpToDate represents if the museum always return the up-to-date chart
+		// which means that the GetChart will increase its latency , be careful to enable this .
+		KeepChartAlwaysUpToDate bool
+		CacheInterval           time.Duration
+		Host                    string
+		Version                 string
 	}
 
 	// Server is a generic interface for web servers
@@ -121,25 +124,26 @@ func NewServer(options ServerOptions) (Server, error) {
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
-		Logger:                 logger,
-		Router:                 router,
-		StorageBackend:         options.StorageBackend,
-		ExternalCacheStore:     options.ExternalCacheStore,
-		TimestampTolerance:     options.TimestampTolerance,
-		ChartURL:               strings.TrimSuffix(options.ChartURL, "/"),
-		ChartPostFormFieldName: options.ChartPostFormFieldName,
-		ProvPostFormFieldName:  options.ProvPostFormFieldName,
-		MaxStorageObjects:      options.MaxStorageObjects,
-		IndexLimit:             options.IndexLimit,
-		GenIndex:               options.GenIndex,
-		EnableAPI:              options.EnableAPI,
-		DisableDelete:          options.DisableDelete,
-		UseStatefiles:          options.UseStatefiles,
-		AllowOverwrite:         options.AllowOverwrite,
-		AllowForceOverwrite:    options.AllowForceOverwrite,
-		EnforceSemver2:         options.EnforceSemver2,
-		Version:                options.Version,
-		CacheInterval:          options.CacheInterval,
+		Logger:                  logger,
+		Router:                  router,
+		StorageBackend:          options.StorageBackend,
+		ExternalCacheStore:      options.ExternalCacheStore,
+		TimestampTolerance:      options.TimestampTolerance,
+		ChartURL:                strings.TrimSuffix(options.ChartURL, "/"),
+		ChartPostFormFieldName:  options.ChartPostFormFieldName,
+		ProvPostFormFieldName:   options.ProvPostFormFieldName,
+		MaxStorageObjects:       options.MaxStorageObjects,
+		IndexLimit:              options.IndexLimit,
+		GenIndex:                options.GenIndex,
+		EnableAPI:               options.EnableAPI,
+		DisableDelete:           options.DisableDelete,
+		UseStatefiles:           options.UseStatefiles,
+		AllowOverwrite:          options.AllowOverwrite,
+		AllowForceOverwrite:     options.AllowForceOverwrite,
+		EnforceSemver2:          options.EnforceSemver2,
+		Version:                 options.Version,
+		CacheInterval:           options.CacheInterval,
+		KeepChartAlwaysUpToDate: options.KeepChartAlwaysUpToDate,
 	})
 
 	return server, err

@@ -211,7 +211,7 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		return
 	}
 
-	server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
+	go server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
 		Metadata: &chart.Metadata{
 			Name:    name,
 			Version: version,
@@ -267,7 +267,7 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	if chartErr != nil {
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(chartErr), zap.Binary("content", content))
 	}
-	server.emitEvent(c, repo, action, chart)
+	go server.emitEvent(c, repo, action, chart)
 
 	c.JSON(201, objectSavedResponse)
 }
@@ -350,7 +350,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(err), zap.Binary("content", chartContent))
 	}
 
-	server.emitEvent(c, repo, addChart, chart)
+	go server.emitEvent(c, repo, addChart, chart)
 
 	c.JSON(201, objectSavedResponse)
 }

@@ -39,8 +39,8 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
 
-	// if cache is nil, and not on a timer, regenerate it
-	if len(entry.RepoIndex.Entries) == 0 && server.CacheInterval == 0 {
+	// if cache interval not set, regenerate it
+	if server.CacheInterval == 0 {
 
 		fo := <-server.getChartList(log, repo)
 

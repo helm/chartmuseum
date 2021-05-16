@@ -357,6 +357,11 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 
 	if server.ExternalCacheStore == nil {
 		var ok bool
+		if server.KeepChartAlwaysUpToDate {
+			// waiting for the index regeneration and keep the entry index always up-to-date
+			server.Tenants[repo].RegenerationLock.Lock()
+			defer server.Tenants[repo].RegenerationLock.Unlock()
+		}
 		entry, ok = server.InternalCacheStore[repo]
 		if !ok {
 			repoIndex := server.newRepositoryIndex(log, repo)
@@ -502,7 +507,6 @@ func (server *MultiTenantServer) emitEvent(c *gin.Context, repo string, operatio
 func (server *MultiTenantServer) startEventListener() {
 	server.Router.Logger.Debug("Starting internal event listener")
 	for {
-
 		e := <-server.EventChan
 		log := server.Logger.ContextLoggingFn(e.Context)
 

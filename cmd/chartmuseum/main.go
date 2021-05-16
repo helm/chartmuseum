@@ -18,13 +18,14 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/chartmuseum/storage"
 	"helm.sh/chartmuseum/pkg/cache"
 	"helm.sh/chartmuseum/pkg/chartmuseum"
 	"helm.sh/chartmuseum/pkg/config"
-	"log"
-	"os"
-	"strings"
 
 	"github.com/urfave/cli"
 )
@@ -62,46 +63,47 @@ func cliHandler(c *cli.Context) {
 	store := storeFromConfig(conf)
 
 	options := chartmuseum.ServerOptions{
-		Version:                Version,
-		StorageBackend:         backend,
-		ExternalCacheStore:     store,
-		TimestampTolerance:     conf.GetDuration("storage.timestamptolerance"),
-		ChartURL:               conf.GetString("charturl"),
-		TlsCert:                conf.GetString("tls.cert"),
-		TlsKey:                 conf.GetString("tls.key"),
-		TlsCACert:              conf.GetString("tls.cacert"),
-		Username:               conf.GetString("basicauth.user"),
-		Password:               conf.GetString("basicauth.pass"),
-		ChartPostFormFieldName: conf.GetString("chartpostformfieldname"),
-		ProvPostFormFieldName:  conf.GetString("provpostformfieldname"),
-		ContextPath:            conf.GetString("contextpath"),
-		LogJSON:                conf.GetBool("logjson"),
-		LogHealth:              conf.GetBool("loghealth"),
-		LogLatencyInteger:      conf.GetBool("loglatencyinteger"),
-		Debug:                  conf.GetBool("debug"),
-		EnableAPI:              !conf.GetBool("disableapi"),
-		DisableDelete:          conf.GetBool("disabledelete"),
-		UseStatefiles:          !conf.GetBool("disablestatefiles"),
-		AllowOverwrite:         conf.GetBool("allowoverwrite"),
-		AllowForceOverwrite:    !conf.GetBool("disableforceoverwrite"),
-		EnableMetrics:          !conf.GetBool("disablemetrics"),
-		AnonymousGet:           conf.GetBool("authanonymousget"),
-		GenIndex:               conf.GetBool("genindex"),
-		MaxStorageObjects:      conf.GetInt("maxstorageobjects"),
-		IndexLimit:             conf.GetInt("indexlimit"),
-		Depth:                  conf.GetInt("depth"),
-		MaxUploadSize:          conf.GetInt("maxuploadsize"),
-		BearerAuth:             conf.GetBool("bearerauth"),
-		AuthRealm:              conf.GetString("authrealm"),
-		AuthService:            conf.GetString("authservice"),
-		AuthCertPath:           conf.GetString("authcertpath"),
-		DepthDynamic:           conf.GetBool("depthdynamic"),
-		CORSAllowOrigin:        conf.GetString("cors.alloworigin"),
-		WriteTimeout:           conf.GetInt("writetimeout"),
-		ReadTimeout:            conf.GetInt("readtimeout"),
-		EnforceSemver2:         conf.GetBool("enforce-semver2"),
-		CacheInterval:          conf.GetDuration("cacheinterval"),
-		Host:                   conf.GetString("listen.host"),
+		Version:                 Version,
+		StorageBackend:          backend,
+		ExternalCacheStore:      store,
+		TimestampTolerance:      conf.GetDuration("storage.timestamptolerance"),
+		ChartURL:                conf.GetString("charturl"),
+		TlsCert:                 conf.GetString("tls.cert"),
+		TlsKey:                  conf.GetString("tls.key"),
+		TlsCACert:               conf.GetString("tls.cacert"),
+		Username:                conf.GetString("basicauth.user"),
+		Password:                conf.GetString("basicauth.pass"),
+		ChartPostFormFieldName:  conf.GetString("chartpostformfieldname"),
+		ProvPostFormFieldName:   conf.GetString("provpostformfieldname"),
+		ContextPath:             conf.GetString("contextpath"),
+		LogJSON:                 conf.GetBool("logjson"),
+		LogHealth:               conf.GetBool("loghealth"),
+		LogLatencyInteger:       conf.GetBool("loglatencyinteger"),
+		Debug:                   conf.GetBool("debug"),
+		EnableAPI:               !conf.GetBool("disableapi"),
+		DisableDelete:           conf.GetBool("disabledelete"),
+		UseStatefiles:           !conf.GetBool("disablestatefiles"),
+		AllowOverwrite:          conf.GetBool("allowoverwrite"),
+		AllowForceOverwrite:     !conf.GetBool("disableforceoverwrite"),
+		EnableMetrics:           !conf.GetBool("disablemetrics"),
+		AnonymousGet:            conf.GetBool("authanonymousget"),
+		GenIndex:                conf.GetBool("genindex"),
+		MaxStorageObjects:       conf.GetInt("maxstorageobjects"),
+		IndexLimit:              conf.GetInt("indexlimit"),
+		Depth:                   conf.GetInt("depth"),
+		MaxUploadSize:           conf.GetInt("maxuploadsize"),
+		BearerAuth:              conf.GetBool("bearerauth"),
+		AuthRealm:               conf.GetString("authrealm"),
+		AuthService:             conf.GetString("authservice"),
+		AuthCertPath:            conf.GetString("authcertpath"),
+		DepthDynamic:            conf.GetBool("depthdynamic"),
+		CORSAllowOrigin:         conf.GetString("cors.alloworigin"),
+		WriteTimeout:            conf.GetInt("writetimeout"),
+		ReadTimeout:             conf.GetInt("readtimeout"),
+		EnforceSemver2:          conf.GetBool("enforce-semver2"),
+		CacheInterval:           conf.GetDuration("cacheinterval"),
+		KeepChartAlwaysUpToDate: conf.GetBool("keep-chart-always-up-to-date"),
+		Host:                    conf.GetString("listen.host"),
 	}
 
 	server, err := newServer(options)

@@ -45,52 +45,54 @@ const (
 type (
 	// MultiTenantServer contains a Logger, Router, storage backend and object cache
 	MultiTenantServer struct {
-		Logger                 *cm_logger.Logger
-		Router                 *cm_router.Router
-		StorageBackend         storage.Backend
-		TimestampTolerance     time.Duration
-		ExternalCacheStore     cache.Store
-		InternalCacheStore     map[string]*cacheEntry
-		MaxStorageObjects      int
-		IndexLimit             int
-		AllowOverwrite         bool
-		AllowForceOverwrite    bool
-		APIEnabled             bool
-		DisableDelete          bool
-		UseStatefiles          bool
-		EnforceSemver2         bool
-		ChartURL               string
-		ChartPostFormFieldName string
-		ProvPostFormFieldName  string
-		Version                string
-		Limiter                chan struct{}
-		Tenants                map[string]*tenantInternals
-		TenantCacheKeyLock     *sync.Mutex
-		CacheInterval          time.Duration
-		EventChan              chan event
+		Logger                  *cm_logger.Logger
+		Router                  *cm_router.Router
+		StorageBackend          storage.Backend
+		TimestampTolerance      time.Duration
+		ExternalCacheStore      cache.Store
+		InternalCacheStore      map[string]*cacheEntry
+		MaxStorageObjects       int
+		IndexLimit              int
+		AllowOverwrite          bool
+		AllowForceOverwrite     bool
+		APIEnabled              bool
+		DisableDelete           bool
+		UseStatefiles           bool
+		EnforceSemver2          bool
+		KeepChartAlwaysUpToDate bool
+		ChartURL                string
+		ChartPostFormFieldName  string
+		ProvPostFormFieldName   string
+		Version                 string
+		Limiter                 chan struct{}
+		Tenants                 map[string]*tenantInternals
+		TenantCacheKeyLock      *sync.Mutex
+		CacheInterval           time.Duration
+		EventChan               chan event
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
 	MultiTenantServerOptions struct {
-		Logger                 *cm_logger.Logger
-		Router                 *cm_router.Router
-		StorageBackend         storage.Backend
-		ExternalCacheStore     cache.Store
-		TimestampTolerance     time.Duration
-		ChartURL               string
-		ChartPostFormFieldName string
-		ProvPostFormFieldName  string
-		Version                string
-		MaxStorageObjects      int
-		IndexLimit             int
-		GenIndex               bool
-		AllowOverwrite         bool
-		AllowForceOverwrite    bool
-		EnableAPI              bool
-		DisableDelete          bool
-		UseStatefiles          bool
-		EnforceSemver2         bool
-		CacheInterval          time.Duration
+		Logger                  *cm_logger.Logger
+		Router                  *cm_router.Router
+		StorageBackend          storage.Backend
+		ExternalCacheStore      cache.Store
+		TimestampTolerance      time.Duration
+		ChartURL                string
+		ChartPostFormFieldName  string
+		ProvPostFormFieldName   string
+		Version                 string
+		MaxStorageObjects       int
+		IndexLimit              int
+		GenIndex                bool
+		AllowOverwrite          bool
+		AllowForceOverwrite     bool
+		EnableAPI               bool
+		DisableDelete           bool
+		UseStatefiles           bool
+		EnforceSemver2          bool
+		CacheInterval           time.Duration
+		KeepChartAlwaysUpToDate bool
 	}
 
 	tenantInternals struct {
@@ -119,28 +121,29 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 	}
 
 	server := &MultiTenantServer{
-		Logger:                 options.Logger,
-		Router:                 options.Router,
-		StorageBackend:         options.StorageBackend,
-		TimestampTolerance:     options.TimestampTolerance,
-		ExternalCacheStore:     options.ExternalCacheStore,
-		InternalCacheStore:     map[string]*cacheEntry{},
-		MaxStorageObjects:      options.MaxStorageObjects,
-		IndexLimit:             options.IndexLimit,
-		ChartURL:               chartURL,
-		ChartPostFormFieldName: options.ChartPostFormFieldName,
-		ProvPostFormFieldName:  options.ProvPostFormFieldName,
-		AllowOverwrite:         options.AllowOverwrite,
-		AllowForceOverwrite:    options.AllowForceOverwrite,
-		APIEnabled:             options.EnableAPI,
-		DisableDelete:          options.DisableDelete,
-		UseStatefiles:          options.UseStatefiles,
-		EnforceSemver2:         options.EnforceSemver2,
-		Version:                options.Version,
-		Limiter:                make(chan struct{}, options.IndexLimit),
-		Tenants:                map[string]*tenantInternals{},
-		TenantCacheKeyLock:     &sync.Mutex{},
-		CacheInterval:          options.CacheInterval,
+		Logger:                  options.Logger,
+		Router:                  options.Router,
+		StorageBackend:          options.StorageBackend,
+		TimestampTolerance:      options.TimestampTolerance,
+		ExternalCacheStore:      options.ExternalCacheStore,
+		InternalCacheStore:      map[string]*cacheEntry{},
+		MaxStorageObjects:       options.MaxStorageObjects,
+		IndexLimit:              options.IndexLimit,
+		ChartURL:                chartURL,
+		ChartPostFormFieldName:  options.ChartPostFormFieldName,
+		ProvPostFormFieldName:   options.ProvPostFormFieldName,
+		AllowOverwrite:          options.AllowOverwrite,
+		AllowForceOverwrite:     options.AllowForceOverwrite,
+		APIEnabled:              options.EnableAPI,
+		DisableDelete:           options.DisableDelete,
+		UseStatefiles:           options.UseStatefiles,
+		EnforceSemver2:          options.EnforceSemver2,
+		Version:                 options.Version,
+		Limiter:                 make(chan struct{}, options.IndexLimit),
+		Tenants:                 map[string]*tenantInternals{},
+		TenantCacheKeyLock:      &sync.Mutex{},
+		CacheInterval:           options.CacheInterval,
+		KeepChartAlwaysUpToDate: options.KeepChartAlwaysUpToDate,
 	}
 
 	server.Router.SetRoutes(server.Routes())
