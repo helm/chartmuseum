@@ -18,7 +18,7 @@ require (
 	github.com/chartmuseum/storage v0.10.5
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/size v0.0.0-20200916080119-37b334d93b20
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.2
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gomodule/redigo v1.8.4 // indirect
