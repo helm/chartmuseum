@@ -293,6 +293,26 @@ func (server *MultiTenantServer) postProvenanceFileRequestHandler(c *gin.Context
 	c.JSON(201, objectSavedResponse)
 }
 
+func (server *MultiTenantServer) postMetaFileRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	content, getContentErr := c.GetRawData()
+	if getContentErr != nil {
+		if len(c.Errors) > 0 {
+			return // this is a "request too large"
+		}
+		c.JSON(500, gin.H{"error": fmt.Sprintf("%s", getContentErr)})
+		return
+	}
+	log := server.Logger.ContextLoggingFn(c)
+	_, force := c.GetQuery("force")
+	err := server.uploadMetaFile(log, repo, content, force)
+	if err != nil {
+		c.JSON(err.Status, gin.H{"error": err.Message})
+		return
+	}
+	c.JSON(201, objectSavedResponse)
+}
+
 func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.Context) {
 	log := server.Logger.ContextLoggingFn(&gin.Context{})
 	repo := c.Param("repo")

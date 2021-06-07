@@ -190,6 +190,40 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 	return nil
 }
 
+func (server *MultiTenantServer) uploadMetaFile(log cm_logger.LoggingFn, repo string, content []byte, force bool) *HTTPError {
+	filename, err := cm_repo.MetaFilenameFromContent(content)
+	if err != nil {
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
+	}
+
+	if pathutil.Base(filename) != filename {
+		// Name wants to break out of current directory
+		return &HTTPError{http.StatusBadRequest, fmt.Sprintf("%s is improperly formatted", filename)}
+	}
+
+	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
+		_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
+		if err == nil {
+			return &HTTPError{http.StatusConflict, "file already exists"}
+		}
+	}
+	limitReached, err := server.checkStorageLimit(repo, filename, force)
+	if err != nil {
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
+	}
+	if limitReached {
+		return &HTTPError{http.StatusInsufficientStorage, "repo has reached storage limit"}
+	}
+	log(cm_logger.DebugLevel, "Adding Meta file to storage",
+		"meta_file", filename,
+	)
+	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
+	if err != nil {
+		return &HTTPError{http.StatusInternalServerError, err.Error()}
+	}
+	return nil
+}
+
 func (server *MultiTenantServer) checkStorageLimit(repo string, filename string, force bool) (bool, error) {
 	if server.MaxStorageObjects > 0 {
 		allObjects, err := server.StorageBackend.ListObjects(repo)
