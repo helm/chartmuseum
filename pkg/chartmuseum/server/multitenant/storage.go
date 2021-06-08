@@ -30,6 +30,7 @@ import (
 var (
 	chartPackageContentType   = "application/x-tar"
 	provenanceFileContentType = "application/pgp-signature"
+	MetaFileContentType = "application/json"
 )
 
 type (
@@ -42,7 +43,8 @@ type (
 func (server *MultiTenantServer) getStorageObject(log cm_logger.LoggingFn, repo string, filename string) (*StorageObject, *HTTPError) {
 	isChartPackage := strings.HasSuffix(filename, cm_repo.ChartPackageFileExtension)
 	isProvenanceFile := strings.HasSuffix(filename, cm_repo.ProvenanceFileExtension)
-	if !isChartPackage && !isProvenanceFile {
+	isMetaFile := strings.HasSuffix(filename, cm_repo.MetaFileExtension)
+	if !isChartPackage && !isProvenanceFile && !isMetaFile {
 		log(cm_logger.WarnLevel, "unsupported file extension",
 			"repo", repo,
 			"filename", filename,
@@ -66,6 +68,8 @@ func (server *MultiTenantServer) getStorageObject(log cm_logger.LoggingFn, repo 
 	var contentType string
 	if isProvenanceFile {
 		contentType = provenanceFileContentType
+	} else if isMetaFile {
+		contentType = MetaFileContentType
 	} else {
 		contentType = chartPackageContentType
 	}
