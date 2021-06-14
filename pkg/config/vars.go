@@ -775,6 +775,15 @@ var configVars = map[string]configVar{
 			EnvVar: "LISTEN_HOST",
 		},
 	},
+	"per-chart-limit": {
+		Type:    intType,
+		Default: 0,
+		CLIFlag: cli.IntFlag{
+			Name:   "per-chart-limit",
+			Usage:  "limits the museum server stores the max N versions per chart",
+			EnvVar: "PER_CHART_LIMIT",
+		},
+	},
 }
 
 func populateCLIFlags() {

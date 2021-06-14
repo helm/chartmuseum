@@ -104,6 +104,7 @@ func cliHandler(c *cli.Context) {
 		EnforceSemver2:         conf.GetBool("enforce-semver2"),
 		CacheInterval:          conf.GetDuration("cacheinterval"),
 		Host:                   conf.GetString("listen.host"),
+		PerChartLimit:          conf.GetInt("per-chart-limit"),
 	}
 
 	server, err := newServer(options)

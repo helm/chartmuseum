@@ -27,7 +27,6 @@ import (
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
-	"github.com/chartmuseum/storage"
 	cm_storage "github.com/chartmuseum/storage"
 	"github.com/gin-gonic/gin"
 )
@@ -47,7 +46,7 @@ type (
 	MultiTenantServer struct {
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
-		StorageBackend         storage.Backend
+		StorageBackend         cm_storage.Backend
 		TimestampTolerance     time.Duration
 		ExternalCacheStore     cache.Store
 		InternalCacheStore     map[string]*cacheEntry
@@ -68,13 +67,19 @@ type (
 		TenantCacheKeyLock     *sync.Mutex
 		CacheInterval          time.Duration
 		EventChan              chan event
+		ChartLimits            *ObjectsPerChartLimit
+	}
+
+	ObjectsPerChartLimit struct {
+		*sync.Mutex
+		Limit int
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
 	MultiTenantServerOptions struct {
 		Logger                 *cm_logger.Logger
 		Router                 *cm_router.Router
-		StorageBackend         storage.Backend
+		StorageBackend         cm_storage.Backend
 		ExternalCacheStore     cache.Store
 		TimestampTolerance     time.Duration
 		ChartURL               string
@@ -91,6 +96,7 @@ type (
 		UseStatefiles          bool
 		EnforceSemver2         bool
 		CacheInterval          time.Duration
+		PerChartLimit          int
 	}
 
 	tenantInternals struct {
@@ -117,6 +123,13 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 	if options.ChartURL != "" {
 		chartURL = options.ChartURL + options.Router.ContextPath
 	}
+	var l *ObjectsPerChartLimit
+	if options.PerChartLimit > 0 {
+		l = &ObjectsPerChartLimit{
+			Mutex: &sync.Mutex{},
+			Limit: options.PerChartLimit,
+		}
+	}
 
 	server := &MultiTenantServer{
 		Logger:                 options.Logger,
@@ -141,6 +154,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Tenants:                map[string]*tenantInternals{},
 		TenantCacheKeyLock:     &sync.Mutex{},
 		CacheInterval:          options.CacheInterval,
+		ChartLimits:            l,
 	}
 
 	server.Router.SetRoutes(server.Routes())

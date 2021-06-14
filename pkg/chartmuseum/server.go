@@ -72,6 +72,9 @@ type (
 		CacheInterval  time.Duration
 		Host           string
 		Version        string
+		// PerChartLimit allow museum server to keep max N version Charts
+		// And avoid swelling too large(if so , the index genertion will become slow)
+		PerChartLimit int
 	}
 
 	// Server is a generic interface for web servers
@@ -140,6 +143,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		AllowForceOverwrite:    options.AllowForceOverwrite,
 		Version:                options.Version,
 		CacheInterval:          options.CacheInterval,
+		PerChartLimit:          options.PerChartLimit,
 		// Deprecated options
 		// EnforceSemver2 - see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2: options.EnforceSemver2,
