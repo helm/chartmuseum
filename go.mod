@@ -24,11 +24,11 @@ require (
 	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/prometheus/client_golang v1.9.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/viper v1.7.1
+	github.com/spf13/viper v1.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	github.com/zsais/go-gin-prometheus v0.1.0
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.17.0
 	helm.sh/helm/v3 v3.5.1
 )
