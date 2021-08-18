@@ -32,6 +32,7 @@ bootstrap:
 .PHONY: build
 build: build-linux build-mac build-mac-arm build-windows build-linux-mips
 
+.PHONY: build-windows
 build-windows: export GOOS=windows
 build-windows: export GOARCH=amd64
 build-windows: export GO111MODULE=on
@@ -41,6 +42,7 @@ build-windows:
 		-o bin/windows/amd64/chartmuseum cmd/chartmuseum/main.go  # windows
 	sha256sum bin/windows/amd64/chartmuseum || shasum -a 256 bin/windows/amd64/chartmuseum
 
+.PHONY: build-linux
 build-linux: export GOOS=linux
 build-linux: export GOARCH=amd64
 build-linux: export CGO_ENABLED=0
@@ -51,6 +53,7 @@ build-linux:
 		-o bin/linux/amd64/chartmuseum cmd/chartmuseum/main.go  # linux
 	sha256sum bin/linux/amd64/chartmuseum || shasum -a 256 bin/linux/amd64/chartmuseum
 
+.PHONY: build-linux-mips
 build-linux-mips: export GOOS=linux
 build-linux-mips: export GOARCH=mips64le
 build-linux-mips: export CGO_ENABLED=0
@@ -61,7 +64,7 @@ build-linux-mips:
 		-o bin/linux/mips64/chartmuseum cmd/chartmuseum/main.go  # linux
 	sha256sum bin/linux/mips64/chartmuseum || shasum -a 256 bin/linux/mips64/chartmuseum
 
-
+.PHONY: build-armv7
 build-armv7: export GOOS=linux
 build-armv7: export GOARCH=arm
 build-armv7: export GOARM=7
@@ -72,6 +75,7 @@ build-armv7:
 	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/armv7/chartmuseum cmd/chartmuseum/main.go  # linux
 
+.PHONY: build-mac
 build-mac: export GOOS=darwin
 build-mac: export GOARCH=amd64
 build-mac: export CGO_ENABLED=0
