@@ -30,7 +30,7 @@ bootstrap:
 	@go mod download && go mod vendor
 
 .PHONY: build
-build: build-linux build-mac build-windows build-linux-mips
+build: build-linux build-mac build-mac-arm build-windows build-linux-mips
 
 build-windows: export GOOS=windows
 build-windows: export GOARCH=amd64
@@ -81,6 +81,17 @@ build-mac:
 	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/darwin/amd64/chartmuseum cmd/chartmuseum/main.go # mac osx
 	sha256sum bin/darwin/amd64/chartmuseum || shasum -a 256 bin/darwin/amd64/chartmuseum
+
+.PHONY: build-mac-arm
+build-mac-arm: export GOOS=darwin
+build-mac-arm: export GOARCH=arm64
+build-mac-arm: export CGO_ENABLED=0
+build-mac-arm: export GO111MODULE=on
+build-mac-arm: export GOPROXY=$(MOD_PROXY_URL)
+build-mac-arm:
+	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+		-o bin/darwin/arm64/chartmuseum cmd/chartmuseum/main.go # mac osx
+	sha256sum bin/darwin/arm64/chartmuseum || shasum -a 256 bin/darwin/arm64/chartmuseum
 
 .PHONY: clean
 clean:
