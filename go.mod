@@ -1,6 +1,6 @@
 module helm.sh/chartmuseum
 
-go 1.16
+go 1.17
 
 replace (
 	github.com/NetEase-Object-Storage/nos-golang-sdk => github.com/karuppiah7890/nos-golang-sdk v0.0.0-20191116042345-0792ba35abcc

@@ -18,8 +18,8 @@ install_helm() {
         mkdir -p testbin/
         [ "$(uname)" == "Darwin" ] && PLATFORM="darwin" || PLATFORM="linux"
         TARBALL="helm-v${HELM_VERSION}-${PLATFORM}-amd64.tar.gz"
-        wget "https://storage.googleapis.com/kubernetes-helm/${TARBALL}" || \
-          curl -O "https://storage.googleapis.com/kubernetes-helm/${TARBALL}"
+        wget "https://get.helm.sh/${TARBALL}" || \
+          curl -O "https://get.helm.sh/${TARBALL}"
         tar -C testbin/ -xzf $TARBALL
         rm -f $TARBALL
         pushd testbin/
