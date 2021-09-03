@@ -98,6 +98,7 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) (string, *HTTPError) {
 	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
 	if err != nil {
+		// TODO: this is an error if invalid semver, making "EnforceSemver2" useless...
 		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 
