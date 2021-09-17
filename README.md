@@ -117,9 +117,13 @@ All command-line options can be specified as environment variables, which are de
 
 For example, the env var `STORAGE_AMAZON_BUCKET` can be used in place of `--storage-amazon-bucket`.
 
-##### Using config yaml file example
-When using a yaml file instead of the command line， Convert the `-` of the parameter in the command to `.`.
-Note that `--storage` is converted to `storage.backend`
+##### Using a configuration file
+Use `chartmuseum --config config.yaml` to read configuration from a file.
+
+When using file-based configuration, the corresponding option name can be looked up in [`pkg/config/vars.go`]( https://github.com/helm/chartmuseum/blob/main/pkg/config/vars.go). It would be the key of `configVars` entry corresponding to the command line option / environment variable. For example, `--storage` corresponds to `storage.backend` in the configuration file.
+
+Here's a complete example of a `config.yaml`:
+
 ```yaml
 debug: true
 port: 8080
@@ -128,9 +132,8 @@ storage.local.rootdir: <storage_path>
 bearerauth: 1
 authrealm: <authorization server url>
 authservice: <authorization server service name>
-authcertpath: <path to authorization server public pem file> 
+authcertpath: <path to authorization server public pem file>
 depth: 2
-
 ```
 
 #### Using with Amazon S3 or Compatible services like Minio or DigitalOcean.
@@ -188,7 +191,7 @@ You need at least the following permissions inside your IAM Policy
 In order to work with AWS service accounts you may need to set `AWS_SDK_LOAD_CONFIG=1` in your environment.
 For more context, please see [here](https://github.com/helm/chartmuseum/issues/280#issuecomment-592292527).
 
-For DigitalOcean, set the credentials using environment variable and pass the `endpoint`.  
+For DigitalOcean, set the credentials using environment variable and pass the `endpoint`.
 Note below, that the region `us-east-1` needs to be set, since that is how the DigitalOcean cli implementation functions. The actual region of your spaces location is defined by the endpoint. Below we are using Frankfurt as an example.
 ```bash
 export AWS_ACCESS_KEY_ID="spaces_access_key"
@@ -530,7 +533,7 @@ You may also experiment with the `--depth-dynamic` flag, which should allow for 
 
 ## Pagination
 
-For large chart repositories, you may wish to paginate the results from the `GET /api/charts` route. 
+For large chart repositories, you may wish to paginate the results from the `GET /api/charts` route.
 
 To do so, add the `offset` and `limit` query params to the request. For example, to retrieve a list of 5 charts total, skipping the first 5 charts, you could use the following:
 
