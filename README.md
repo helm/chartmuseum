@@ -581,7 +581,7 @@ have repo labels named `org1/repoa` and `org2/repob`.
 | Metric                                   | Type  | Labels     | Description                              |
 | ---------------------------------------- | ----- | ---------- | ---------------------------------------- |
 | chartmuseum_charts_served_total          | Gauge | {repo="*"} | Total number of charts                   |
-| chartmuseum_charts_versions_served_total | Gauge | {repo="*"} | Total number of chart versions available |
+| chartmuseum_chart_versions_served_total | Gauge | {repo="*"} | Total number of chart versions available |
 
 *: see above for repo label
 
