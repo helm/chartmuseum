@@ -299,8 +299,24 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	_, force := c.GetQuery("force")
 	var chartContent []byte
 	var path string
+	// action used to determine what operation to emit
+	action := addChart
 	cpFiles, status, err := server.getChartAndProvFiles(c.Request, repo, force)
-	if status != 200 {
+	if err != nil {
+		c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
+		return
+	}
+	switch status {
+	case http.StatusOK:
+	case http.StatusConflict:
+		if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
+			c.JSON(status, gin.H{"error": fmt.Sprintf("%s", fmt.Errorf("chart already exists"))}) // conflict
+			return
+		}
+		log(cm_logger.DebugLevel, "chart already exists, but overwrite is allowed", zap.String("repo", repo))
+		// update chart if chart already exists and overwrite is allowed
+		action = updateChart
+	default:
 		c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
 		return
 	}
@@ -309,7 +325,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		if len(c.Errors) > 0 {
 			return // this is a "request too large"
 		}
-		c.JSON(400, gin.H{"error": fmt.Sprintf(
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf(
 			"no package or provenance file found in form fields %s and %s",
 			server.ChartPostFormFieldName, server.ProvPostFormFieldName),
 		})
@@ -332,7 +348,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 			for _, ppf := range storedFiles {
 				server.StorageBackend.DeleteObject(ppf.filename)
 			}
-			c.JSON(500, gin.H{"error": fmt.Sprintf("%s", err)})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s", err)})
 			return
 		}
 		if ppf.field == defaultFormField {
@@ -350,9 +366,9 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(err), zap.Binary("content", chartContent))
 	}
 
-	server.emitEvent(c, repo, addChart, chart)
+	server.emitEvent(c, repo, action, chart)
 
-	c.JSON(201, objectSavedResponse)
+	c.JSON(http.StatusCreated, objectSavedResponse)
 }
 
 func (server *MultiTenantServer) getChartAndProvFiles(req *http.Request, repo string, force bool) (map[string]*chartOrProvenanceFile, int, error) {
@@ -368,29 +384,36 @@ func (server *MultiTenantServer) getChartAndProvFiles(req *http.Request, repo st
 		{server.ProvPostFormFieldName, cm_repo.ProvenanceFilenameFromContent},
 	}
 
+	validStatusCode := http.StatusOK
 	cpFiles := make(map[string]*chartOrProvenanceFile)
 	for _, ff := range ffp {
 		content, err := extractContentFromRequest(req, ff.field)
 		if err != nil {
-			return nil, 500, err
+			return nil, http.StatusInternalServerError, err
 		}
 		if content == nil {
 			continue
 		}
 		filename, err := ff.fn(content)
 		if err != nil {
-			return nil, 400, err
+			return nil, http.StatusBadRequest, err
 		}
 		if _, ok := cpFiles[filename]; ok {
 			continue
 		}
-		if status, err := server.validateChartOrProv(repo, filename, force); err != nil {
+		status, err := server.validateChartOrProv(repo, filename, force)
+		if err != nil {
 			return nil, status, err
+		}
+		// return conflict status code if the file already exists
+		if status == http.StatusConflict && validStatusCode != http.StatusConflict {
+			validStatusCode = status
 		}
 		cpFiles[filename] = &chartOrProvenanceFile{filename, content, ff.field}
 	}
 
-	return cpFiles, 200, nil
+	// validState code can be 200 or 409. Returning 409 means that the chart already exists
+	return cpFiles, validStatusCode, nil
 }
 
 func extractContentFromRequest(req *http.Request, field string) ([]byte, error) {
@@ -408,7 +431,7 @@ func extractContentFromRequest(req *http.Request, field string) ([]byte, error) 
 
 func (server *MultiTenantServer) validateChartOrProv(repo, filename string, force bool) (int, error) {
 	if pathutil.Base(filename) != filename {
-		return 400, fmt.Errorf("%s is improperly formatted", filename) // Name wants to break out of current directory
+		return http.StatusBadRequest, fmt.Errorf("%s is improperly formatted", filename) // Name wants to break out of current directory
 	}
 
 	var f string
@@ -417,11 +440,11 @@ func (server *MultiTenantServer) validateChartOrProv(repo, filename string, forc
 	} else {
 		f = repo + "/" + filename
 	}
-	if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
-		_, err := server.StorageBackend.GetObject(f)
-		if err == nil {
-			return 409, fmt.Errorf("%s already exists", f) // conflict
-		}
+	// conflict does not mean the file is invalid.
+	// for example, when overwite is allowed, it's valid
+	// so that the client can decide what to do and here we just return conflict with no error
+	if _, err := server.StorageBackend.GetObject(f); err == nil {
+		return http.StatusConflict, nil
 	}
-	return 200, nil
+	return http.StatusOK, nil
 }
