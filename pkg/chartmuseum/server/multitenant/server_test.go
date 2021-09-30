@@ -672,6 +672,13 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
 	res = suite.doRequest("overwrite", "POST", "/api/charts", buf, w.FormDataContentType())
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
+	{
+		// the same as chart only case above
+		time.Sleep(time.Second)
+		// depth: 0
+		e := suite.extractRepoEntryFromInternalCache("")
+		suite.Equal(1, len(e.RepoIndex.Entries), "overwrite entries validation")
+	}
 }
 
 func (suite *MultiTenantServerTestSuite) TestBadChartUpload() {
