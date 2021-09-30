@@ -384,7 +384,7 @@ func (server *MultiTenantServer) getChartAndProvFiles(req *http.Request, repo st
 		{server.ProvPostFormFieldName, cm_repo.ProvenanceFilenameFromContent},
 	}
 
-	validStatusCode := http.StatusOK
+	validReturnStatusCode := http.StatusOK
 	cpFiles := make(map[string]*chartOrProvenanceFile)
 	for _, ff := range ffp {
 		content, err := extractContentFromRequest(req, ff.field)
@@ -401,19 +401,29 @@ func (server *MultiTenantServer) getChartAndProvFiles(req *http.Request, repo st
 		if _, ok := cpFiles[filename]; ok {
 			continue
 		}
+		// if the file already exists, we don't need to validate it again
+		if validReturnStatusCode == http.StatusConflict {
+			cpFiles[filename] = &chartOrProvenanceFile{filename, content, ff.field}
+			continue
+		}
+		// check filename
+		if pathutil.Base(filename) != filename {
+			return nil, http.StatusBadRequest, fmt.Errorf("%s is improperly formatted", filename) // Name wants to break out of current directory
+		}
+		// check existence
 		status, err := server.validateChartOrProv(repo, filename, force)
 		if err != nil {
 			return nil, status, err
 		}
 		// return conflict status code if the file already exists
-		if status == http.StatusConflict && validStatusCode != http.StatusConflict {
-			validStatusCode = status
+		if status == http.StatusConflict {
+			validReturnStatusCode = status
 		}
 		cpFiles[filename] = &chartOrProvenanceFile{filename, content, ff.field}
 	}
 
 	// validState code can be 200 or 409. Returning 409 means that the chart already exists
-	return cpFiles, validStatusCode, nil
+	return cpFiles, validReturnStatusCode, nil
 }
 
 func extractContentFromRequest(req *http.Request, field string) ([]byte, error) {
@@ -430,10 +440,6 @@ func extractContentFromRequest(req *http.Request, field string) ([]byte, error) 
 }
 
 func (server *MultiTenantServer) validateChartOrProv(repo, filename string, force bool) (int, error) {
-	if pathutil.Base(filename) != filename {
-		return http.StatusBadRequest, fmt.Errorf("%s is improperly formatted", filename) // Name wants to break out of current directory
-	}
-
 	var f string
 	if repo == "" {
 		f = filename
