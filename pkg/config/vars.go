@@ -757,6 +757,15 @@ var configVars = map[string]configVar{
 			EnvVar: "CACHE_INTERVAL",
 		},
 	},
+	"alwaysupdate": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "always-update",
+			Usage:  "always update the cache when index.yaml is requested, which enables manual modification of underlying storage",
+			EnvVar: "ALWAYS_UPDATE",
+		},
+	},
 	"listen.host": {
 		Type:    stringType,
 		Default: "0.0.0.0",

@@ -67,6 +67,7 @@ type (
 		Tenants                map[string]*tenantInternals
 		TenantCacheKeyLock     *sync.Mutex
 		CacheInterval          time.Duration
+		AlwaysUpdate           bool
 		EventChan              chan event
 	}
 
@@ -91,6 +92,7 @@ type (
 		UseStatefiles          bool
 		EnforceSemver2         bool
 		CacheInterval          time.Duration
+		AlwaysUpdate           bool
 	}
 
 	tenantInternals struct {
@@ -141,6 +143,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		Tenants:                map[string]*tenantInternals{},
 		TenantCacheKeyLock:     &sync.Mutex{},
 		CacheInterval:          options.CacheInterval,
+		AlwaysUpdate:           options.AlwaysUpdate,
 	}
 
 	server.Router.SetRoutes(server.Routes())

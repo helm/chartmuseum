@@ -101,6 +101,7 @@ func cliHandler(c *cli.Context) {
 		ReadTimeout:            conf.GetInt("readtimeout"),
 		EnforceSemver2:         conf.GetBool("enforce-semver2"),
 		CacheInterval:          conf.GetDuration("cacheinterval"),
+		AlwaysUpdate:           conf.GetBool("alwaysupdate"),
 		Host:                   conf.GetString("listen.host"),
 	}
 

@@ -70,6 +70,7 @@ type (
 		// More refers to : https://github.com/helm/chartmuseum/issues/320
 		EnforceSemver2 bool
 		CacheInterval  time.Duration
+		AlwaysUpdate   bool
 		Host           string
 		Version        string
 	}
@@ -140,6 +141,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		EnforceSemver2:         options.EnforceSemver2,
 		Version:                options.Version,
 		CacheInterval:          options.CacheInterval,
+		AlwaysUpdate:           options.AlwaysUpdate,
 	})
 
 	return server, err
