@@ -38,7 +38,7 @@ func requestWrapper(logger *cm_logger.Logger, logHealth bool, logLatencyInt bool
 	return func(c *gin.Context) {
 		setupContext(c)
 
-		reqPath := c.Request.URL.Path
+		reqPath := c.Request.URL.EscapedPath()
 		logRequest := !strings.HasSuffix(reqPath, "/health") || logHealth
 		if logRequest {
 			logger.Debugc(c, fmt.Sprintf("Incoming request: %s", reqPath))
