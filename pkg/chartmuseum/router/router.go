@@ -92,6 +92,7 @@ type (
 func NewRouter(options RouterOptions) *Router {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
+	engine.RedirectTrailingSlash = false // This was causing /health to 301 to /health/
 	engine.Use(gin.Recovery())
 	engine.Use(requestWrapper(options.Logger, options.LogHealth, options.LogLatencyInteger))
 	engine.Use(limits.RequestSizeLimiter(int64(options.MaxUploadSize)))
