@@ -18,7 +18,7 @@ class ChartMuseum(common.CommandRunner):
     def start_chartmuseum(self, storage):
         self.stop_chartmuseum()
         os.chdir(self.rootdir)
-        cmd = 'KILLME=1 chartmuseum --debug --enforce-semver2 --port=%d --storage="%s" ' % (common.PORT, storage)
+        cmd = 'KILLME=1 chartmuseum --debug --port=%d --storage="%s" ' % (common.PORT, storage)
         if storage == 'local':
             shutil.rmtree(common.STORAGE_DIR, ignore_errors=True)
             cmd += '--storage-local-rootdir=%s >> %s 2>&1' % (common.STORAGE_DIR, common.LOGFILE)
@@ -106,13 +106,7 @@ class ChartMuseum(common.CommandRunner):
                     print(('HTTP STATUS: %s' % response.status_code))
                     print(('HTTP CONTENT: %s' % response.content))
                     
-                    # TODO: See comment in "uploadChartPackage" method in api.go
-                    # self.http_status_code_should_be(400, response.status_code)
-
-                    try:
-                        self.http_status_code_should_be(400, response.status_code)
-                    except AssertionError as e:
-                        self.http_status_code_should_be(500, response.status_code)
+                    self.http_status_code_should_be(400, response.status_code)
             os.chdir('../')
 
     def upload_provenance_files(self):

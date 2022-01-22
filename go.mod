@@ -9,7 +9,6 @@ replace (
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.5.0
 	github.com/chartmuseum/storage v0.11.0
@@ -39,6 +38,7 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
+	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Microsoft/go-winio v0.4.17 // indirect
 	github.com/Microsoft/hcsshim v0.8.18 // indirect
 	github.com/NetEase-Object-Storage/nos-golang-sdk v0.0.0-00010101000000-000000000000 // indirect

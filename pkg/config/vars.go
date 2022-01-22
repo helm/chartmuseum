@@ -744,7 +744,7 @@ var configVars = map[string]configVar{
 		Default: false,
 		CLIFlag: cli.BoolFlag{
 			Name:   "enforce-semver2",
-			Usage:  "enforce the chart museum server only accepts the valid chart version as Helm does",
+			Usage:  "(deprecated) enforce the chart museum server only accepts the valid chart version as Helm does",
 			EnvVar: "ENFORCE_SEMVER2",
 		},
 	},
