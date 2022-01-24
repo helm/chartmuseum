@@ -12,9 +12,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: setup go environment
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
-          go-version: '1.15.2'
+          go-version: '1.17.0'
       - name: download dependencies
         run: make bootstrap
       - name: run unit tests
@@ -35,4 +35,3 @@ jobs:
           name: chartmuseum-acceptance-report-${{ github.sha }}
           path: .robot/
         if: always()
-

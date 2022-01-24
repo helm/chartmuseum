@@ -2,9 +2,9 @@
 
 FROM golang:alpine
 
-ARG version=0.12.0
+ARG version=0.13.1
 
-ARG revision=master
+ARG revision=main
 
 COPY . /go/src/github.com/helm/chartmuseum
 

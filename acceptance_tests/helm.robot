@@ -59,6 +59,7 @@ Test Helm integration
     Able to fetch and verify test charts
     Delete test charts from ChartMuseum
     Able to update ChartMuseum repo
+    Ensure test charts deleted
     Helm search does not return test charts
     Unable to fetch and verify test charts
 
@@ -82,6 +83,9 @@ Upload bad provenance files to ChartMuseum
 Delete test charts from ChartMuseum
     ChartMuseum.delete test charts
 
+Ensure test charts deleted
+    ChartMuseum.ensure charts deleted
+
 Able to add ChartMuseum as Helm chart repo
     Helm.add chart repo
     Helm.return code should be  0
@@ -98,6 +102,8 @@ Helm search returns test charts
 Helm search does not return test charts
     Helm.search for chart  mychart
     Helm.output does not contain  mychart
+    Helm.search for chart  mychart2
+    Helm.output does not contain  mychart2
 
 Able to fetch and verify test charts
     Helm.fetch and verify chart  mychart

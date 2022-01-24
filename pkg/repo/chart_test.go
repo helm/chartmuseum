@@ -23,6 +23,7 @@ import (
 
 	"github.com/chartmuseum/storage"
 	"github.com/stretchr/testify/suite"
+	"helm.sh/helm/v3/pkg/chart"
 	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
@@ -83,6 +84,39 @@ func (suite *ChartTestSuite) TestChartVersionFromStorageObject() {
 	suite.Equal("mychart", chartVersion.Name, "chart name as expected")
 	suite.Equal("1.0.4-SNAPSHOT", chartVersion.Version, "chart version as expected")
 
+	snapshotObject2 := storage.Object{
+		Meta:         storage.Metadata{Name: "mychart", Version: "1.0.4-SNAPSHOT-1"},
+		Path:         "mychart-1.0.4-SNAPSHOT-1.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(snapshotObject2)
+	suite.Nil(err)
+	suite.Equal("mychart", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.0.4-SNAPSHOT-1", chartVersion.Version, "chart version as expected")
+
+	snapshotObject3 := storage.Object{
+		Meta:         storage.Metadata{Name: "mychart", Version: "1.0-SNAPSHOT-1"},
+		Path:         "mychart-1.0-SNAPSHOT-1.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(snapshotObject3)
+	suite.Nil(err)
+	suite.Equal("mychart", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.0-SNAPSHOT-1", chartVersion.Version, "chart version as expected")
+
+	snapshotObject4 := storage.Object{
+		Meta:         storage.Metadata{Name: "mychart", Version: "1-SNAPSHOT-1"},
+		Path:         "mychart-1-SNAPSHOT-1.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(snapshotObject4)
+	suite.Nil(err)
+	suite.Equal("mychart", chartVersion.Name, "chart name as expected")
+	suite.Equal("1-SNAPSHOT-1", chartVersion.Version, "chart version as expected")
+
 	multiHyphenObject := storage.Object{
 		Path:         "my-long-hyphenated-chart-name-1.0.4.tgz",
 		Content:      []byte{},
@@ -140,12 +174,18 @@ func (suite *ChartTestSuite) TestChartVersionFromStorageObject() {
 func (suite *ChartTestSuite) TestStorageObjectFromChartVersion() {
 	now := time.Now()
 	chartVersion := &helm_repo.ChartVersion{
+		Metadata: &chart.Metadata{
+			Name:    "mychart",
+			Version: "0.1.0",
+		},
 		URLs:    []string{"charts/mychart-0.1.0.tgz"},
 		Created: now,
 	}
 	object := StorageObjectFromChartVersion(chartVersion)
 	suite.Equal(now, object.LastModified, "object last modified as expected")
 	suite.Equal("mychart-0.1.0.tgz", object.Path, "object path as expected")
+	suite.Equal("mychart", object.Meta.Name, "object chart name as expected")
+	suite.Equal("0.1.0", object.Meta.Version, "object chart version as expected")
 	suite.Equal([]byte{}, object.Content, "object content as expected")
 }
 

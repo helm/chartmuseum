@@ -82,12 +82,12 @@ helm repo add chartmuseum http://localhost:8080
 
 Search for charts:
 ```bash
-helm search chartmuseum/
+helm search repo chartmuseum/
 ```
 
 Install chart:
 ```bash
-helm install chartmuseum/mychart
+helm install chartmuseum/mychart --generate-name
 ```
 
 ## How to Run
@@ -97,26 +97,16 @@ Install binary using [GoFish](https://gofi.sh/):
 ```
 gofish install chartmuseum
 ==> Installing chartmuseum...
-🐠  chartmuseum 0.12.0: installed in 95.431145ms
+🐠  chartmuseum 0.13.1: installed in 95.431145ms
 ```
 
-or manually:
-```bash
-# on Linux
-curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/linux/amd64/chartmuseum
-
-# on macOS
-curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/darwin/amd64/chartmuseum
-
-# on Windows
-curl -LO https://s3.amazonaws.com/chartmuseum/release/latest/bin/windows/amd64/chartmuseum
-
-chmod +x ./chartmuseum
-mv ./chartmuseum /usr/local/bin
+or you can use the installer script:
 ```
-Using `latest` in URLs above will get the latest binary (built from master branch).
+curl https://raw.githubusercontent.com/helm/chartmuseum/main/scripts/get-chartmuseum | bash
+```
 
-Replace `latest` with `$(curl -s https://s3.amazonaws.com/chartmuseum/release/stable.txt)` to automatically determine the latest stable release (e.g. `v0.12.0`). The stable checksums can be found [here](https://github.com/fishworks/fish-food/blob/master/Food/chartmuseum.lua).
+or download manually from the [releases page](https://github.com/helm/chartmuseum/releases),
+which also contains all package checksums and signatures.
 
 Determine your version with `chartmuseum --version`.
 
@@ -127,9 +117,13 @@ All command-line options can be specified as environment variables, which are de
 
 For example, the env var `STORAGE_AMAZON_BUCKET` can be used in place of `--storage-amazon-bucket`.
 
-##### Using config yaml file example
-When using a yaml file instead of the command line， Convert the `-` of the parameter in the command to `.`.
-Note that `--storage` is converted to `storage.backend`
+##### Using a configuration file
+Use `chartmuseum --config config.yaml` to read configuration from a file.
+
+When using file-based configuration, the corresponding option name can be looked up in [`pkg/config/vars.go`]( https://github.com/helm/chartmuseum/blob/main/pkg/config/vars.go). It would be the key of `configVars` entry corresponding to the command line option / environment variable. For example, `--storage` corresponds to `storage.backend` in the configuration file.
+
+Here's a complete example of a `config.yaml`:
+
 ```yaml
 debug: true
 port: 8080
@@ -141,7 +135,6 @@ authservice: <authorization server service name>
 authcertpath: <path to authorization server public pem file>
 authactionssearchpath: <optional: JMESPath to find allowed actions in a jwt token>
 depth: 2
-
 ```
 
 #### Using with Amazon S3 or Compatible services like Minio or DigitalOcean.
@@ -199,7 +192,7 @@ You need at least the following permissions inside your IAM Policy
 In order to work with AWS service accounts you may need to set `AWS_SDK_LOAD_CONFIG=1` in your environment.
 For more context, please see [here](https://github.com/helm/chartmuseum/issues/280#issuecomment-592292527).
 
-For DigitalOcean, set the credentials using environment variable and pass the `endpoint`.  
+For DigitalOcean, set the credentials using environment variable and pass the `endpoint`.
 Note below, that the region `us-east-1` needs to be set, since that is how the DigitalOcean cli implementation functions. The actual region of your spaces location is defined by the endpoint. Below we are using Frankfurt as an example.
 ```bash
 export AWS_ACCESS_KEY_ID="spaces_access_key"
@@ -475,7 +468,7 @@ The contents of index.yaml will be printed to stdout and the program will exit. 
 - `--write-timeout=<number>` - socker write timeout for http server
 
 ### Docker Image
-Available via [Docker Hub](https://hub.docker.com/r/chartmuseum/chartmuseum/).
+Available via [GitHub Container Registry (GHCR)](https://github.com/orgs/helm/packages/container/package/chartmuseum).
 
 Example usage (local storage):
 ```bash
@@ -485,7 +478,7 @@ docker run --rm -it \
   -e STORAGE=local \
   -e STORAGE_LOCAL_ROOTDIR=/charts \
   -v $(pwd)/charts:/charts \
-  chartmuseum/chartmuseum:latest
+  ghcr.io/helm/chartmuseum:v0.13.1
 ```
 
 Example usage (S3):
@@ -498,21 +491,21 @@ docker run --rm -it \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/home/chartmuseum/.aws:ro \
-  chartmuseum/chartmuseum:latest
+  ghcr.io/helm/chartmuseum:v0.13.1
 ```
 
 ### Helm Chart
-There is a [Helm chart for *ChartMuseum*](https://github.com/helm/charts/tree/master/stable/chartmuseum) itself which can be found in the official Helm charts repository.
+There is a [Helm chart for *ChartMuseum*](https://github.com/chartmuseum/charts/tree/main/src/chartmuseum) itself.
 
-You can also view it on [Helm Hub](https://hub.helm.sh/charts/stable/chartmuseum).
+You can also view it on [Artifact Hub](https://artifacthub.io/packages/helm/chartmuseum/chartmuseum).
 
 To install:
 ```bash
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
-helm install stable/chartmuseum
+helm repo add chartmuseum https://chartmuseum.github.io/charts
+helm install chartmuseum/chartmuseum
 ```
 
-If interested in making changes, please submit a PR to [helm/charts](https://github.com/helm/charts). Before doing any work, please check for any [currently open pull requests](https://github.com/helm/charts/pulls?q=is%3Apr+is%3Aopen+chartmuseum). Thanks!
+If interested in making changes, please submit a PR to [chartmuseum/charts](https://github.com/chartmuseum/charts). Before doing any work, please check for any [currently open pull requests](https://github.com/chartmuseum/charts/pulls?q=is%3Apr+is%3Aopen). Thanks!
 
 ## Multitenancy
 Multitenancy is supported with the `--depth` flag.
@@ -551,7 +544,7 @@ You may also experiment with the `--depth-dynamic` flag, which should allow for 
 
 ## Pagination
 
-For large chart repositories, you may wish to paginate the results from the `GET /api/charts` route. 
+For large chart repositories, you may wish to paginate the results from the `GET /api/charts` route.
 
 To do so, add the `offset` and `limit` query params to the request. For example, to retrieve a list of 5 charts total, skipping the first 5 charts, you could use the following:
 
@@ -602,7 +595,7 @@ have repo labels named `org1/repoa` and `org2/repob`.
 | Metric                                   | Type  | Labels     | Description                              |
 | ---------------------------------------- | ----- | ---------- | ---------------------------------------- |
 | chartmuseum_charts_served_total          | Gauge | {repo="*"} | Total number of charts                   |
-| chartmuseum_charts_versions_served_total | Gauge | {repo="*"} | Total number of chart versions available |
+| chartmuseum_chart_versions_served_total | Gauge | {repo="*"} | Total number of chart versions available |
 
 *: see above for repo label
 
@@ -636,11 +629,11 @@ The `--gen-index` CLI option (described above) can be used to generate and print
 Upon index regeneration, *ChartMuseum* will, however, save a statefile in storage called `index-cache.yaml` used for cache optimization. This file is only meant for internal use, but may be able to be used for migration to simple storage.
 
 ## Mirroring the official Kubernetes repositories
-Please see `scripts/mirror_k8s_repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).
+Please see `scripts/mirror-k8s-repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).
 
 You can then use *ChartMuseum* to serve up an internal mirror:
 ```
-scripts/mirror_k8s_repos.sh
+scripts/mirror-k8s-repos.sh
 chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mirror"
  ```
 

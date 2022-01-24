@@ -18,7 +18,7 @@ class ChartMuseum(common.CommandRunner):
     def start_chartmuseum(self, storage):
         self.stop_chartmuseum()
         os.chdir(self.rootdir)
-        cmd = 'KILLME=1 chartmuseum --debug --port=%d --storage="%s" ' % (common.PORT, storage)
+        cmd = 'KILLME=1 chartmuseum --debug --enforce-semver2 --port=%d --storage="%s" ' % (common.PORT, storage)
         if storage == 'local':
             shutil.rmtree(common.STORAGE_DIR, ignore_errors=True)
             cmd += '--storage-local-rootdir=%s >> %s 2>&1' % (common.STORAGE_DIR, common.LOGFILE)
@@ -105,7 +105,14 @@ class ChartMuseum(common.CommandRunner):
                     print(('POST %s' % charts_endpoint))
                     print(('HTTP STATUS: %s' % response.status_code))
                     print(('HTTP CONTENT: %s' % response.content))
-                    self.http_status_code_should_be(400, response.status_code)
+                    
+                    # TODO: See comment in "uploadChartPackage" method in api.go
+                    # self.http_status_code_should_be(400, response.status_code)
+
+                    try:
+                        self.http_status_code_should_be(400, response.status_code)
+                    except AssertionError as e:
+                        self.http_status_code_should_be(500, response.status_code)
             os.chdir('../')
 
     def upload_provenance_files(self):
@@ -151,6 +158,7 @@ class ChartMuseum(common.CommandRunner):
         testcharts_dir = os.path.join(self.rootdir, common.TESTCHARTS_DIR)
         os.chdir(testcharts_dir)
         for d in os.listdir('.'):
+            # delete all charts inside /mychart (also includes mychart2)
             if not os.path.isdir(d):
                 continue
             os.chdir(d)
@@ -166,4 +174,23 @@ class ChartMuseum(common.CommandRunner):
                     print(('HTTP STATUS: %s' % response.status_code))
                     print(('HTTP CONTENT: %s' % response.content))
                     self.http_status_code_should_be(200, response.status_code)
+            os.chdir('../')
+
+    def ensure_charts_deleted(self):
+        endpoint = '%s/api/charts' % common.HELM_REPO_URL
+        testcharts_dir = os.path.join(self.rootdir, common.TESTCHARTS_DIR)
+        os.chdir(testcharts_dir)
+        for d in os.listdir('.'):
+            if not os.path.isdir(d):
+                continue
+            os.chdir(d)
+            tgzs = glob.glob('*.tgz')
+            for tgz in tgzs:
+                tmp = tgz[:-4].rsplit('-', 1)
+                name = tmp[0]
+                version = tmp[1]
+                with open(tgz):
+                    epoint = '%s/%s/%s' % (endpoint, name, version)
+                    response = requests.get(url=epoint)
+                    self.http_status_code_should_be(404, response.status_code)
             os.chdir('../')

@@ -36,10 +36,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"go.uber.org/zap"
 	pathutil "path"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
@@ -506,7 +507,11 @@ func (server *MultiTenantServer) startEventListener() {
 		}
 		index := entry.RepoIndex
 
-		tenant := server.Tenants[e.RepoName]
+		tenant, ok := server.Tenants[e.RepoName]
+		if !ok {
+			log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.Error(err), zap.String("repo", repo))
+			continue
+		}
 		tenant.RegenerationLock.Lock()
 
 		if e.ChartVersion == nil {
