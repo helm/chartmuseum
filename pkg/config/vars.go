@@ -721,6 +721,15 @@ var configVars = map[string]configVar{
 			EnvVar: "AUTH_CERT_PATH",
 		},
 	},
+	"authactionssearchpath": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "auth-actions-search-path",
+			Usage:  "JMESPath to find allowed actions in a jwt token",
+			EnvVar: "AUTH_ACTIONS_SEARCH_PATH",
+		},
+	},
 	"depthdynamic": {
 		Type:    boolType,
 		Default: false,
