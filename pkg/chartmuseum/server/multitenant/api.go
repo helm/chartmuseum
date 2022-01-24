@@ -22,7 +22,6 @@ import (
 	pathutil "path/filepath"
 	"sort"
 
-	"github.com/chartmuseum/storage"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
@@ -97,19 +96,9 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) (string, *HTTPError) {
 	var filename string
 
-	// Check to make sure the chart version is valid
-	_, err := cm_repo.ChartVersionFromStorageObject(storage.Object{
-		Content: content,
-		// Since we only need content to check for the chart version
-		// left the others fields to be default
-	})
+	filename, err := cm_repo.ChartPackageFilenameFromContent(content)
 	if err != nil {
 		return filename, &HTTPError{http.StatusBadRequest, err.Error()}
-	}
-
-	filename, err = cm_repo.ChartPackageFilenameFromContent(content)
-	if err != nil {
-		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 
 	if pathutil.Base(filename) != filename {

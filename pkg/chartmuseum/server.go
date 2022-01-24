@@ -136,10 +136,11 @@ func NewServer(options ServerOptions) (Server, error) {
 		UseStatefiles:          options.UseStatefiles,
 		AllowOverwrite:         options.AllowOverwrite,
 		AllowForceOverwrite:    options.AllowForceOverwrite,
-		// EnforceSemver was deprecated, see https://github.com/helm/chartmuseum/issues/485 for more info
+		Version:                options.Version,
+		CacheInterval:          options.CacheInterval,
+		// Deprecated options
+		// EnforceSemver2 - see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2: options.EnforceSemver2,
-		Version:        options.Version,
-		CacheInterval:  options.CacheInterval,
 	})
 
 	return server, err
