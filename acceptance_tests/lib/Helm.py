@@ -12,7 +12,7 @@ class Helm(common.CommandRunner):
         self.run_command('helm repo remove %s' % common.HELM_REPO_NAME)
 
     def search_for_chart(self, chart):
-        self.run_command('helm search %s/%s' % (common.HELM_REPO_NAME, chart))
+        self.run_command('helm search repo %s/%s' % (common.HELM_REPO_NAME, chart))
 
     def update_chart_repos(self):
         # "| awk 'NR>1{print buf}{buf = $0}'" prevents UnicodeDecodeError

@@ -14,7 +14,7 @@ jobs:
       - name: setup go environment
         uses: actions/setup-go@v2
         with:
-          go-version: '1.17.0'
+          go-version: '1.17.6'
       - name: download dependencies
         run: make bootstrap
       - name: run unit tests
@@ -24,13 +24,13 @@ jobs:
       - name: run acceptance tests
         run: sudo pip install virtualenv && make acceptance
       - name: upload coverage report
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: chartmuseum-coverage-report-${{ github.sha }}
           path: .cover/
         if: always()
       - name: upload acceptance test report
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: chartmuseum-acceptance-report-${{ github.sha }}
           path: .robot/

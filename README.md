@@ -71,7 +71,7 @@ curl -F "chart=@mychart-0.1.0.tgz" -F "prov=@mychart-0.1.0.tgz.prov" http://loca
 
 You can also use the [helm-push plugin](https://github.com/chartmuseum/helm-push):
 ```
-helm push mychart/ chartmuseum
+helm cm-push mychart/ chartmuseum
 ```
 
 ## Installing Charts into Kubernetes
@@ -97,7 +97,7 @@ Install binary using [GoFish](https://gofi.sh/):
 ```
 gofish install chartmuseum
 ==> Installing chartmuseum...
-🐠  chartmuseum 0.13.1: installed in 95.431145ms
+🐠  chartmuseum 0.14.0: installed in 95.431145ms
 ```
 
 or you can use the installer script:
@@ -478,7 +478,7 @@ docker run --rm -it \
   -e STORAGE=local \
   -e STORAGE_LOCAL_ROOTDIR=/charts \
   -v $(pwd)/charts:/charts \
-  ghcr.io/helm/chartmuseum:v0.13.1
+  ghcr.io/helm/chartmuseum:v0.14.0
 ```
 
 Example usage (S3):
@@ -491,7 +491,7 @@ docker run --rm -it \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/home/chartmuseum/.aws:ro \
-  ghcr.io/helm/chartmuseum:v0.13.1
+  ghcr.io/helm/chartmuseum:v0.14.0
 ```
 
 ### Helm Chart

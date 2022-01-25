@@ -49,7 +49,6 @@ var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.
 var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
 var badTestTarballPath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
 var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
-var badTestSemver2Path = "../../../../testdata/badcharts/mybadsemver2chart/mybadsemver2chart-0.x.x.tgz"
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
@@ -994,14 +993,6 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts?force", apiPrefix), body, "")
 	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/charts?force", apiPrefix))
-
-	// with bad semver
-	content, err = ioutil.ReadFile(badTestSemver2Path)
-	suite.Nil(err, "no error opening bad semver2 path")
-
-	body = bytes.NewBuffer(content)
-	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts", apiPrefix), body, "")
-	suite.Equal(400, res.Status(), fmt.Sprintf("400 POST %s/charts", apiPrefix))
 
 	// POST /api/:repo/prov
 	content, err = ioutil.ReadFile(testProvfilePath)

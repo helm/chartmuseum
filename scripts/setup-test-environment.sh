@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-HELM_VERSION="2.17.0"
+HELM_VERSION="3.8.0"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR/../
@@ -8,7 +8,9 @@ cd $DIR/../
 export PATH="$PWD/testbin:$PATH"
 
 main() {
-    export HELM_HOME="$PWD/.helm"
+    export XDG_CACHE_HOME=${PWD}/.helm/cache && mkdir -p ${XDG_CACHE_HOME}
+    export XDG_CONFIG_HOME=${PWD}/.helm/config && mkdir -p ${XDG_CONFIG_HOME}
+    export XDG_DATA_HOME=${PWD}/.helm/data && mkdir -p ${XDG_DATA_HOME}
     install_helm
     package_test_charts
 }
@@ -17,7 +19,11 @@ install_helm() {
     if [ ! -f "testbin/helm" ]; then
         mkdir -p testbin/
         [ "$(uname)" == "Darwin" ] && PLATFORM="darwin" || PLATFORM="linux"
-        TARBALL="helm-v${HELM_VERSION}-${PLATFORM}-amd64.tar.gz"
+        ARCH="amd64"
+        if [ `uname -m` == "arm64" ]; then
+            ARCH="arm64"
+        fi
+        TARBALL="helm-v${HELM_VERSION}-${PLATFORM}-${ARCH}.tar.gz"
         wget "https://get.helm.sh/${TARBALL}" || \
           curl -O "https://get.helm.sh/${TARBALL}"
         tar -C testbin/ -xzf $TARBALL
@@ -28,10 +34,9 @@ install_helm() {
         rm -rf $UNCOMPRESSED_DIR
         chmod +x ./helm
         popd
-        helm init --client-only
 
         # remove any repos that come out-of-the-box (i.e. "stable")
-        helm repo list | sed -n '1!p' | awk '{print $1}' | xargs helm repo remove
+        helm repo list | sed -n '1!p' | awk '{print $1}' | xargs helm repo remove || true
     fi
 }
 
@@ -49,11 +54,7 @@ package_test_charts() {
     pushd testdata/badcharts/
     for d in $(find . -maxdepth 1 -mindepth 1 -type d); do
         pushd $d
-        # TODO: remove in v0.14.0. We do not generate .prov file for this chart
-        # since prov validation is not enabled, and it breaks acceptance tests
-        if grep "mybadsemver2chart" Chart.yaml; then
-            helm package . || true
-        fi
+        helm package .
         popd
     done
 }
