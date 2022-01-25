@@ -1,4 +1,0 @@
-apiVersion: v1
-name: mybadsemver2chart
-version: 0.x.x
-
