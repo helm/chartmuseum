@@ -67,8 +67,7 @@ type (
 		CORSAllowOrigin        string
 		ReadTimeout            int
 		WriteTimeout           int
-		// EnforceSemver2 represents if the museum server always accept the Chart with [valid semantic version 2](https://semver.org/)
-		// More refers to : https://github.com/helm/chartmuseum/issues/320
+		// EnforceSemver was deprecated, see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2 bool
 		CacheInterval  time.Duration
 		Host           string
@@ -139,9 +138,11 @@ func NewServer(options ServerOptions) (Server, error) {
 		UseStatefiles:          options.UseStatefiles,
 		AllowOverwrite:         options.AllowOverwrite,
 		AllowForceOverwrite:    options.AllowForceOverwrite,
-		EnforceSemver2:         options.EnforceSemver2,
 		Version:                options.Version,
 		CacheInterval:          options.CacheInterval,
+		// Deprecated options
+		// EnforceSemver2 - see https://github.com/helm/chartmuseum/issues/485 for more info
+		EnforceSemver2: options.EnforceSemver2,
 	})
 
 	return server, err

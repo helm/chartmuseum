@@ -18,13 +18,14 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/chartmuseum/storage"
 	"helm.sh/chartmuseum/pkg/cache"
 	"helm.sh/chartmuseum/pkg/chartmuseum"
 	"helm.sh/chartmuseum/pkg/config"
-	"log"
-	"os"
-	"strings"
 
 	"github.com/urfave/cli"
 )
