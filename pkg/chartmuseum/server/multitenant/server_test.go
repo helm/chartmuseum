@@ -44,6 +44,7 @@ var maxUploadSize = 1024 * 1024 * 20
 // These are generated from scripts/setup-test-environment.sh
 var testTarballPath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz"
 var testTarballPathV2 = "../../../../testdata/charts/mychart/mychart-0.2.0.tgz"
+var testTarballPathV0 = "../../../../testdata/charts/mychart/mychart-0.0.1.tgz"
 var testProvfilePath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.prov"
 var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz"
 var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
@@ -64,6 +65,7 @@ type MultiTenantServerTestSuite struct {
 	MaxObjectsServer     *MultiTenantServer
 	MaxUploadSizeServer  *MultiTenantServer
 	Semver2Server        *MultiTenantServer
+	PerChartLimitServer  *MultiTenantServer
 	TempDirectory        string
 	TestTarballFilename  string
 	TestProvfileFilename string
@@ -109,6 +111,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.MaxUploadSizeServer.Router.HandleContext(c)
 	case "semver2":
 		suite.Semver2Server.Router.HandleContext(c)
+	case "per-chart-limit":
+		suite.PerChartLimitServer.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -344,6 +348,12 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.Nil(err, "no error creating new overwrite server")
 	suite.OverwriteServer = server
 
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
+		MaxUploadSize: maxUploadSize,
+	})
+
 	server, err = NewMultiTenantServer(MultiTenantServerOptions{
 		Logger:                 logger,
 		Router:                 router,
@@ -356,6 +366,27 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating semantic version server")
 	suite.Semver2Server = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
+		MaxUploadSize: maxUploadSize,
+	})
+
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
+		EnableAPI:              true,
+		AllowOverwrite:         true,
+		ChartPostFormFieldName: "chart",
+		CacheInterval:          time.Duration(time.Second),
+		PerChartLimit:          2,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating per-chart-limit server")
+	suite.PerChartLimitServer = server
 
 	router = cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:        logger,
@@ -775,6 +806,38 @@ func (suite *MultiTenantServerTestSuite) TestMaxObjectsServer() {
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("maxobjects", "POST", "/api/prov", body, "")
 	suite.Equal(507, res.Status(), "507 POST /api/prov")
+}
+
+func (suite *MultiTenantServerTestSuite) TestPerChartLimit() {
+	ns := "per-chart-limit"
+	content, err := ioutil.ReadFile(testTarballPathV0)
+	suite.Nil(err, "no error opening test tarball")
+	body := bytes.NewBuffer(content)
+	res := suite.doRequest(ns, "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	content, err = ioutil.ReadFile(testTarballPathV2)
+	suite.Nil(err, "no error opening test tarball")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest(ns, "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	content, err = ioutil.ReadFile(testTarballPath)
+	suite.Nil(err, "no error opening test tarball")
+	body = bytes.NewBuffer(content)
+	res = suite.doRequest(ns, "POST", "/api/charts", body, "")
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	time.Sleep(time.Second)
+
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.2.0", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-0.2.0")
+
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-0.1.0")
+
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.0.1", nil, "")
+	suite.Equal(404, res.Status(), "200 GET /api/charts/mychart-0.0.1")
 }
 
 func (suite *MultiTenantServerTestSuite) TestMaxUploadSizeServer() {

@@ -21,10 +21,14 @@ import (
 	"net/http"
 	pathutil "path/filepath"
 	"sort"
+	"strings"
 
+	"github.com/chartmuseum/storage"
+	"github.com/gin-gonic/gin"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
+	"helm.sh/helm/v3/pkg/chart"
 	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
@@ -130,8 +134,7 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	log(cm_logger.DebugLevel, "Adding package to storage",
 		"package", filename,
 	)
-	err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
-	if err != nil {
+	if err := server.PutWithLimit(&gin.Context{}, log, repo, filename, content); err != nil {
 		return filename, &HTTPError{http.StatusInternalServerError, err.Error()}
 	}
 	if found {
@@ -198,4 +201,77 @@ func (server *MultiTenantServer) checkStorageLimit(repo string, filename string,
 		}
 	}
 	return false, nil
+}
+
+func extractFromChart(content []byte) (name string, version string, err error) {
+	cv, err := cm_repo.ChartVersionFromStorageObject(storage.Object{
+		Content: content,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	return cv.Metadata.Name, cv.Metadata.Version, nil
+}
+
+func (server *MultiTenantServer) PutWithLimit(ctx *gin.Context, log cm_logger.LoggingFn, repo string,
+	filename string, content []byte) error {
+	if server.ChartLimits == nil {
+		log(cm_logger.DebugLevel, "PutWithLimit: per-chart-limit not set")
+		return server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
+	}
+	limit := server.ChartLimits.Limit
+	name, _, err := extractFromChart(content)
+	if err != nil {
+		return err
+	}
+	// lock the backend storage resource to always get the correct one
+	server.ChartLimits.Lock()
+	defer server.ChartLimits.Unlock()
+	// clean the oldest chart(both index and storage)
+	// storage cache first
+	objs, err := server.StorageBackend.ListObjects(repo)
+	if err != nil {
+		return err
+	}
+	var newObjs []storage.Object
+	for _, obj := range objs {
+		if !strings.HasPrefix(obj.Path, name) || strings.HasSuffix(obj.Path, ".prov") {
+			continue
+		}
+		log(cm_logger.DebugLevel, "PutWithLimit", "current object name", obj.Path)
+		newObjs = append(newObjs, obj)
+	}
+	if len(newObjs) < limit {
+		log(cm_logger.DebugLevel, "PutWithLimit", "current objects", len(newObjs))
+		return server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
+	}
+	sort.Slice(newObjs, func(i, j int) bool {
+		return newObjs[i].LastModified.Unix() < newObjs[j].LastModified.Unix()
+	})
+
+	log(cm_logger.DebugLevel, "PutWithLimit", "old chart", newObjs[0].Path)
+	// should we support delete N out-of-date charts ?
+	// and should we must ensure the delete operation is ok ?
+	o, err := server.StorageBackend.GetObject(pathutil.Join(repo, newObjs[0].Path))
+	if err != nil {
+		return err
+	}
+	if err := server.StorageBackend.DeleteObject(pathutil.Join(repo, newObjs[0].Path)); err != nil {
+		return fmt.Errorf("PutWithLimit: clean the old chart: %w", err)
+	}
+	cv, err := cm_repo.ChartVersionFromStorageObject(o)
+	if err != nil {
+		return fmt.Errorf("PutWithLimit: extract chartversion from storage object: %w", err)
+	}
+	if err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content); err != nil {
+		return fmt.Errorf("PutWithLimit: put new chart: %w", err)
+	}
+	go server.emitEvent(ctx, repo, deleteChart, &helm_repo.ChartVersion{
+		Metadata: &chart.Metadata{
+			Name:    cv.Name,
+			Version: cv.Version,
+		},
+		Removed: true,
+	})
+	return nil
 }
