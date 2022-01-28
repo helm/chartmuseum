@@ -25,6 +25,7 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/urfave/cli"
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 )
 
 type (
@@ -82,6 +83,14 @@ func (conf *Config) UpdateFromCLIContext(c *cli.Context) error {
 	return nil
 }
 
+func (conf *Config) ShowDeprecationWarnings(c *cli.Context, logger *cm_logger.Logger) {
+	deprecatedOptions := []string{}
+	deprecationCheck(c, configVars, &deprecatedOptions)
+	for _, name := range deprecatedOptions {
+		logger.Warnf("The configuration option %s has been deprecated", name)
+	}
+}
+
 func (conf *Config) readConfigFileFromCLIContext(c *cli.Context) error {
 	if confFilePath := c.String("config"); confFilePath != "" {
 		if _, err := os.Stat(confFilePath); os.IsNotExist(err) {
@@ -106,5 +115,17 @@ func (conf *Config) readConfigFileFromCLIContext(c *cli.Context) error {
 func (conf *Config) setDefaults() {
 	for key, configVar := range configVars {
 		conf.SetDefault(key, configVar.Default)
+	}
+}
+
+func deprecationCheck(c *cli.Context, configVars map[string]configVar, deprecatedOptions *[]string) {
+	for _, configVar := range configVars {
+		if flag := configVar.CLIFlag; flag != nil {
+			if name := flag.GetName(); c.IsSet(name) {
+				if configVar.Deprecated {
+					*deprecatedOptions = append(*deprecatedOptions, name)
+				}
+			}
+		}
 	}
 }

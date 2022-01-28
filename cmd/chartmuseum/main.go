@@ -25,6 +25,7 @@ import (
 	"github.com/chartmuseum/storage"
 	"helm.sh/chartmuseum/pkg/cache"
 	"helm.sh/chartmuseum/pkg/chartmuseum"
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	"helm.sh/chartmuseum/pkg/config"
 
 	"github.com/urfave/cli"
@@ -59,6 +60,16 @@ func cliHandler(c *cli.Context) {
 		crash(err)
 	}
 
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug:   conf.GetBool("debug"),
+		LogJSON: conf.GetBool("logjson"),
+	})
+	if err != nil {
+		crash(err)
+	}
+
+	conf.ShowDeprecationWarnings(c, logger)
+
 	backend := backendFromConfig(conf)
 	store := storeFromConfig(conf)
 
@@ -66,6 +77,7 @@ func cliHandler(c *cli.Context) {
 		Version:                Version,
 		StorageBackend:         backend,
 		ExternalCacheStore:     store,
+		Logger:                 logger,
 		TimestampTolerance:     conf.GetDuration("storage.timestamptolerance"),
 		ChartURL:               conf.GetString("charturl"),
 		TlsCert:                conf.GetString("tls.cert"),
@@ -76,10 +88,8 @@ func cliHandler(c *cli.Context) {
 		ChartPostFormFieldName: conf.GetString("chartpostformfieldname"),
 		ProvPostFormFieldName:  conf.GetString("provpostformfieldname"),
 		ContextPath:            conf.GetString("contextpath"),
-		LogJSON:                conf.GetBool("logjson"),
 		LogHealth:              conf.GetBool("loghealth"),
 		LogLatencyInteger:      conf.GetBool("loglatencyinteger"),
-		Debug:                  conf.GetBool("debug"),
 		EnableAPI:              !conf.GetBool("disableapi"),
 		DisableDelete:          conf.GetBool("disabledelete"),
 		UseStatefiles:          !conf.GetBool("disablestatefiles"),
@@ -96,7 +106,7 @@ func cliHandler(c *cli.Context) {
 		AuthRealm:              conf.GetString("authrealm"),
 		AuthService:            conf.GetString("authservice"),
 		AuthCertPath:           conf.GetString("authcertpath"),
-		AuthActionsSearchPath: 	conf.GetString("authactionssearchpath"),
+		AuthActionsSearchPath:  conf.GetString("authactionssearchpath"),
 		DepthDynamic:           conf.GetBool("depthdynamic"),
 		CORSAllowOrigin:        conf.GetString("cors.alloworigin"),
 		WriteTimeout:           conf.GetInt("writetimeout"),
