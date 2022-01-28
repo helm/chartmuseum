@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/chartmuseum/storage"
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -45,8 +46,14 @@ func (suite *ServerTestSuite) TearDownSuite() {
 }
 
 func (suite *ServerTestSuite) TestNewServer() {
+	log, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug:   true,
+		LogJSON: true,
+	})
+	suite.Nil(err, "no error creating logger")
 	serverOptions := ServerOptions{
 		StorageBackend: suite.Backend,
+		Logger:         log,
 	}
 
 	multiTenantServer, err := NewServer(serverOptions)

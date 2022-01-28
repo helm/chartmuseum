@@ -58,7 +58,6 @@ type (
 		APIEnabled             bool
 		DisableDelete          bool
 		UseStatefiles          bool
-		EnforceSemver2         bool
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
@@ -68,6 +67,8 @@ type (
 		TenantCacheKeyLock     *sync.Mutex
 		CacheInterval          time.Duration
 		EventChan              chan event
+		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
+		EnforceSemver2 bool
 	}
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
@@ -89,8 +90,9 @@ type (
 		EnableAPI              bool
 		DisableDelete          bool
 		UseStatefiles          bool
-		EnforceSemver2         bool
 		CacheInterval          time.Duration
+		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
+		EnforceSemver2 bool
 	}
 
 	tenantInternals struct {
