@@ -179,6 +179,13 @@ checksum:
 		shasum -a 256 "$${f}" | sed 's/_dist\///' > "$${f}.sha256sum" ; \
 	done
 
+.PHONY: cosign
+cosign:
+	for f in $$(ls _dist/*.{gz,zip,sha256sum} 2>/dev/null) ; do \
+		echo "Creating $${f}.sig" ; \
+		cosign sign-blob --output-file "$${f}.sig" "$${f}"; \
+	done
+
 .PHONY: sign
 sign:
 	for f in $$(ls _dist/*.{gz,zip,sha256sum} 2>/dev/null) ; do \
