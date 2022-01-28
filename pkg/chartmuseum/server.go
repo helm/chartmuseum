@@ -33,6 +33,7 @@ type (
 		StorageBackend         storage.Backend
 		ExternalCacheStore     cache.Store
 		TimestampTolerance     time.Duration
+		Logger                 *cm_logger.Logger
 		ChartURL               string
 		TlsCert                string
 		TlsKey                 string
@@ -42,10 +43,8 @@ type (
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 		ContextPath            string
-		LogJSON                bool
 		LogHealth              bool
 		LogLatencyInteger      bool
-		Debug                  bool
 		EnableAPI              bool
 		UseStatefiles          bool
 		AllowOverwrite         bool
@@ -67,14 +66,18 @@ type (
 		CORSAllowOrigin        string
 		ReadTimeout            int
 		WriteTimeout           int
-		// EnforceSemver was deprecated, see https://github.com/helm/chartmuseum/issues/485 for more info
-		EnforceSemver2 bool
-		CacheInterval  time.Duration
-		Host           string
-		Version        string
+		CacheInterval          time.Duration
+		Host                   string
+		Version                string
 		// PerChartLimit allow museum server to keep max N version Charts
 		// And avoid swelling too large(if so , the index genertion will become slow)
 		PerChartLimit int
+		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
+		EnforceSemver2 bool
+		// Deprecated: Debug is no longer effective. ServerOptions now requires the Logger field to be set and configured with LoggerOptions accordingly.
+		Debug bool
+		// Deprecated: LogJSON is no longer effective. ServerOptions now requires the Logger field to be set and configured with LoggerOptions accordingly.
+		LogJSON bool
 	}
 
 	// Server is a generic interface for web servers
@@ -85,21 +88,13 @@ type (
 
 // NewServer creates a new Server instance
 func NewServer(options ServerOptions) (Server, error) {
-	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
-		Debug:   options.Debug,
-		LogJSON: options.LogJSON,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	contextPath := strings.TrimSuffix(options.ContextPath, "/")
 	if contextPath != "" && !strings.HasPrefix(contextPath, "/") {
 		contextPath = "/" + contextPath
 	}
 
 	router := cm_router.NewRouter(cm_router.RouterOptions{
-		Logger:                logger,
+		Logger:                options.Logger,
 		LogLatencyInteger:     options.LogLatencyInteger,
 		Username:              options.Username,
 		Password:              options.Password,
@@ -125,7 +120,7 @@ func NewServer(options ServerOptions) (Server, error) {
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
-		Logger:                 logger,
+		Logger:                 options.Logger,
 		Router:                 router,
 		StorageBackend:         options.StorageBackend,
 		ExternalCacheStore:     options.ExternalCacheStore,

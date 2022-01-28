@@ -24,9 +24,10 @@ import (
 
 type (
 	configVar struct {
-		Type    configVarType
-		Default interface{}
-		CLIFlag cli.Flag
+		Type       configVarType
+		Default    interface{}
+		CLIFlag    cli.Flag
+		Deprecated bool
 	}
 
 	configVarType string
@@ -756,6 +757,7 @@ var configVars = map[string]configVar{
 			Usage:  "(deprecated) enforce the chart museum server only accepts the valid chart version as Helm does",
 			EnvVar: "ENFORCE_SEMVER2",
 		},
+		Deprecated: true,
 	},
 	"cacheinterval": {
 		Type:    durationType,

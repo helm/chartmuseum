@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.5.0
-	github.com/chartmuseum/storage v0.12.1
+	github.com/chartmuseum/storage v0.12.2
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/size v0.0.0-20220102055520-f75bacbc2df3
 	github.com/gin-gonic/gin v1.7.7
@@ -40,7 +40,7 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.0+incompatible // indirect
-	github.com/aws/aws-sdk-go v1.42.41 // indirect
+	github.com/aws/aws-sdk-go v1.42.43 // indirect
 	github.com/baidubce/bce-sdk-go v0.9.105 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect

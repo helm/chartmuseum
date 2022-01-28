@@ -57,7 +57,6 @@ type (
 		APIEnabled             bool
 		DisableDelete          bool
 		UseStatefiles          bool
-		EnforceSemver2         bool
 		ChartURL               string
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
@@ -68,6 +67,8 @@ type (
 		CacheInterval          time.Duration
 		EventChan              chan event
 		ChartLimits            *ObjectsPerChartLimit
+		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
+		EnforceSemver2 bool
 	}
 
 	ObjectsPerChartLimit struct {
@@ -94,9 +95,10 @@ type (
 		EnableAPI              bool
 		DisableDelete          bool
 		UseStatefiles          bool
-		EnforceSemver2         bool
 		CacheInterval          time.Duration
 		PerChartLimit          int
+		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
+		EnforceSemver2 bool
 	}
 
 	tenantInternals struct {
