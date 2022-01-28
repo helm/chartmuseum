@@ -47,11 +47,16 @@ jobs:
           echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
             --build-arg revision=$(git rev-parse --short HEAD) \
             ${TAGS} .
+      - name: Install sigstore cosign
+        uses: sigstore/cosign-installer@1e95c1de343b5b0c23352d6417ee3e48d5bcd422
+        with:
+          cosign-release: 'v1.5.0'
       - name: Release artifacts
         id: release-artifacts
         env:
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          COSIGN_EXPERIMENTAL: "true"
         run: |
           VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh
       - name: Set up QEMU
@@ -77,10 +82,6 @@ jobs:
       - name: Docker Buildx (push)
         run: |
           docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
-      - name: Install sigstore cosign
-        uses: sigstore/cosign-installer@1e95c1de343b5b0c23352d6417ee3e48d5bcd422
-        with:
-          cosign-release: 'v1.5.0'
       - name: Sign the published Docker images (via GitHub OIDC token)
         env:
           COSIGN_EXPERIMENTAL: "true"

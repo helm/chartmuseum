@@ -10,8 +10,8 @@
 
 Works as a valid Helm Chart Repository, and also provides an API for uploading charts.
 
-<img width="120" align="right" src="https://github.com/golang-samples/gopher-vector/raw/master/gopher-side_color.png">
-<img width="40" align="right" src="https://github.com/golang-samples/gopher-vector/raw/master/gopher-side_color.png">
+<img width="120" align="right" src="https://github.com/redblue9771/gopher-vector/raw/master/gopher-side_color.png">
+<img width="40" align="right" src="https://github.com/redblue9771/gopher-vector/raw/master/gopher-side_color.png">
 
 Powered by some great Go technology:
 - [helm/helm](https://github.com/helm/helm) - for working with charts
