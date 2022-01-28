@@ -43,10 +43,8 @@ type (
 		ChartPostFormFieldName string
 		ProvPostFormFieldName  string
 		ContextPath            string
-		LogJSON                bool
 		LogHealth              bool
 		LogLatencyInteger      bool
-		Debug                  bool
 		EnableAPI              bool
 		UseStatefiles          bool
 		AllowOverwrite         bool
@@ -73,6 +71,10 @@ type (
 		Version                string
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2 bool
+		// Deprecated: Debug is no longer effective. ServerOptions now requires the Logger field to be set and configured with LoggerOptions accordingly.
+		Debug bool
+		// Deprecated: LogJSON is no longer effective. ServerOptions now requires the Logger field to be set and configured with LoggerOptions accordingly.
+		LogJSON bool
 	}
 
 	// Server is a generic interface for web servers
