@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
-RELEASE=${RELEASE:-$2}
+set -euo pipefail
+: ${VERSION:?"VERSION environment variable is not set"}
 
-cd _dist
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR/../
+mkdir -p ./_dist/
+pushd ./_dist/
 
 # Initialize the configuration file
 cat << EOF > .sbom.yaml
@@ -21,15 +25,15 @@ for file in $(ls *.{gz,zip});
     echo "    source: ${file}" >> .sbom.yaml
 done
 
-echo "Adding image ghcr.io/helm/chartmuseum:${RELEASE}"
+echo "Adding image ghcr.io/helm/chartmuseum:${VERSION}"
 echo "  - type: image" >> .sbom.yaml
-echo "    source: ghcr.io/helm/chartmuseum:${RELEASE}" >> .sbom.yaml
+echo "    source: ghcr.io/helm/chartmuseum:${VERSION}" >> .sbom.yaml
 
 echo "Wrote configuration file:"
 cat .sbom.yaml
 
-bom generate -c .sbom.yaml -o chartmuseum-${RELEASE}.spdx
+bom generate -c .sbom.yaml -o chartmuseum-${VERSION}.spdx
 
-echo "SBOM written to _dist/chartmuseum-${RELEASE}.spdx"
 rm .sbom.yaml
-
+popd
+echo "SBOM written to _dist/chartmuseum-${VERSION}.spdx"
