@@ -174,14 +174,18 @@ fetch-dist:
 #   shasum -a 256 -c chartmuseum-v0.13.1-darwin-amd64.tar.gz.sha256sum
 .PHONY: checksum
 checksum:
-	for f in $$(ls _dist/*.{gz,zip} 2>/dev/null) ; do \
+	for f in $$(ls _dist/*.{gz,spdx,zip} 2>/dev/null) ; do \
 		echo "Creating $${f}.sha256sum" ; \
 		shasum -a 256 "$${f}" | sed 's/_dist\///' > "$${f}.sha256sum" ; \
 	done
 
+.PHONY: sbom
+sbom:
+	@./scripts/sbom.sh
+
 .PHONY: cosign
 cosign:
-	for f in $$(ls _dist/*.{gz,zip,sha256sum} 2>/dev/null) ; do \
+	for f in $$(ls _dist/*.{gz,zip,sha256sum,spdx} 2>/dev/null) ; do \
 		echo "Creating $${f}.sig" ; \
 		cosign sign-blob --output-file "$${f}.sig" "$${f}"; \
 	done

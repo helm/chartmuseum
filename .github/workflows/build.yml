@@ -47,18 +47,6 @@ jobs:
           echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
             --build-arg revision=$(git rev-parse --short HEAD) \
             ${TAGS} .
-      - name: Install sigstore cosign
-        uses: sigstore/cosign-installer@1e95c1de343b5b0c23352d6417ee3e48d5bcd422
-        with:
-          cosign-release: 'v1.5.0'
-      - name: Release artifacts
-        id: release-artifacts
-        env:
-          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          COSIGN_EXPERIMENTAL: "true"
-        run: |
-          VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         with:
@@ -82,14 +70,33 @@ jobs:
       - name: Docker Buildx (push)
         run: |
           docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
-      - name: Sign the published Docker images (via GitHub OIDC token)
+      - name: Docker Check Manifest
+        run: |
+          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+      - name: Install Kubernetes SBOM Tool
+        uses: puerco/bom-installer@aa0837e37b6965b5fc50adfad0683ec3c0a2c2c4
+      - name: Install sigstore cosign
+        uses: sigstore/cosign-installer@1e95c1de343b5b0c23352d6417ee3e48d5bcd422
+        with:
+          cosign-release: 'v1.5.0'
+      - name: Release artifacts (includes SBOM and signatures)
+        id: release-artifacts
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh
+      - name: Sign the published images (via GitHub OIDC token)
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
           cosign sign ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
-      - name: Docker Check Manifest
+      - name: Attach SBOM to published images
+        env:
+          COSIGN_EXPERIMENTAL: "true"
         run: |
-          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+          cosign attach sbom --sbom _dist/chartmuseum-${{ steps.prepare.outputs.version }}.spdx ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
       - name: Clear
         if: always()
         run: |

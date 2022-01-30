@@ -89,6 +89,8 @@ Download ChartMuseum ${RELEASE}. The common platform binaries are here:
 - [Linux s390x](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz) ([archive sig](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz.sig) / [checksum](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz.sha256sum) / [checksum sig](https://get.helm.sh/chartmuseum-${RELEASE}-linux-s390x.tar.gz.sha256sum.sig) / $(cat _dist/chartmuseum-${RELEASE}-linux-s390x.tar.gz.sha256sum | awk '{print $1}'))
 - [Windows amd64](https://get.helm.sh/chartmuseum-${RELEASE}-windows-amd64.zip) ([archive sig](https://get.helm.sh/chartmuseum-${RELEASE}-windows-amd64.zip.sig) / [checksum](https://get.helm.sh/chartmuseum-${RELEASE}-windows-amd64.zip.sha256sum) / [checksum sig](https://get.helm.sh/chartmuseum-${RELEASE}-windows-amd64.zip.sha256sum.sig) / $(cat _dist/chartmuseum-${RELEASE}-windows-amd64.zip.sha256sum | awk '{print $1}'))
 
+You can download the SBOM for this release in SPDX format [here](https://get.helm.sh/chartmuseum-${RELEASE}.spdx).
+
 You can use a [script to install](https://raw.githubusercontent.com/helm/chartmuseum/main/scripts/get-chartmuseum) on any system with \`bash\`.
 
 ## What's Next
