@@ -11,7 +11,7 @@ pushd ./_dist/
 # Initialize the configuration file
 cat << EOF > .sbom.yaml
 ---
-namespace: https://get.helm.sh/chartmuseum-${RELEASE}.spdx
+namespace: https://get.helm.sh/chartmuseum-${VERSION}.spdx
 license: Apache-2.0
 name: ChartMuseum
 artifacts:
