@@ -101,6 +101,9 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 			}
 		}
 	}
+	if depth < 0 {
+		return nil, nil
+	}
 
 	if len(pathSplit) >= depth+startIndex {
 		repoParts := pathSplit[startIndex : depth+startIndex]
