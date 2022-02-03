@@ -70,7 +70,6 @@ func (suite *MatchTestSuite) TestMatch() {
 		}
 
 		for _, contextPath := range []string{"", "/x", "/x/y", "/x/y/z"} {
-
 			// GET /
 			r := pathutil.Join("/", contextPath)
 			route, params := match(routes, "GET", r, contextPath, depth, false)
@@ -86,6 +85,12 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists := c.Get("index")
 			suite.True(exists)
 			suite.Equal(0, val)
+
+			// GET /favicon
+			// This route should not exist and not cause a panic with dynamic depth enabled
+			r = pathutil.Join("/", contextPath, "favicon")
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
+			suite.Nil(routeWithDepthDynamic)
 
 			// GET /health
 			r = pathutil.Join("/", contextPath, "health")
