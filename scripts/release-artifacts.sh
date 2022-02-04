@@ -18,6 +18,8 @@ set -euo pipefail
 : ${AZURE_STORAGE_CONNECTION_STRING:?"AZURE_STORAGE_CONNECTION_STRING environment variable is not set"}
 : ${AZURE_STORAGE_CONTAINER_NAME:?"AZURE_STORAGE_CONTAINER_NAME environment variable is not set"}
 : ${VERSION:?"VERSION environment variable is not set"}
+# SKIP_BUILD is used in CI since make build-cross is ran prior to this script in order for other steps to reuse the build artifacts
+SKIP_BUILD=${SKIP_BUILD:-false}
 
 echo "Installing Azure CLI"
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ stretch main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
@@ -26,8 +28,12 @@ sudo apt install apt-transport-https
 sudo apt update
 sudo apt install azure-cli
 
-echo "Building chartmuseum binaries"
-make build-cross
+if ! ${SKIP_BUILD}
+then
+    echo "Building chartmuseum binaries"
+    make build-cross
+fi
+
 make dist sbom checksum cosign VERSION="${VERSION}"
 
 echo "Pushing binaries to Azure"
