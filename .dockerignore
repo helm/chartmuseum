@@ -2,9 +2,6 @@
 
 *
 
-# Bring in our source code and dependency listings
+# Bring in our binary
 
-!go.mod
-!go.sum
-!cmd/**
-!pkg/**
+!_dist/linux-*
