@@ -37,7 +37,7 @@ else
     PLATFORM="linux"
 fi
 
-export PATH="$PWD/testbin:$PWD/bin/$PLATFORM/$ARCH:$PATH"
+export PATH="$PWD/testbin:$PWD/bin/$PLATFORM/$ARCH:$PWD/_dist/$PLATFORM-$ARCH:$PATH"
 
 mkdir -p .robot/
 
