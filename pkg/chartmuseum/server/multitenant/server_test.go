@@ -658,9 +658,9 @@ func (suite *MultiTenantServerTestSuite) TestDisabledDeleteServer() {
 }
 
 func (suite *MultiTenantServerTestSuite) extractRepoEntryFromInternalCache(repo string) *cacheEntry {
-	local, ok := suite.OverwriteServer.InternalCacheStore[repo]
+	local, ok := suite.OverwriteServer.InternalCacheStore.Load(repo)
 	if ok {
-		return local
+		return local.(*cacheEntry)
 	}
 	return nil
 }

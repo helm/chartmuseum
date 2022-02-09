@@ -49,7 +49,7 @@ type (
 		StorageBackend         cm_storage.Backend
 		TimestampTolerance     time.Duration
 		ExternalCacheStore     cache.Store
-		InternalCacheStore     map[string]*cacheEntry
+		InternalCacheStore     sync.Map
 		MaxStorageObjects      int
 		IndexLimit             int
 		AllowOverwrite         bool
@@ -139,7 +139,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		StorageBackend:         options.StorageBackend,
 		TimestampTolerance:     options.TimestampTolerance,
 		ExternalCacheStore:     options.ExternalCacheStore,
-		InternalCacheStore:     map[string]*cacheEntry{},
+		InternalCacheStore:     sync.Map{},
 		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
 		ChartURL:               chartURL,

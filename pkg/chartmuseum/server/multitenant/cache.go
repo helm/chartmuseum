@@ -348,14 +348,15 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 
 	if server.ExternalCacheStore == nil {
 		var ok bool
-		entry, ok = server.InternalCacheStore[repo]
+		e, ok := server.InternalCacheStore.Load(repo)
+		entry, ok = e.(*cacheEntry)
 		if !ok {
 			repoIndex := server.newRepositoryIndex(log, repo)
 			entry = &cacheEntry{
 				RepoName:  repo,
 				RepoIndex: repoIndex,
 			}
-			server.InternalCacheStore[repo] = entry
+			server.InternalCacheStore.Store(repo, entry)
 		} else {
 			log(cm_logger.DebugLevel, "Entry found in cache store",
 				"repo", repo,
@@ -399,7 +400,7 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 func (server *MultiTenantServer) saveCacheEntry(log cm_logger.LoggingFn, entry *cacheEntry) error {
 	repo := entry.RepoName
 	if server.ExternalCacheStore == nil {
-		server.InternalCacheStore[repo] = entry
+		server.InternalCacheStore.Store(repo, entry)
 		log(cm_logger.DebugLevel, EntrySavedMessage,
 			"repo", repo,
 		)
