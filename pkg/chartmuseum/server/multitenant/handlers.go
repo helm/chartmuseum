@@ -19,6 +19,7 @@ package multitenant
 import (
 	"bytes"
 	"fmt"
+	"helm.sh/helm/v3/pkg/chart/loader"
 	"io"
 	"net/http"
 	pathutil "path"
@@ -116,7 +117,57 @@ func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) 
 	}
 	c.Data(200, storageObject.ContentType, storageObject.Content)
 }
+func (server *MultiTenantServer) getStorageObjectTemplateRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	name := c.Param("name")
+	version := c.Param("version")
+	filename := fmt.Sprintf("%s-%s.tgz", name, version)
 
+	log := server.Logger.ContextLoggingFn(c)
+	storageObject, err := server.getStorageObject(log, repo, filename)
+	if err != nil {
+		c.JSON(err.Status, gin.H{"error": err.Message})
+		return
+	}
+	chrt, err1 := loader.LoadArchive(bytes.NewReader(storageObject.Content))
+	if err1 != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err1})
+		return
+	}
+	c.JSON(200, map[string]interface{}{
+		"templates": chrt.Templates,
+		"values":    chrt.Values,
+	})
+}
+func (server *MultiTenantServer) getStorageObjectValuesRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	name := c.Param("name")
+	version := c.Param("version")
+	filename := fmt.Sprintf("%s-%s.tgz", name, version)
+
+	log := server.Logger.ContextLoggingFn(c)
+	storageObject, err := server.getStorageObject(log, repo, filename)
+	if err != nil {
+		c.JSON(err.Status, gin.H{"error": err.Message})
+		return
+	}
+	chrt, err1 := loader.LoadArchive(bytes.NewReader(storageObject.Content))
+	if err1 != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err1})
+		return
+	}
+	var data []byte
+	for _, file := range chrt.Raw {
+		if file.Name == "values.yaml" {
+			data = file.Data
+		}
+	}
+	if data == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "values.yaml not found"})
+		return
+	}
+	c.Data(200, "application/yaml", data)
+}
 func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	offset := 0
