@@ -121,10 +121,16 @@ func (server *MultiTenantServer) getStorageObjectTemplateRequestHandler(c *gin.C
 	repo := c.Param("repo")
 	name := c.Param("name")
 	version := c.Param("version")
-	filename := fmt.Sprintf("%s-%s.tgz", name, version)
 
 	log := server.Logger.ContextLoggingFn(c)
-	storageObject, err := server.getStorageObject(log, repo, filename)
+
+	fileName, err := server.getChartFileName(log, repo, name, version)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Message})
+		return
+	}
+
+	storageObject, err := server.getStorageObject(log, repo, fileName)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
@@ -139,14 +145,21 @@ func (server *MultiTenantServer) getStorageObjectTemplateRequestHandler(c *gin.C
 		"values":    chrt.Values,
 	})
 }
+
 func (server *MultiTenantServer) getStorageObjectValuesRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
 	version := c.Param("version")
-	filename := fmt.Sprintf("%s-%s.tgz", name, version)
 
 	log := server.Logger.ContextLoggingFn(c)
-	storageObject, err := server.getStorageObject(log, repo, filename)
+
+	fileName, err := server.getChartFileName(log, repo, name, version)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Message})
+		return
+	}
+
+	storageObject, err := server.getStorageObject(log, repo, fileName)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
