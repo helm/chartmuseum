@@ -101,7 +101,7 @@ var configVars = map[string]configVar{
 	},
 	"enablemetrics": {
 		Type:    boolType,
-		Default: false,
+		Default: true,
 		CLIFlag: cli.BoolFlag{
 			Name:   "enable-metrics",
 			Usage:  "enable Prometheus metrics",
