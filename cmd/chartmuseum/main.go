@@ -95,7 +95,7 @@ func cliHandler(c *cli.Context) {
 		UseStatefiles:          !conf.GetBool("disablestatefiles"),
 		AllowOverwrite:         conf.GetBool("allowoverwrite"),
 		AllowForceOverwrite:    !conf.GetBool("disableforceoverwrite"),
-		EnableMetrics:          !conf.GetBool("enablemetrics"),
+		EnableMetrics:          conf.GetBool("enablemetrics"),
 		AnonymousGet:           conf.GetBool("authanonymousget"),
 		GenIndex:               conf.GetBool("genindex"),
 		MaxStorageObjects:      conf.GetInt("maxstorageobjects"),
