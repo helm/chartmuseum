@@ -1014,10 +1014,10 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/charts/mychart/latest/templates", apiPrefix))
 
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/mychart/0.1.1/templates", apiPrefix), nil, "")
-	suite.Equal(404, res.Status(), fmt.Sprintf("200 GET %s/charts/mychart/0.1.1/templates", apiPrefix))
+	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/charts/mychart/0.1.1/templates", apiPrefix))
 
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/fakechart/0.1.0/templates", apiPrefix), nil, "")
-	suite.Equal(404, res.Status(), fmt.Sprintf("200 GET %s/charts/fakechart/0.1.0/templates", apiPrefix))
+	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/charts/fakechart/0.1.0/templates", apiPrefix))
 
 	// GET /api/:repo/charts/:name/:version/values
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/mychart/0.1.0/values", apiPrefix), nil, "")
@@ -1027,10 +1027,10 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/charts/mychart/latest/values", apiPrefix))
 
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/mychart/0.1.1/values", apiPrefix), nil, "")
-	suite.Equal(404, res.Status(), fmt.Sprintf("200 GET %s/charts/mychart/0.1.1/values", apiPrefix))
+	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/charts/mychart/0.1.1/values", apiPrefix))
 
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/fakechart/0.1.0/values", apiPrefix), nil, "")
-	suite.Equal(404, res.Status(), fmt.Sprintf("200 GET %s/charts/fakechart/0.1.0/values", apiPrefix))
+	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/charts/fakechart/0.1.0/values", apiPrefix))
 
 	// HEAD /api/:repo/charts/:name/:version
 	res = suite.doRequest(stype, "HEAD", fmt.Sprintf("%s/charts/mychart/0.1.0", apiPrefix), nil, "")
