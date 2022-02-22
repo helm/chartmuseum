@@ -94,7 +94,7 @@ var configVars = map[string]configVar{
 		Default: false,
 		CLIFlag: cli.BoolFlag{
 			Name:   "disable-metrics",
-			Usage:  "(deprecated)disable Prometheus metrics",
+			Usage:  "(deprecated) disable Prometheus metrics",
 			EnvVar: "DISABLE_METRICS",
 		},
 		Deprecated: true,
