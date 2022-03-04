@@ -8,7 +8,7 @@ mkdir .cover/ .test/
 trap "rm -rf .test/" EXIT
 
 for pkg in `go list ./... | grep -v /vendor/`; do
-    go test -v -covermode=atomic \
+    CGO_ENABLED=1 go test -race -v -covermode=atomic \
         -coverprofile=".cover/$(echo $pkg | sed 's/\//_/g').cover.out" $pkg
 done
 

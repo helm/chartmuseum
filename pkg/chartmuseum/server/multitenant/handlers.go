@@ -122,6 +122,8 @@ func (server *MultiTenantServer) getIndexFileRequestHandler(c *gin.Context) {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
+	indexFile.IndexLock.RLock()
+	defer indexFile.IndexLock.RUnlock()
 	c.Data(200, indexFileContentType, indexFile.Raw)
 }
 

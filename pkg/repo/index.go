@@ -17,6 +17,7 @@ limitations under the License.
 package repo
 
 import (
+	"sync"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -49,6 +50,7 @@ type (
 		RepoName   string `json:"b"`
 		Raw        []byte `json:"c"`
 		ChartURL   string `json:"d"`
+		IndexLock sync.RWMutex
 	}
 )
 
@@ -58,7 +60,7 @@ func NewIndex(chartURL string, repo string, serverInfo *ServerInfo) *Index {
 		IndexFile:  &helm_repo.IndexFile{},
 		ServerInfo: serverInfo,
 	}
-	index := Index{indexFile, repo, []byte{}, chartURL}
+	index := Index{indexFile, repo, []byte{}, chartURL, sync.RWMutex{}}
 	index.Entries = map[string]helm_repo.ChartVersions{}
 	index.APIVersion = helm_repo.APIVersionV1
 	index.Regenerate()
@@ -73,6 +75,8 @@ func (index *Index) Regenerate() error {
 	if err != nil {
 		return err
 	}
+	index.IndexLock.Lock()
+	defer index.IndexLock.Unlock()
 	index.Raw = raw
 	index.updateMetrics()
 	return nil
