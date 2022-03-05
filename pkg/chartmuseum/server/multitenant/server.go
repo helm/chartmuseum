@@ -19,16 +19,16 @@ package multitenant
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
+	cm_storage "github.com/chartmuseum/storage"
+	"github.com/gin-gonic/gin"
 	"helm.sh/chartmuseum/pkg/cache"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
-
-	cm_storage "github.com/chartmuseum/storage"
-	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -68,7 +68,8 @@ type (
 		EventChan              chan event
 		ChartLimits            *ObjectsPerChartLimit
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
-		EnforceSemver2 bool
+		EnforceSemver2  bool
+		WebTemplatePath string
 	}
 
 	ObjectsPerChartLimit struct {
@@ -98,7 +99,8 @@ type (
 		CacheInterval          time.Duration
 		PerChartLimit          int
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
-		EnforceSemver2 bool
+		EnforceSemver2  bool
+		WebTemplatePath string
 	}
 
 	tenantInternals struct {
@@ -157,6 +159,17 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		TenantCacheKeyLock:     &sync.Mutex{},
 		CacheInterval:          options.CacheInterval,
 		ChartLimits:            l,
+		WebTemplatePath:        options.WebTemplatePath,
+	}
+
+	if server.WebTemplatePath != "" {
+		// check if template file exists to avoid panic when calling LoadHTMLGlob
+		templateFilesExist := server.CheckTemplateFilesExist(server.WebTemplatePath, server.Logger)
+		if templateFilesExist {
+			server.Router.LoadHTMLGlob(fmt.Sprintf("%s/*.html", server.WebTemplatePath))
+		} else {
+			server.Logger.Warnf("No template files found in %s", server.WebTemplatePath)
+		}
 	}
 
 	server.Router.SetRoutes(server.Routes())
@@ -186,4 +199,24 @@ func (server *MultiTenantServer) genIndex() {
 	}
 	echo(string(entry.RepoIndex.Raw[:]))
 	exit(0)
+}
+
+func (server *MultiTenantServer) CheckTemplateFilesExist(path string, logger *cm_logger.Logger) bool {
+	// check if template file exists
+	webTemplateFolder, err := os.Open(path)
+	if err != nil {
+		logger.Errorf("Failed to open template folder %s", path)
+		return false
+	}
+	templates, err := webTemplateFolder.Readdir(0)
+	if err != nil {
+		server.Logger.Errorf("Error reading template files from %s", path)
+		return false
+	}
+	for _, template := range templates {
+		if strings.HasSuffix(template.Name(), ".html") {
+			return true
+		}
+	}
+	return false
 }

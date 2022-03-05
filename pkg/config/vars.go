@@ -796,6 +796,15 @@ var configVars = map[string]configVar{
 			EnvVar: "PER_CHART_LIMIT",
 		},
 	},
+	"web-template-path": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "web-template-path",
+			Usage:  "path to the folder, which contains the custom welcome page",
+			EnvVar: "WEB_TEMPLATE_PATH",
+		},
+	},
 }
 
 func populateCLIFlags() {
