@@ -105,7 +105,6 @@ type (
 
 	tenantInternals struct {
 		FetchedObjectsLock      *sync.Mutex
-		RegenerationLock        *sync.Mutex
 		FetchedObjectsChans     []chan fetchedObjects
 		RegeneratedIndexesChans []chan indexRegeneration
 	}

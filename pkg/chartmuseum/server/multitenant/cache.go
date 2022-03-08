@@ -130,20 +130,15 @@ func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.Logging
 	ch := make(chan indexRegeneration, 1)
 	tenant := server.Tenants[entry.RepoName]
 
-	tenant.RegenerationLock.Lock()
 	tenant.RegeneratedIndexesChans = append(tenant.RegeneratedIndexesChans, ch)
 
 	if len(tenant.RegeneratedIndexesChans) == 1 {
-		tenant.RegenerationLock.Unlock()
 		index, err := server.regenerateRepositoryIndexWorker(log, entry, diff)
-		tenant.RegenerationLock.Lock()
 		for _, riCh := range tenant.RegeneratedIndexesChans {
 			riCh <- indexRegeneration{index, err}
 		}
 		tenant.RegeneratedIndexesChans = nil
 	}
-
-	tenant.RegenerationLock.Unlock()
 
 	return ch
 }
@@ -349,7 +344,6 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 	if _, ok := server.Tenants[repo]; !ok {
 		server.Tenants[repo] = &tenantInternals{
 			FetchedObjectsLock: &sync.Mutex{},
-			RegenerationLock:   &sync.Mutex{},
 		}
 	}
 
@@ -522,17 +516,15 @@ func (server *MultiTenantServer) startEventListener() {
 		index := entry.RepoIndex
 		entry.RepoLock.RUnlock()
 
-		tenant, ok := server.Tenants[e.RepoName]
+		_, ok := server.Tenants[e.RepoName]
 		if !ok {
 			log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.Error(err), zap.String("repo", repo))
 			continue
 		}
-		tenant.RegenerationLock.Lock()
 
 		if e.ChartVersion == nil {
 			log(cm_logger.WarnLevel, "Event does not contain chart version", zap.String("repo", repo),
 				"operation_type", e.OpType)
-			tenant.RegenerationLock.Unlock()
 			continue
 		}
 
@@ -547,14 +539,12 @@ func (server *MultiTenantServer) startEventListener() {
 		default:
 			log(cm_logger.ErrorLevel, "Invalid operation type", zap.String("repo", repo),
 				"operation_type", e.OpType)
-			tenant.RegenerationLock.Unlock()
 			continue
 		}
 
 		err = index.Regenerate()
 		if err != nil {
 			log(cm_logger.ErrorLevel, "Error regenerating index", zap.Error(err), zap.String("repo", repo))
-			tenant.RegenerationLock.Unlock()
 			continue
 		}
 		entry.RepoIndex = index
@@ -562,7 +552,6 @@ func (server *MultiTenantServer) startEventListener() {
 		err = server.saveCacheEntry(log, entry)
 		if err != nil {
 			log(cm_logger.ErrorLevel, "Error saving cache entry", zap.Error(err), zap.String("repo", repo))
-			tenant.RegenerationLock.Unlock()
 			continue
 		}
 
@@ -572,7 +561,6 @@ func (server *MultiTenantServer) startEventListener() {
 			go server.saveStatefile(log, e.RepoName, entry.RepoIndex.Raw)
 		}
 
-		tenant.RegenerationLock.Unlock()
 		log(cm_logger.DebugLevel, "Event handled successfully", zap.Any("event", e))
 	}
 }
