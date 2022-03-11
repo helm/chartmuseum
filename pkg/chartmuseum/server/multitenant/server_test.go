@@ -657,15 +657,12 @@ func (suite *MultiTenantServerTestSuite) TestDisabledDeleteServer() {
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 }
 
-func (suite *MultiTenantServerTestSuite) extractRepoEntryFromInternalCache(repo string) (*cacheEntry, error) {
-	local, ok, err := suite.OverwriteServer.InternalCacheStore.Load(repo)
-	if err != nil {
-		return nil, err
-	}
+func (suite *MultiTenantServerTestSuite) extractRepoEntryFromInternalCache(repo string) *cacheEntry {
+	local, ok := suite.OverwriteServer.InternalCacheStore.Load(repo)
 	if ok {
-		return local, nil
+		return local
 	}
-	return nil, nil
+	return nil
 }
 
 func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
@@ -685,11 +682,10 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 		// only for testing purpose
 		time.Sleep(time.Second)
 		// depth: 0
-		e, err := suite.extractRepoEntryFromInternalCache("")
-		suite.Nil(err, "no error extracting repo entry from internal cache")
-		e.RepoLock.Lock()
+		e := suite.extractRepoEntryFromInternalCache("")
+		e.RepoLock.RLock()
 		suite.Equal(1, len(e.RepoIndex.Entries), "overwrite entries validation")
-		e.RepoLock.Unlock()
+		e.RepoLock.RUnlock()
 	}
 
 	content, err = ioutil.ReadFile(testProvfilePath)
@@ -711,9 +707,10 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 		// the same as chart only case above
 		time.Sleep(time.Second)
 		// depth: 0
-		e, err := suite.extractRepoEntryFromInternalCache("")
-		suite.Nil(err, "no error extracting repo entry from internal cache")
+		e := suite.extractRepoEntryFromInternalCache("")
+		e.RepoLock.RLock()
 		suite.Equal(1, len(e.RepoIndex.Entries), "overwrite entries validation")
+		e.RepoLock.RUnlock()
 	}
 }
 

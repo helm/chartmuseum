@@ -36,7 +36,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	pathutil "path"
 	"sync"
 	"time"
@@ -349,10 +348,7 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 
 	if server.ExternalCacheStore == nil {
 		var ok bool
-		entry, ok, err = server.InternalCacheStore.Load(repo)
-		if err != nil {
-			return nil, err
-		}
+		entry, ok = server.InternalCacheStore.Load(repo)
 		if !ok {
 			repoIndex := server.newRepositoryIndex(log, repo)
 			entry = &cacheEntry{
@@ -632,17 +628,17 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 	}
 }
 
-func (m *memoryCacheStore) Load(key interface{}) (*cacheEntry, bool, error) {
+func (m *memoryCacheStore) Load(key interface{}) (*cacheEntry, bool) {
 	var entry *cacheEntry
 	var okinterface bool
 	value, ok := m.cache.Load(key)
 	if ok {
 		entry, okinterface = value.(*cacheEntry)
 		if !okinterface {
-			return nil, okinterface, fmt.Errorf("cacheEntry interface conversion failed")
+			return nil, okinterface
 		}
 	}
-	return entry, ok, nil
+	return entry, ok
 }
 
 func (m *memoryCacheStore) Store(key, value interface{}) {
