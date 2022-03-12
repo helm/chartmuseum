@@ -561,6 +561,10 @@ func (server *MultiTenantServer) startEventListener() {
 	}
 }
 
+func (server *MultiTenantServer) RebuildIndex() {
+	server.rebuildIndex()
+}
+
 func (server *MultiTenantServer) rebuildIndex() {
 	if len(server.Tenants) == 0 {
 		return

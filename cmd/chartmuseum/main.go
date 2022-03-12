@@ -21,11 +21,13 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/chartmuseum/storage"
 	"helm.sh/chartmuseum/pkg/cache"
 	"helm.sh/chartmuseum/pkg/chartmuseum"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
+	"helm.sh/chartmuseum/pkg/chartmuseum/server/multitenant"
 	"helm.sh/chartmuseum/pkg/config"
 
 	"github.com/urfave/cli"
@@ -41,6 +43,9 @@ var (
 
 	// Revision is the git commit id (added at compile time)
 	Revision string
+
+	serverOnce sync.Once
+	server     chartmuseum.Server
 )
 
 func main() {
@@ -53,76 +58,83 @@ func main() {
 	app.Run(os.Args)
 }
 
+func getServer() chartmuseum.Server {
+	return server
+}
+
 func cliHandler(c *cli.Context) {
-	conf := config.NewConfig()
-	err := conf.UpdateFromCLIContext(c)
-	if err != nil {
-		crash(err)
-	}
+	serverOnce.Do(func() {
+		conf := config.NewConfig()
+		err := conf.UpdateFromCLIContext(c)
+		if err != nil {
+			crash(err)
+		}
 
-	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
-		Debug:   conf.GetBool("debug"),
-		LogJSON: conf.GetBool("logjson"),
+		logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+			Debug:   conf.GetBool("debug"),
+			LogJSON: conf.GetBool("logjson"),
+		})
+		if err != nil {
+			crash(err)
+		}
+
+		conf.ShowDeprecationWarnings(c, logger)
+
+		backend := backendFromConfig(conf)
+		store := storeFromConfig(conf)
+
+		options := chartmuseum.ServerOptions{
+			Version:                Version,
+			StorageBackend:         backend,
+			ExternalCacheStore:     store,
+			Logger:                 logger,
+			TimestampTolerance:     conf.GetDuration("storage.timestamptolerance"),
+			ChartURL:               conf.GetString("charturl"),
+			TlsCert:                conf.GetString("tls.cert"),
+			TlsKey:                 conf.GetString("tls.key"),
+			TlsCACert:              conf.GetString("tls.cacert"),
+			Username:               conf.GetString("basicauth.user"),
+			Password:               conf.GetString("basicauth.pass"),
+			ChartPostFormFieldName: conf.GetString("chartpostformfieldname"),
+			ProvPostFormFieldName:  conf.GetString("provpostformfieldname"),
+			ContextPath:            conf.GetString("contextpath"),
+			LogHealth:              conf.GetBool("loghealth"),
+			LogLatencyInteger:      conf.GetBool("loglatencyinteger"),
+			EnableAPI:              !conf.GetBool("disableapi"),
+			DisableDelete:          conf.GetBool("disabledelete"),
+			UseStatefiles:          !conf.GetBool("disablestatefiles"),
+			AllowOverwrite:         conf.GetBool("allowoverwrite"),
+			AllowForceOverwrite:    !conf.GetBool("disableforceoverwrite"),
+			EnableMetrics:          conf.GetBool("enablemetrics"),
+			AnonymousGet:           conf.GetBool("authanonymousget"),
+			GenIndex:               conf.GetBool("genindex"),
+			MaxStorageObjects:      conf.GetInt("maxstorageobjects"),
+			IndexLimit:             conf.GetInt("indexlimit"),
+			Depth:                  conf.GetInt("depth"),
+			MaxUploadSize:          conf.GetInt("maxuploadsize"),
+			BearerAuth:             conf.GetBool("bearerauth"),
+			AuthRealm:              conf.GetString("authrealm"),
+			AuthService:            conf.GetString("authservice"),
+			AuthCertPath:           conf.GetString("authcertpath"),
+			AuthActionsSearchPath:  conf.GetString("authactionssearchpath"),
+			DepthDynamic:           conf.GetBool("depthdynamic"),
+			CORSAllowOrigin:        conf.GetString("cors.alloworigin"),
+			WriteTimeout:           conf.GetInt("writetimeout"),
+			ReadTimeout:            conf.GetInt("readtimeout"),
+			EnforceSemver2:         conf.GetBool("enforce-semver2"),
+			CacheInterval:          conf.GetDuration("cacheinterval"),
+			Host:                   conf.GetString("listen.host"),
+			PerChartLimit:          conf.GetInt("per-chart-limit"),
+		}
+
+		server, err = newServer(options)
+		if err != nil {
+			crash(err)
+		}
+
+		server.Listen(conf.GetInt("port"))
+
 	})
-	if err != nil {
-		crash(err)
-	}
-
-	conf.ShowDeprecationWarnings(c, logger)
-
-	backend := backendFromConfig(conf)
-	store := storeFromConfig(conf)
-
-	options := chartmuseum.ServerOptions{
-		Version:                Version,
-		StorageBackend:         backend,
-		ExternalCacheStore:     store,
-		Logger:                 logger,
-		TimestampTolerance:     conf.GetDuration("storage.timestamptolerance"),
-		ChartURL:               conf.GetString("charturl"),
-		TlsCert:                conf.GetString("tls.cert"),
-		TlsKey:                 conf.GetString("tls.key"),
-		TlsCACert:              conf.GetString("tls.cacert"),
-		Username:               conf.GetString("basicauth.user"),
-		Password:               conf.GetString("basicauth.pass"),
-		ChartPostFormFieldName: conf.GetString("chartpostformfieldname"),
-		ProvPostFormFieldName:  conf.GetString("provpostformfieldname"),
-		ContextPath:            conf.GetString("contextpath"),
-		LogHealth:              conf.GetBool("loghealth"),
-		LogLatencyInteger:      conf.GetBool("loglatencyinteger"),
-		EnableAPI:              !conf.GetBool("disableapi"),
-		DisableDelete:          conf.GetBool("disabledelete"),
-		UseStatefiles:          !conf.GetBool("disablestatefiles"),
-		AllowOverwrite:         conf.GetBool("allowoverwrite"),
-		AllowForceOverwrite:    !conf.GetBool("disableforceoverwrite"),
-		EnableMetrics:          conf.GetBool("enablemetrics"),
-		AnonymousGet:           conf.GetBool("authanonymousget"),
-		GenIndex:               conf.GetBool("genindex"),
-		MaxStorageObjects:      conf.GetInt("maxstorageobjects"),
-		IndexLimit:             conf.GetInt("indexlimit"),
-		Depth:                  conf.GetInt("depth"),
-		MaxUploadSize:          conf.GetInt("maxuploadsize"),
-		BearerAuth:             conf.GetBool("bearerauth"),
-		AuthRealm:              conf.GetString("authrealm"),
-		AuthService:            conf.GetString("authservice"),
-		AuthCertPath:           conf.GetString("authcertpath"),
-		AuthActionsSearchPath:  conf.GetString("authactionssearchpath"),
-		DepthDynamic:           conf.GetBool("depthdynamic"),
-		CORSAllowOrigin:        conf.GetString("cors.alloworigin"),
-		WriteTimeout:           conf.GetInt("writetimeout"),
-		ReadTimeout:            conf.GetInt("readtimeout"),
-		EnforceSemver2:         conf.GetBool("enforce-semver2"),
-		CacheInterval:          conf.GetDuration("cacheinterval"),
-		Host:                   conf.GetString("listen.host"),
-		PerChartLimit:          conf.GetInt("per-chart-limit"),
-	}
-
-	server, err := newServer(options)
-	if err != nil {
-		crash(err)
-	}
-
-	server.Listen(conf.GetInt("port"))
 }
 
 func backendFromConfig(conf *config.Config) storage.Backend {
@@ -165,6 +177,16 @@ func localBackendFromConfig(conf *config.Config) storage.Backend {
 	crashIfConfigMissingVars(conf, []string{"storage.local.rootdir"})
 	return storage.NewLocalFilesystemBackend(
 		conf.GetString("storage.local.rootdir"),
+		storage.WithEventNotifier(storage.EventPutObject, func() {
+			if _, ok := getServer().(*multitenant.MultiTenantServer); ok {
+				getServer().(*multitenant.MultiTenantServer).RebuildIndex()
+			}
+		}),
+		storage.WithEventNotifier(storage.EventDeleteObject, func() {
+			if _, ok := getServer().(*multitenant.MultiTenantServer); ok {
+				getServer().(*multitenant.MultiTenantServer).RebuildIndex()
+			}
+		}),
 	)
 }
 

@@ -628,6 +628,10 @@ The `--gen-index` CLI option (described above) can be used to generate and print
 
 Upon index regeneration, *ChartMuseum* will, however, save a statefile in storage called `index-cache.yaml` used for cache optimization. This file is only meant for internal use, but may be able to be used for migration to simple storage.
 
+## Limitations
+
+* ChartMuseum will not rebuild index instantly if `dynamic-depth` flag is opened and **manually(not via API)** update or remove the chart from storage.
+
 ## Mirroring the official Kubernetes repositories
 Please see `scripts/mirror-k8s-repos.sh` for an example of how to download all .tgz packages from the official Kubernetes repositories (both stable and incubator).
 
