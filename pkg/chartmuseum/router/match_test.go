@@ -35,7 +35,7 @@ func (suite *MatchTestSuite) TestMatch() {
 
 	handlers := []gin.HandlerFunc{}
 
-	for i := 0; i <= 9; i++ {
+	for i := 0; i <= 10; i++ {
 		{
 			j := i
 			handlers = append(handlers, func(c *gin.Context) {
@@ -55,6 +55,7 @@ func (suite *MatchTestSuite) TestMatch() {
 		{"POST", "/api/:repo/charts", handlers[7], cm_auth.PushAction},
 		{"POST", "/api/:repo/prov", handlers[8], cm_auth.PushAction},
 		{"DELETE", "/api/:repo/charts/:name/:version", handlers[9], cm_auth.PushAction},
+		{"GET", "/static", handlers[10], cm_auth.PullAction},
 	}
 
 	for depth := 0; depth <= 3; depth++ {
@@ -235,6 +236,22 @@ func (suite *MatchTestSuite) TestMatch() {
 			suite.True(exists)
 			suite.Equal(9, val)
 			suite.Equal([]gin.Param{{"name", "mychart"}, {"version", "0.1.0"}, {"repo", repo}}, params)
+
+			// GET /static
+			r = pathutil.Join("/", contextPath, "static/main.css")
+			route, params = match(routes, "GET", r, contextPath, depth, false)
+			routeWithDepthDynamic, paramsWithDepthDynamic = match(routes, "GET", r, contextPath, 0, true)
+			suite.Equal(route, routeWithDepthDynamic)
+			suite.Equal(params, paramsWithDepthDynamic)
+
+			suite.NotNil(route)
+			suite.Nil(params)
+			if route != nil {
+				route.Handler(c)
+			}
+			val, exists = c.Get("index")
+			suite.True(exists)
+			suite.Equal(10, val)
 		}
 	}
 

@@ -17,9 +17,8 @@ limitations under the License.
 package multitenant
 
 import (
-	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
-
 	cm_auth "github.com/chartmuseum/auth"
+	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
 )
 
 func (s *MultiTenantServer) Routes() []*cm_router.Route {
@@ -48,6 +47,15 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 
 	routes = append(routes, serverInfoRoutes...)
 	routes = append(routes, helmChartRepositoryRoutes...)
+
+	if s.WebTemplatePath != "" {
+		routes = append(routes, &cm_router.Route{
+			Method:  "GET",
+			Path:    "/static",
+			Handler: s.getStaticFilesHandler,
+			Action:  cm_auth.PullAction,
+		})
+	}
 
 	if s.APIEnabled {
 		routes = append(routes, chartManipulationRoutes...)

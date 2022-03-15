@@ -1,0 +1,108 @@
+html,
+body {
+    background-image: none !important;
+    background-color: rgba(40, 42, 54, 1) !important;
+    text-align: center;
+}
+
+body * {
+    color: rgba(248, 248, 242, 1) !important;
+    background-color: rgba(40, 42, 54, 1) !important;
+}
+
+a,
+a * {
+    color: rgba(80, 250, 123, 1) !important;
+    background-color: transparent !important;
+}
+
+a:hover,
+a:hover *,
+a:visited:hover,
+a:visited:hover *,
+span[onclick]:hover,
+div[onclick]:hover,
+[role="link"]:hover,
+[role="link"]:hover *,
+[role="button"]:hover *,
+[role="menuitem"]:hover,
+[role="menuitem"]:hover *,
+.link:hover,
+.link:hover * {
+    color: rgba(241, 250, 140, 1) !important;
+}
+
+a:visited,
+a:visited * {
+    color: rgba(98, 114, 164, 1) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong,
+[id*="headline"],
+[class*="headline"],
+[id*="header"],
+[class*="header"],
+[class*="header"] td {
+    color: rgba(255, 184, 108, 1) !important;
+}
+
+table {
+    background-color: rgba(40, 42, 54, 1) !important;
+}
+
+[id*="overlay"],
+[id*="lightbox"],
+blockquote {
+    background-color: rgba(68, 71, 90, 1) !important;
+}
+
+pre,
+dl {
+    background-color: rgba(68, 71, 90, 1) !important;
+}
+
+input,
+select,
+button,
+[role="button"],
+a.button,
+a.submit,
+a.BigButton,
+a.TabLink,
+.install[onclick] {
+    text-indent: 5px;
+    appearance: none !important;
+    -moz-appearance: none !important;
+    -webkit-appearance: none !important;
+    background: rgba(68, 71, 90, 1) !important;
+}
+
+textarea {
+    appearance: none !important;
+    -moz-appearance: none !important;
+    -webkit-appearance: none !important;
+    background: rgba(68, 71, 90, 1) !important;
+}
+
+div,
+ul,
+li {
+    background-image: none !important;
+}
+
+a.highlight,
+a.highlight *,
+a.active,
+a.active *,
+.selected,
+.selected *,
+[href="#"] {
+    font-weight: bold !important;
+    color: rgba(139, 233, 253, 1) !important;
+}

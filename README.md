@@ -637,6 +637,25 @@ scripts/mirror-k8s-repos.sh
 chartmuseum --debug --port=8080 --storage="local" --storage-local-rootdir="./mirror"
  ```
 
+## Custom Welcome Page
+
+With the flag `--web-template-path=<path>`, you can specify the path to your custom welcome page.
+
+The structure of the folder should be like this:
+
+```bash
+web/
+  index.html
+  xyz.html
+  static/
+      main.css
+      main.js
+```
+
+> ChartMuseum is using gin-gonic to serve the static files, this means that you can use go-template to render the files.
+
+If you don't specify a custom welcome page, ChartMuseum will serve the default one.
+
 ## Original Logo
 
 <sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>

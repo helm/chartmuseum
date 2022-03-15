@@ -115,6 +115,7 @@ func cliHandler(c *cli.Context) {
 		CacheInterval:          conf.GetDuration("cacheinterval"),
 		Host:                   conf.GetString("listen.host"),
 		PerChartLimit:          conf.GetInt("per-chart-limit"),
+		WebTemplatePath:        conf.GetString("web-template-path"),
 	}
 
 	server, err := newServer(options)

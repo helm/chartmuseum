@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	pathutil "path"
 	"strconv"
 	"time"
@@ -62,7 +63,7 @@ working.</p>
 <p><em>Thank you for using ChartMuseum.</em></p>
 </body>
 </html>
-	`)
+`)
 )
 
 type (
@@ -82,7 +83,25 @@ type (
 )
 
 func (server *MultiTenantServer) getWelcomePageHandler(c *gin.Context) {
-	c.Data(200, "text/html", welcomePageHTML)
+	if server.WebTemplatePath != "" {
+		// Check if template file exists, otherwise return default welcome page
+		templateFilesExist := server.CheckTemplateFilesExist(server.WebTemplatePath, server.Logger)
+		if templateFilesExist {
+			c.HTML(http.StatusOK, "index.html", nil)
+		} else {
+			server.Logger.Warnf("No template files found in %s, fallback to default welcome page", server.WebTemplatePath)
+			c.Data(http.StatusOK, "text/html", welcomePageHTML)
+		}
+	} else {
+		c.Data(http.StatusOK, "text/html", welcomePageHTML)
+	}
+}
+
+func (server *MultiTenantServer) getStaticFilesHandler(c *gin.Context) {
+	staticFolder := fmt.Sprintf("%s/static", server.WebTemplatePath)
+	if _, err := os.Stat(staticFolder); !os.IsNotExist(err) {
+		c.File(fmt.Sprintf("%s%s", server.WebTemplatePath, c.Request.URL.Path))
+	}
 }
 
 func (server *MultiTenantServer) getInfoHandler(c *gin.Context) {
