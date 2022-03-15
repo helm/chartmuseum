@@ -95,7 +95,7 @@ func cliHandler(c *cli.Context) {
 		UseStatefiles:          !conf.GetBool("disablestatefiles"),
 		AllowOverwrite:         conf.GetBool("allowoverwrite"),
 		AllowForceOverwrite:    !conf.GetBool("disableforceoverwrite"),
-		EnableMetrics:          !conf.GetBool("disablemetrics"),
+		EnableMetrics:          conf.GetBool("enablemetrics"),
 		AnonymousGet:           conf.GetBool("authanonymousget"),
 		GenIndex:               conf.GetBool("genindex"),
 		MaxStorageObjects:      conf.GetInt("maxstorageobjects"),
@@ -115,6 +115,7 @@ func cliHandler(c *cli.Context) {
 		CacheInterval:          conf.GetDuration("cacheinterval"),
 		Host:                   conf.GetString("listen.host"),
 		PerChartLimit:          conf.GetInt("per-chart-limit"),
+		WebTemplatePath:        conf.GetString("web-template-path"),
 	}
 
 	server, err := newServer(options)

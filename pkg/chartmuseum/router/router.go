@@ -50,6 +50,7 @@ type (
 		ReadTimeout     time.Duration
 		WriteTimeout    time.Duration
 		Host            string
+		WebTemplatePath string
 	}
 
 	// RouterOptions are options for constructing a Router

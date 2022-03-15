@@ -94,8 +94,18 @@ var configVars = map[string]configVar{
 		Default: false,
 		CLIFlag: cli.BoolFlag{
 			Name:   "disable-metrics",
-			Usage:  "disable Prometheus metrics",
+			Usage:  "(deprecated) disable Prometheus metrics",
 			EnvVar: "DISABLE_METRICS",
+		},
+		Deprecated: true,
+	},
+	"enablemetrics": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "enable-metrics",
+			Usage:  "enable Prometheus metrics",
+			EnvVar: "ENABLE_METRICS",
 		},
 	},
 	"disableapi": {
@@ -784,6 +794,15 @@ var configVars = map[string]configVar{
 			Name:   "per-chart-limit",
 			Usage:  "limits the museum server stores the max N versions per chart",
 			EnvVar: "PER_CHART_LIMIT",
+		},
+	},
+	"web-template-path": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "web-template-path",
+			Usage:  "path to the folder, which contains the custom welcome page",
+			EnvVar: "WEB_TEMPLATE_PATH",
 		},
 	},
 }

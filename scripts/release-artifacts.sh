@@ -37,4 +37,8 @@ fi
 make dist sbom checksum cosign VERSION="${VERSION}"
 
 echo "Pushing binaries to Azure"
-az storage blob upload-batch -s _dist/ -d "$AZURE_STORAGE_CONTAINER_NAME" --pattern 'chartmuseum-*' --connection-string "$AZURE_STORAGE_CONNECTION_STRING"
+if [[ "${VERSION}" == "canary" ]]; then
+    az storage blob upload-batch -s _dist/ -d "$AZURE_STORAGE_CONTAINER_NAME" --pattern 'chartmuseum-*' --connection-string "$AZURE_STORAGE_CONNECTION_STRING" --overwrite
+else
+    az storage blob upload-batch -s _dist/ -d "$AZURE_STORAGE_CONTAINER_NAME" --pattern 'chartmuseum-*' --connection-string "$AZURE_STORAGE_CONNECTION_STRING"
+fi
