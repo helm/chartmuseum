@@ -192,6 +192,7 @@ func (server *MultiTenantServer) getStorageObjectValuesRequestHandler(c *gin.Con
 	for _, file := range chrt.Raw {
 		if file.Name == "values.yaml" {
 			data = file.Data
+			break
 		}
 	}
 	if data == nil {
