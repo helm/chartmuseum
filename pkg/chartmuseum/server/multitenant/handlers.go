@@ -19,7 +19,6 @@ package multitenant
 import (
 	"bytes"
 	"fmt"
-	"helm.sh/helm/v3/pkg/chart/loader"
 	"io"
 	"net/http"
 	"os"
@@ -27,14 +26,17 @@ import (
 	"strconv"
 	"time"
 
+	cm_storage "github.com/chartmuseum/storage"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
-	cm_storage "github.com/chartmuseum/storage"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/chart/loader"
 	helm_repo "helm.sh/helm/v3/pkg/repo"
+
+	"github.com/gin-gonic/gin"
+
+	"go.uber.org/zap"
 )
 
 var (
