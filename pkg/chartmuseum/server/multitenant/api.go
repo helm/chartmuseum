@@ -97,6 +97,21 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 	return nil
 }
 
+func (server *MultiTenantServer) getChartFileName(log cm_logger.LoggingFn, repo string, name string, version string) (string, *HTTPError) {
+	chartVersion, err := server.getChartVersion(log, repo, name, version)
+	if err != nil {
+		return "", err
+	}
+	if len(chartVersion.URLs) == 0 {
+		return "", &HTTPError{http.StatusNotFound, "chart filename not found"}
+	}
+	split := strings.Split(chartVersion.URLs[0], "/")
+	if len(split) < 2 {
+		return "", &HTTPError{http.StatusNotFound, "chart filename not found"}
+	}
+	return split[1], nil
+}
+
 func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, repo string, content []byte, force bool) (string, *HTTPError) {
 	var filename string
 
