@@ -512,7 +512,10 @@ func (server *MultiTenantServer) startEventListener() {
 		index := entry.RepoIndex
 		entry.RepoLock.RUnlock()
 
+		server.TenantCacheKeyLock.Lock()
 		_, ok := server.Tenants[e.RepoName]
+		server.TenantCacheKeyLock.Unlock()
+
 		if !ok {
 			log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.Error(err), zap.String("repo", repo))
 			continue
