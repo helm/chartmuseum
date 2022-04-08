@@ -49,7 +49,7 @@ type (
 		StorageBackend         cm_storage.Backend
 		TimestampTolerance     time.Duration
 		ExternalCacheStore     cache.Store
-		InternalCacheStore     map[string]*cacheEntry
+		InternalCacheStore     memoryCacheStore
 		MaxStorageObjects      int
 		IndexLimit             int
 		AllowOverwrite         bool
@@ -105,7 +105,6 @@ type (
 
 	tenantInternals struct {
 		FetchedObjectsLock      *sync.Mutex
-		RegenerationLock        *sync.Mutex
 		FetchedObjectsChans     []chan fetchedObjects
 		RegeneratedIndexesChans []chan indexRegeneration
 	}
@@ -141,7 +140,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		StorageBackend:         options.StorageBackend,
 		TimestampTolerance:     options.TimestampTolerance,
 		ExternalCacheStore:     options.ExternalCacheStore,
-		InternalCacheStore:     map[string]*cacheEntry{},
+		InternalCacheStore:     memoryCacheStore{},
 		MaxStorageObjects:      options.MaxStorageObjects,
 		IndexLimit:             options.IndexLimit,
 		ChartURL:               chartURL,

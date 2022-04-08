@@ -658,7 +658,7 @@ func (suite *MultiTenantServerTestSuite) TestDisabledDeleteServer() {
 }
 
 func (suite *MultiTenantServerTestSuite) extractRepoEntryFromInternalCache(repo string) *cacheEntry {
-	local, ok := suite.OverwriteServer.InternalCacheStore[repo]
+	local, ok := suite.OverwriteServer.InternalCacheStore.Load(repo)
 	if ok {
 		return local
 	}
@@ -683,7 +683,9 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 		time.Sleep(time.Second)
 		// depth: 0
 		e := suite.extractRepoEntryFromInternalCache("")
+		e.RepoLock.RLock()
 		suite.Equal(1, len(e.RepoIndex.Entries), "overwrite entries validation")
+		e.RepoLock.RUnlock()
 	}
 
 	content, err = ioutil.ReadFile(testProvfilePath)
@@ -706,7 +708,9 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 		time.Sleep(time.Second)
 		// depth: 0
 		e := suite.extractRepoEntryFromInternalCache("")
+		e.RepoLock.RLock()
 		suite.Equal(1, len(e.RepoIndex.Entries), "overwrite entries validation")
+		e.RepoLock.RUnlock()
 	}
 }
 

@@ -11,4 +11,4 @@ name = "pypi"
 
 [packages]
 
-locustio = "*"
+locust = "*"

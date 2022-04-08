@@ -39,6 +39,8 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
 
+	entry.RepoLock.Lock()
+	defer entry.RepoLock.Unlock()
 	// if cache is nil, and not on a timer, regenerate it
 	if len(entry.RepoIndex.Entries) == 0 && server.CacheInterval == 0 {
 
