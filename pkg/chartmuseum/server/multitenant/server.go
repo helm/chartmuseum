@@ -44,29 +44,29 @@ const (
 type (
 	// MultiTenantServer contains a Logger, Router, storage backend and object cache
 	MultiTenantServer struct {
-		Logger                 *cm_logger.Logger
-		Router                 *cm_router.Router
-		StorageBackend         cm_storage.Backend
-		TimestampTolerance     time.Duration
-		ExternalCacheStore     cache.Store
-		InternalCacheStore     memoryCacheStore
-		MaxStorageObjects      int
-		IndexLimit             int
-		AllowOverwrite         bool
-		AllowForceOverwrite    bool
-		APIEnabled             bool
-		DisableDelete          bool
-		UseStatefiles          bool
-		ChartURL               string
-		ChartPostFormFieldName string
-		ProvPostFormFieldName  string
-		Version                string
-		Limiter                chan struct{}
-		Tenants                map[string]*tenantInternals
-		TenantCacheKeyLock     *sync.Mutex
-		CacheInterval          time.Duration
-		EventChan              chan event
-		ChartLimits            *ObjectsPerChartLimit
+		Logger                    *cm_logger.Logger
+		Router                    *cm_router.Router
+		StorageBackend            cm_storage.Backend
+		TimestampTolerance        time.Duration
+		ExternalCacheStore        cache.Store
+		InternalCacheStore        memoryCacheStore
+		MaxStorageObjects         int
+		IndexLimit                int
+		AllowOverwrite            bool
+		AllowForceOverwrite       bool
+		APIEnabled                bool
+		DisableDelete             bool
+		UseStatefiles             bool
+		ChartURL                  string
+		ChartPostFormFieldName    string
+		ProvPostFormFieldName     string
+		Version                   string
+		Limiter                   chan struct{}
+		Tenants                   map[string]*tenantInternals
+		TenantCacheKeyLock        *sync.Mutex
+		CacheInterval             time.Duration
+		EventChan                 chan event
+		ChartLimits               *ObjectsPerChartLimit
 		ReadAfterWriteConsistency bool
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2  bool
@@ -80,25 +80,25 @@ type (
 
 	// MultiTenantServerOptions are options for constructing a MultiTenantServer
 	MultiTenantServerOptions struct {
-		Logger                 *cm_logger.Logger
-		Router                 *cm_router.Router
-		StorageBackend         cm_storage.Backend
-		ExternalCacheStore     cache.Store
-		TimestampTolerance     time.Duration
-		ChartURL               string
-		ChartPostFormFieldName string
-		ProvPostFormFieldName  string
-		Version                string
-		MaxStorageObjects      int
-		IndexLimit             int
-		GenIndex               bool
-		AllowOverwrite         bool
-		AllowForceOverwrite    bool
-		EnableAPI              bool
-		DisableDelete          bool
-		UseStatefiles          bool
-		CacheInterval          time.Duration
-		PerChartLimit          int
+		Logger                    *cm_logger.Logger
+		Router                    *cm_router.Router
+		StorageBackend            cm_storage.Backend
+		ExternalCacheStore        cache.Store
+		TimestampTolerance        time.Duration
+		ChartURL                  string
+		ChartPostFormFieldName    string
+		ProvPostFormFieldName     string
+		Version                   string
+		MaxStorageObjects         int
+		IndexLimit                int
+		GenIndex                  bool
+		AllowOverwrite            bool
+		AllowForceOverwrite       bool
+		EnableAPI                 bool
+		DisableDelete             bool
+		UseStatefiles             bool
+		CacheInterval             time.Duration
+		PerChartLimit             int
 		ReadAfterWriteConsistency bool
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2  bool
@@ -137,30 +137,30 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 	}
 
 	server := &MultiTenantServer{
-		Logger:                 options.Logger,
-		Router:                 options.Router,
-		StorageBackend:         options.StorageBackend,
-		TimestampTolerance:     options.TimestampTolerance,
-		ExternalCacheStore:     options.ExternalCacheStore,
-		InternalCacheStore:     memoryCacheStore{},
-		MaxStorageObjects:      options.MaxStorageObjects,
-		IndexLimit:             options.IndexLimit,
-		ChartURL:               chartURL,
-		ChartPostFormFieldName: options.ChartPostFormFieldName,
-		ProvPostFormFieldName:  options.ProvPostFormFieldName,
-		AllowOverwrite:         options.AllowOverwrite,
-		AllowForceOverwrite:    options.AllowForceOverwrite,
-		APIEnabled:             options.EnableAPI,
-		DisableDelete:          options.DisableDelete,
-		UseStatefiles:          options.UseStatefiles,
-		EnforceSemver2:         options.EnforceSemver2,
-		Version:                options.Version,
-		Limiter:                make(chan struct{}, options.IndexLimit),
-		Tenants:                map[string]*tenantInternals{},
-		TenantCacheKeyLock:     &sync.Mutex{},
-		CacheInterval:          options.CacheInterval,
-		ChartLimits:            l,
-		WebTemplatePath:        options.WebTemplatePath,
+		Logger:                    options.Logger,
+		Router:                    options.Router,
+		StorageBackend:            options.StorageBackend,
+		TimestampTolerance:        options.TimestampTolerance,
+		ExternalCacheStore:        options.ExternalCacheStore,
+		InternalCacheStore:        memoryCacheStore{},
+		MaxStorageObjects:         options.MaxStorageObjects,
+		IndexLimit:                options.IndexLimit,
+		ChartURL:                  chartURL,
+		ChartPostFormFieldName:    options.ChartPostFormFieldName,
+		ProvPostFormFieldName:     options.ProvPostFormFieldName,
+		AllowOverwrite:            options.AllowOverwrite,
+		AllowForceOverwrite:       options.AllowForceOverwrite,
+		APIEnabled:                options.EnableAPI,
+		DisableDelete:             options.DisableDelete,
+		UseStatefiles:             options.UseStatefiles,
+		EnforceSemver2:            options.EnforceSemver2,
+		Version:                   options.Version,
+		Limiter:                   make(chan struct{}, options.IndexLimit),
+		Tenants:                   map[string]*tenantInternals{},
+		TenantCacheKeyLock:        &sync.Mutex{},
+		CacheInterval:             options.CacheInterval,
+		ChartLimits:               l,
+		WebTemplatePath:           options.WebTemplatePath,
 		ReadAfterWriteConsistency: options.ReadAfterWriteConsistency,
 	}
 

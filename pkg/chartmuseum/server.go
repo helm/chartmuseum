@@ -30,46 +30,46 @@ import (
 type (
 	// ServerOptions are options for constructing a Server
 	ServerOptions struct {
-		StorageBackend         storage.Backend
-		ExternalCacheStore     cache.Store
-		TimestampTolerance     time.Duration
-		Logger                 *cm_logger.Logger
-		ChartURL               string
-		TlsCert                string
-		TlsKey                 string
-		TlsCACert              string
-		Username               string
-		Password               string
-		ChartPostFormFieldName string
-		ProvPostFormFieldName  string
-		ContextPath            string
-		LogHealth              bool
-		LogLatencyInteger      bool
-		EnableAPI              bool
-		UseStatefiles          bool
-		AllowOverwrite         bool
-		DisableDelete          bool
-		AllowForceOverwrite    bool
-		EnableMetrics          bool
-		AnonymousGet           bool
-		GenIndex               bool
-		MaxStorageObjects      int
-		IndexLimit             int
-		Depth                  int
-		MaxUploadSize          int
-		BearerAuth             bool
-		AuthRealm              string
-		AuthService            string
-		AuthCertPath           string
-		AuthActionsSearchPath  string
-		DepthDynamic           bool
-		CORSAllowOrigin        string
-		ReadTimeout            int
-		WriteTimeout           int
-		CacheInterval          time.Duration
-		Host                   string
-		Version                string
-		WebTemplatePath        string
+		StorageBackend            storage.Backend
+		ExternalCacheStore        cache.Store
+		TimestampTolerance        time.Duration
+		Logger                    *cm_logger.Logger
+		ChartURL                  string
+		TlsCert                   string
+		TlsKey                    string
+		TlsCACert                 string
+		Username                  string
+		Password                  string
+		ChartPostFormFieldName    string
+		ProvPostFormFieldName     string
+		ContextPath               string
+		LogHealth                 bool
+		LogLatencyInteger         bool
+		EnableAPI                 bool
+		UseStatefiles             bool
+		AllowOverwrite            bool
+		DisableDelete             bool
+		AllowForceOverwrite       bool
+		EnableMetrics             bool
+		AnonymousGet              bool
+		GenIndex                  bool
+		MaxStorageObjects         int
+		IndexLimit                int
+		Depth                     int
+		MaxUploadSize             int
+		BearerAuth                bool
+		AuthRealm                 string
+		AuthService               string
+		AuthCertPath              string
+		AuthActionsSearchPath     string
+		DepthDynamic              bool
+		CORSAllowOrigin           string
+		ReadTimeout               int
+		WriteTimeout              int
+		CacheInterval             time.Duration
+		Host                      string
+		Version                   string
+		WebTemplatePath           string
 		ReadAfterWriteConsistency bool
 		// PerChartLimit allow museum server to keep max N version Charts
 		// And avoid swelling too large(if so , the index genertion will become slow)
@@ -122,25 +122,25 @@ func NewServer(options ServerOptions) (Server, error) {
 	})
 
 	server, err := mt.NewMultiTenantServer(mt.MultiTenantServerOptions{
-		Logger:                 options.Logger,
-		Router:                 router,
-		StorageBackend:         options.StorageBackend,
-		ExternalCacheStore:     options.ExternalCacheStore,
-		TimestampTolerance:     options.TimestampTolerance,
-		ChartURL:               strings.TrimSuffix(options.ChartURL, "/"),
-		ChartPostFormFieldName: options.ChartPostFormFieldName,
-		ProvPostFormFieldName:  options.ProvPostFormFieldName,
-		MaxStorageObjects:      options.MaxStorageObjects,
-		IndexLimit:             options.IndexLimit,
-		GenIndex:               options.GenIndex,
-		EnableAPI:              options.EnableAPI,
-		DisableDelete:          options.DisableDelete,
-		UseStatefiles:          options.UseStatefiles,
-		AllowOverwrite:         options.AllowOverwrite,
-		AllowForceOverwrite:    options.AllowForceOverwrite,
-		Version:                options.Version,
-		CacheInterval:          options.CacheInterval,
-		PerChartLimit:          options.PerChartLimit,
+		Logger:                    options.Logger,
+		Router:                    router,
+		StorageBackend:            options.StorageBackend,
+		ExternalCacheStore:        options.ExternalCacheStore,
+		TimestampTolerance:        options.TimestampTolerance,
+		ChartURL:                  strings.TrimSuffix(options.ChartURL, "/"),
+		ChartPostFormFieldName:    options.ChartPostFormFieldName,
+		ProvPostFormFieldName:     options.ProvPostFormFieldName,
+		MaxStorageObjects:         options.MaxStorageObjects,
+		IndexLimit:                options.IndexLimit,
+		GenIndex:                  options.GenIndex,
+		EnableAPI:                 options.EnableAPI,
+		DisableDelete:             options.DisableDelete,
+		UseStatefiles:             options.UseStatefiles,
+		AllowOverwrite:            options.AllowOverwrite,
+		AllowForceOverwrite:       options.AllowForceOverwrite,
+		Version:                   options.Version,
+		CacheInterval:             options.CacheInterval,
+		PerChartLimit:             options.PerChartLimit,
 		ReadAfterWriteConsistency: options.ReadAfterWriteConsistency,
 		// Deprecated options
 		// EnforceSemver2 - see https://github.com/helm/chartmuseum/issues/485 for more info
