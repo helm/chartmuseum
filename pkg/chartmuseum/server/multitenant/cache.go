@@ -494,7 +494,7 @@ func (server *MultiTenantServer) emitEvent(c *gin.Context, repo string, operatio
 	}
 }
 
-func (server *MultiTenantServer) doEvent(c *gin.Context, repo string, operationType operationType, chart *helm_repo.ChartVersion) error {
+func (server *MultiTenantServer) processEvent(c *gin.Context, repo string, operationType operationType, chart *helm_repo.ChartVersion) error {
 	log := server.Logger.ContextLoggingFn(c)
 
 	entry, err := server.initCacheEntry(log, repo)
@@ -511,13 +511,16 @@ func (server *MultiTenantServer) doEvent(c *gin.Context, repo string, operationT
 	server.TenantCacheKeyLock.Unlock()
 
 	if !ok {
-		log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.Error(err), zap.String("repo", repo))
+		errMsg := "failed to find tenants repo name"
+		log(cm_logger.ErrorLevel, errMsg, zap.Error(err), zap.String("repo", repo))
+		return errors.New(errMsg)
 	}
 
 	if chart == nil {
-		log(cm_logger.WarnLevel, "Event does not contain chart version", zap.String("repo", repo),
+		errMsg := "event does not contain chart version"
+		log(cm_logger.WarnLevel, errMsg, zap.String("repo", repo),
 			"operation_type", operationType)
-		return fmt.Errorf("event does not contain chart version")
+		return errors.New(errMsg)
 	}
 
 	entry.RepoLock.Lock()
@@ -529,23 +532,26 @@ func (server *MultiTenantServer) doEvent(c *gin.Context, repo string, operationT
 	case deleteChart:
 		index.RemoveEntry(chart)
 	default:
-		log(cm_logger.ErrorLevel, "Invalid operation type", zap.String("repo", repo),
+		errMsg := "invalid operation type"
+		log(cm_logger.ErrorLevel, errMsg, zap.String("repo", repo),
 			"operation_type", operationType)
-		return fmt.Errorf("invalid operation type")
+		return errors.New(errMsg)
 
 	}
 
 	err = index.Regenerate()
 	if err != nil {
-		log(cm_logger.ErrorLevel, "Error regenerating index", zap.Error(err), zap.String("repo", repo))
+		errMsg := "failed to regenerate index"
+		log(cm_logger.ErrorLevel, errMsg, zap.Error(err), zap.String("repo", repo))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 	entry.RepoIndex = index
 	entry.RepoLock.Unlock()
 	err = server.saveCacheEntry(log, entry)
 	if err != nil {
-		log(cm_logger.ErrorLevel, "Error saving cache entry", zap.Error(err), zap.String("repo", repo))
-		return fmt.Errorf("erroring saving cache entry")
-
+		errMsg := "failed to save cache entry"
+		log(cm_logger.ErrorLevel, errMsg, zap.Error(err), zap.String("repo", repo))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
 	if server.UseStatefiles {
@@ -563,8 +569,10 @@ func (server *MultiTenantServer) startEventListener() {
 		log := server.Logger.ContextLoggingFn(e.Context)
 		log(cm_logger.DebugLevel, "Event received", zap.Any("event", e))
 
-		_ = server.doEvent(e.Context, e.RepoName, e.OpType, e.ChartVersion)
-
+		err := server.processEvent(e.Context, e.RepoName, e.OpType, e.ChartVersion)
+		if err != nil {
+			log(cm_logger.DebugLevel, "Event processing failed", zap.Any("event", e), zap.Any("error", err))
+		}
 		log(cm_logger.DebugLevel, "Event handled successfully", zap.Any("event", e))
 	}
 }

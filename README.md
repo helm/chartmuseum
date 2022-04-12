@@ -574,6 +574,7 @@ For valid values to use for this setting, please see [here](https://godoc.org/ti
 ### Using Redis
 
 Example of using Redis as an external cache store:
+
 ```bash
 chartmuseum --debug --port=8080 \
   --storage="local" \
@@ -584,6 +585,14 @@ chartmuseum --debug --port=8080 \
   --cache-redis-db=0
 ```
 
+## Read After Write Consistency
+
+By default, ChartMuseum does not provide read-after-write consistency when uploading and deleting charts.
+
+If you want read-after-write consistency, you can enable it by using the `--read-after-write-consistency` flag.
+
+> Note that this will likely result in lower throughput and higher response times since ChartMuseum will now
+> process the request synchronously (instead of asynchronously).
 
 ## Prometheus Metrics
 

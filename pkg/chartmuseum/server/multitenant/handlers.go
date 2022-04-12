@@ -299,16 +299,18 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		return
 	}
 
-	// if read-write-consistency then doEvent, else emitEvent
 	if server.ReadAfterWriteConsistency {
-		err := server.doEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
+		chartVersion := &helm_repo.ChartVersion{
 			Metadata: &chart.Metadata{
 				Name:    name,
 				Version: version,
 			},
-		})
+		}
+
+		err := server.processEvent(c, repo, deleteChart, chartVersion)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process chart deletion"})
+			log(cm_logger.DebugLevel, "Event processing failed", zap.Any("repo", repo), zap.Any("opType", deleteChart), zap.Any("chartVersion", chartVersion), zap.Error(err))
 			return
 		}
 		c.JSON(200, objectDeletedResponse)
@@ -373,9 +375,10 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	}
 
 	if server.ReadAfterWriteConsistency {
-		err := server.doEvent(c, repo, action, chart)
+		err := server.processEvent(c, repo, action, chart)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process chart upload"})
+			log(cm_logger.DebugLevel, "Event processing failed", zap.Any("repo", repo), zap.Any("opType", deleteChart), zap.Any("chartVersion", chart), zap.Error(err))
 			return
 		}
 		c.JSON(201, objectSavedResponse)
@@ -481,9 +484,10 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	}
 
 	if server.ReadAfterWriteConsistency {
-		err := server.doEvent(c, repo, action, chart)
+		err := server.processEvent(c, repo, action, chart)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process chart upload"})
+			log(cm_logger.DebugLevel, "Event processing failed", zap.Any("repo", repo), zap.Any("opType", deleteChart), zap.Any("chartVersion", chart), zap.Error(err))
 			return
 		}
 		c.JSON(http.StatusCreated, objectSavedResponse)
