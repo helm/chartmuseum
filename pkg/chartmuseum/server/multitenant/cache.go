@@ -155,6 +155,8 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 		ChartURL:  entry.RepoIndex.ChartURL,
 		IndexLock: sync.RWMutex{},
 	}
+	index.IndexLock.Lock()
+	defer index.IndexLock.Unlock()
 
 	for _, object := range diff.Removed {
 		err := server.removeIndexObject(log, repo, index, object)

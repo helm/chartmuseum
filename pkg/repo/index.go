@@ -50,7 +50,7 @@ type (
 		RepoName   string `json:"b"`
 		Raw        []byte `json:"c"`
 		ChartURL   string `json:"d"`
-		IndexLock sync.RWMutex
+		IndexLock  sync.RWMutex
 	}
 )
 
@@ -103,7 +103,7 @@ func (index *Index) AddEntry(chartVersion *helm_repo.ChartVersion) {
 	if _, ok := index.Entries[chartVersion.Name]; !ok {
 		index.Entries[chartVersion.Name] = helm_repo.ChartVersions{}
 	}
-	//
+
 	entries := index.Entries[chartVersion.Name]
 	l := len(entries)
 	for i := 1; i <= 5 && l-i >= 0; i++ {
