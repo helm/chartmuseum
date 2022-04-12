@@ -53,26 +53,27 @@ var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
-	Depth0Server         *MultiTenantServer
-	Depth1Server         *MultiTenantServer
-	Depth2Server         *MultiTenantServer
-	Depth3Server         *MultiTenantServer
-	DisabledAPIServer    *MultiTenantServer
-	DisabledDeleteServer *MultiTenantServer
-	OverwriteServer      *MultiTenantServer
-	ForceOverwriteServer *MultiTenantServer
-	ChartURLServer       *MultiTenantServer
-	MaxObjectsServer     *MultiTenantServer
-	MaxUploadSizeServer  *MultiTenantServer
-	Semver2Server        *MultiTenantServer
-	PerChartLimitServer  *MultiTenantServer
-	TempDirectory        string
-	TestTarballFilename  string
-	TestProvfileFilename string
-	StorageDirectory     map[string]map[string][]string
-	LastCrashMessage     string
-	LastPrinted          string
-	LastExitCode         int
+	Depth0Server              *MultiTenantServer
+	Depth1Server              *MultiTenantServer
+	Depth2Server              *MultiTenantServer
+	Depth3Server              *MultiTenantServer
+	DisabledAPIServer         *MultiTenantServer
+	DisabledDeleteServer      *MultiTenantServer
+	OverwriteServer           *MultiTenantServer
+	ForceOverwriteServer      *MultiTenantServer
+	ChartURLServer            *MultiTenantServer
+	MaxObjectsServer          *MultiTenantServer
+	MaxUploadSizeServer       *MultiTenantServer
+	Semver2Server             *MultiTenantServer
+	PerChartLimitServer       *MultiTenantServer
+	ReadAfterWriteConsistency *MultiTenantServer
+	TempDirectory             string
+	TestTarballFilename       string
+	TestProvfileFilename      string
+	StorageDirectory          map[string]map[string][]string
+	LastCrashMessage          string
+	LastPrinted               string
+	LastExitCode              int
 }
 
 func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string, output ...*bytes.Buffer) gin.ResponseWriter {
@@ -113,6 +114,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.Semver2Server.Router.HandleContext(c)
 	case "per-chart-limit":
 		suite.PerChartLimitServer.Router.HandleContext(c)
+	case "read-after-write":
+		suite.ReadAfterWriteConsistency.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -464,6 +467,24 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new max upload size server")
 	suite.MaxUploadSizeServer = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
+		MaxUploadSize: maxUploadSize,
+	})
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                    logger,
+		Router:                    router,
+		StorageBackend:            backend,
+		TimestampTolerance:        time.Duration(0),
+		EnableAPI:                 true,
+		AllowOverwrite:            true,
+		ReadAfterWriteConsistency: true,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "error creating new read-after-write consistency server")
+	suite.ReadAfterWriteConsistency = server
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -844,6 +865,32 @@ func (suite *MultiTenantServerTestSuite) TestPerChartLimit() {
 	suite.Equal(404, res.Status(), "200 GET /api/charts/mychart-0.0.1")
 }
 
+func (suite *MultiTenantServerTestSuite) TestReadAfterWriteConsistency() {
+	ns := "read-after-write"
+
+	// Upload the chart
+	buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
+	res := suite.doRequest(ns, "POST", "/api/charts", buf, w.FormDataContentType())
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	// Delete chart
+	res = suite.doRequest(ns, "DELETE", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(200, res.Status(), "200 DELETE /api/charts/mychart/0.1.0")
+
+	// Validate that deletion happens immediately
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(404, res.Status(), "404 GET /api/charts/mychart-0.1.0")
+
+	// Upload the chart
+	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
+	res = suite.doRequest(ns, "POST", "/api/charts", buf, w.FormDataContentType())
+	suite.Equal(201, res.Status(), "201 POST /api/charts")
+
+	// Validate that updating the index/cache happens immediately
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart/0.1.0")
+}
+
 func (suite *MultiTenantServerTestSuite) TestMaxUploadSizeServer() {
 	// trigger 413s, "request too large"
 	content, err := ioutil.ReadFile(testTarballPath)
@@ -941,6 +988,8 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 		repoPrefix = ""
 	}
 
+	apiPrefix := pathutil.Join("/api", repo)
+
 	// GET /:repo/index.yaml
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/index.yaml", repoPrefix), nil, "")
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/index.yaml", repoPrefix))
@@ -964,8 +1013,6 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts/fakechart-0.1.0.bad", repoPrefix), nil, "")
 	suite.Equal(500, res.Status(), fmt.Sprintf("500 GET %s/charts/fakechart-0.1.0.bad", repoPrefix))
-
-	apiPrefix := pathutil.Join("/api", repo)
 
 	// GET /api/:repo/charts
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/charts", apiPrefix), nil, "")
