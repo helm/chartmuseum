@@ -67,6 +67,7 @@ type (
 		CacheInterval          time.Duration
 		EventChan              chan event
 		ChartLimits            *ObjectsPerChartLimit
+		ReadAfterWriteConsistency bool
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2  bool
 		WebTemplatePath string
@@ -98,6 +99,7 @@ type (
 		UseStatefiles          bool
 		CacheInterval          time.Duration
 		PerChartLimit          int
+		ReadAfterWriteConsistency bool
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2  bool
 		WebTemplatePath string
@@ -159,6 +161,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		CacheInterval:          options.CacheInterval,
 		ChartLimits:            l,
 		WebTemplatePath:        options.WebTemplatePath,
+		ReadAfterWriteConsistency: options.ReadAfterWriteConsistency,
 	}
 
 	if server.WebTemplatePath != "" {

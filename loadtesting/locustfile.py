@@ -1,6 +1,7 @@
 from locust import HttpUser, TaskSet, task
 import tarfile
 import io
+import os
 
 patch_version = 1
 
@@ -9,7 +10,7 @@ class UserBehavior(TaskSet):
     def index(self):
         self.client.get("/index.yaml")
 
-    @task(1)
+    @task(5)
     def post_new_chart(self):
         global patch_version
         # Create dummy 'chartmuseum-loadtest' chart package for which we only increment the patch version
@@ -28,7 +29,14 @@ class UserBehavior(TaskSet):
         t.close()
         tgz_buf.seek(0)
 
-        self.client.post('/api/charts', files={chart_post_field_name: (chart_fn, tgz_buf)})
+        resp = self.client.post('/api/charts', files={chart_post_field_name: (chart_fn, tgz_buf)})
+        resp.raise_for_status()
+
+        # This will likely result in 404s if ChartMuseum
+        # is not started with the --read-after-write-consistency flag or env var.
+        if 'READ_AFTER_WRITE_CONSISTENCY' in os.environ:
+            resp = self.client.get(f'/api/charts/{chart_name}/{chart_version}')
+            resp.raise_for_status()
 
 class WebsiteUser(HttpUser):
     tasks = [UserBehavior]

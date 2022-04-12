@@ -70,6 +70,7 @@ type (
 		Host                   string
 		Version                string
 		WebTemplatePath        string
+		ReadAfterWriteConsistency bool
 		// PerChartLimit allow museum server to keep max N version Charts
 		// And avoid swelling too large(if so , the index genertion will become slow)
 		PerChartLimit int
@@ -140,6 +141,7 @@ func NewServer(options ServerOptions) (Server, error) {
 		Version:                options.Version,
 		CacheInterval:          options.CacheInterval,
 		PerChartLimit:          options.PerChartLimit,
+		ReadAfterWriteConsistency: options.ReadAfterWriteConsistency,
 		// Deprecated options
 		// EnforceSemver2 - see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2:  options.EnforceSemver2,

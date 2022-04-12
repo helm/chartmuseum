@@ -281,6 +281,8 @@ func (server *MultiTenantServer) PutWithLimit(ctx *gin.Context, log cm_logger.Lo
 	if err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content); err != nil {
 		return fmt.Errorf("PutWithLimit: put new chart: %w", err)
 	}
+
+	// TODO: I think emitting an event here is fine if read-after-write consistency is set
 	go server.emitEvent(ctx, repo, deleteChart, &helm_repo.ChartVersion{
 		Metadata: &chart.Metadata{
 			Name:    cv.Name,

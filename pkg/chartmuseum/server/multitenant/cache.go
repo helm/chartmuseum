@@ -36,6 +36,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	pathutil "path"
 	"sync"
 	"time"
@@ -493,72 +494,76 @@ func (server *MultiTenantServer) emitEvent(c *gin.Context, repo string, operatio
 	}
 }
 
+func (server *MultiTenantServer) doEvent(c *gin.Context, repo string, operationType operationType, chart *helm_repo.ChartVersion) error {
+	log := server.Logger.ContextLoggingFn(c)
+
+	entry, err := server.initCacheEntry(log, repo)
+	if err != nil {
+		log(cm_logger.ErrorLevel, "Error initializing cache entry", zap.Error(err), zap.String("repo", repo))
+		return err
+	}
+	entry.RepoLock.RLock()
+	index := entry.RepoIndex
+	entry.RepoLock.RUnlock()
+
+	server.TenantCacheKeyLock.Lock()
+	_, ok := server.Tenants[repo]
+	server.TenantCacheKeyLock.Unlock()
+
+	if !ok {
+		log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.Error(err), zap.String("repo", repo))
+	}
+
+	if chart == nil {
+		log(cm_logger.WarnLevel, "Event does not contain chart version", zap.String("repo", repo),
+			"operation_type", operationType)
+		return fmt.Errorf("event does not contain chart version")
+	}
+
+	entry.RepoLock.Lock()
+	switch operationType {
+	case updateChart:
+		index.UpdateEntry(chart)
+	case addChart:
+		index.AddEntry(chart)
+	case deleteChart:
+		index.RemoveEntry(chart)
+	default:
+		log(cm_logger.ErrorLevel, "Invalid operation type", zap.String("repo", repo),
+			"operation_type", operationType)
+		return fmt.Errorf("invalid operation type")
+
+	}
+
+	err = index.Regenerate()
+	if err != nil {
+		log(cm_logger.ErrorLevel, "Error regenerating index", zap.Error(err), zap.String("repo", repo))
+	}
+	entry.RepoIndex = index
+	entry.RepoLock.Unlock()
+	err = server.saveCacheEntry(log, entry)
+	if err != nil {
+		log(cm_logger.ErrorLevel, "Error saving cache entry", zap.Error(err), zap.String("repo", repo))
+		return fmt.Errorf("erroring saving cache entry")
+
+	}
+
+	if server.UseStatefiles {
+		// Dont wait, save index-cache.yaml to storage in the background.
+		// It is not crucial if this does not succeed, we will just log any errors
+		go server.saveStatefile(log, repo, entry.RepoIndex.Raw)
+	}
+	return nil
+}
+
 func (server *MultiTenantServer) startEventListener() {
 	server.Router.Logger.Debug("Starting internal event listener")
 	for {
-
 		e := <-server.EventChan
 		log := server.Logger.ContextLoggingFn(e.Context)
-
-		repo := e.RepoName
 		log(cm_logger.DebugLevel, "Event received", zap.Any("event", e))
 
-		entry, err := server.initCacheEntry(log, repo)
-		if err != nil {
-			log(cm_logger.ErrorLevel, "Error initializing cache entry", zap.Error(err), zap.String("repo", repo))
-			continue
-		}
-		entry.RepoLock.RLock()
-		index := entry.RepoIndex
-		entry.RepoLock.RUnlock()
-
-		server.TenantCacheKeyLock.Lock()
-		_, ok := server.Tenants[e.RepoName]
-		server.TenantCacheKeyLock.Unlock()
-
-		if !ok {
-			log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.Error(err), zap.String("repo", repo))
-			continue
-		}
-
-		if e.ChartVersion == nil {
-			log(cm_logger.WarnLevel, "Event does not contain chart version", zap.String("repo", repo),
-				"operation_type", e.OpType)
-			continue
-		}
-
-		entry.RepoLock.Lock()
-		switch e.OpType {
-		case updateChart:
-			index.UpdateEntry(e.ChartVersion)
-		case addChart:
-			index.AddEntry(e.ChartVersion)
-		case deleteChart:
-			index.RemoveEntry(e.ChartVersion)
-		default:
-			log(cm_logger.ErrorLevel, "Invalid operation type", zap.String("repo", repo),
-				"operation_type", e.OpType)
-			continue
-		}
-
-		err = index.Regenerate()
-		if err != nil {
-			log(cm_logger.ErrorLevel, "Error regenerating index", zap.Error(err), zap.String("repo", repo))
-			continue
-		}
-		entry.RepoIndex = index
-		entry.RepoLock.Unlock()
-		err = server.saveCacheEntry(log, entry)
-		if err != nil {
-			log(cm_logger.ErrorLevel, "Error saving cache entry", zap.Error(err), zap.String("repo", repo))
-			continue
-		}
-
-		if server.UseStatefiles {
-			// Dont wait, save index-cache.yaml to storage in the background.
-			// It is not crucial if this does not succeed, we will just log any errors
-			go server.saveStatefile(log, e.RepoName, entry.RepoIndex.Raw)
-		}
+		_ = server.doEvent(e.Context, e.RepoName, e.OpType, e.ChartVersion)
 
 		log(cm_logger.DebugLevel, "Event handled successfully", zap.Any("event", e))
 	}

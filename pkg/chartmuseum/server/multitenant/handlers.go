@@ -299,6 +299,22 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		return
 	}
 
+	// if read-write-consistency then doEvent, else emitEvent
+	if server.ReadAfterWriteConsistency {
+		err := server.doEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
+			Metadata: &chart.Metadata{
+				Name:    name,
+				Version: version,
+			},
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
+		}
+		c.JSON(200, objectDeletedResponse)
+		return
+	}
+
 	server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
 		Metadata: &chart.Metadata{
 			Name:    name,
@@ -355,8 +371,18 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	if chartErr != nil {
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(chartErr), zap.Binary("content", content))
 	}
-	server.emitEvent(c, repo, action, chart)
 
+	if server.ReadAfterWriteConsistency {
+		err := server.doEvent(c, repo, action, chart)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
+		}
+		c.JSON(201, objectSavedResponse)
+		return
+	}
+
+	server.emitEvent(c, repo, action, chart)
 	c.JSON(201, objectSavedResponse)
 }
 
@@ -454,8 +480,17 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(err), zap.Binary("content", chartContent))
 	}
 
-	server.emitEvent(c, repo, action, chart)
+	if server.ReadAfterWriteConsistency {
+		err := server.doEvent(c, repo, action, chart)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
+		}
+		c.JSON(http.StatusCreated, objectSavedResponse)
+		return
+	}
 
+	server.emitEvent(c, repo, action, chart)
 	c.JSON(http.StatusCreated, objectSavedResponse)
 }
 

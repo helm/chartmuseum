@@ -805,6 +805,15 @@ var configVars = map[string]configVar{
 			EnvVar: "WEB_TEMPLATE_PATH",
 		},
 	},
+	"read-after-write-consistency": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "read-after-write-consistency",
+			Usage:  "enables read-after-write consistency for chart uploads and deletions",
+			EnvVar: "READ_AFTER_WRITE_CONSISTENCY",
+		},
+	},
 }
 
 func populateCLIFlags() {
