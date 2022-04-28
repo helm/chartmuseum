@@ -35,6 +35,7 @@ import (
 	"helm.sh/chartmuseum/pkg/repo"
 
 	"github.com/chartmuseum/storage"
+	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 )
@@ -51,28 +52,31 @@ var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0
 var badTestTarballPath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
 var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
 
+const artifactHubRepoID = "foo"
+
 type MultiTenantServerTestSuite struct {
 	suite.Suite
-	Depth0Server         *MultiTenantServer
-	Depth1Server         *MultiTenantServer
-	Depth2Server         *MultiTenantServer
-	Depth3Server         *MultiTenantServer
-	DisabledAPIServer    *MultiTenantServer
-	DisabledDeleteServer *MultiTenantServer
-	OverwriteServer      *MultiTenantServer
-	ForceOverwriteServer *MultiTenantServer
-	ChartURLServer       *MultiTenantServer
-	MaxObjectsServer     *MultiTenantServer
-	MaxUploadSizeServer  *MultiTenantServer
-	Semver2Server        *MultiTenantServer
-	PerChartLimitServer  *MultiTenantServer
-	TempDirectory        string
-	TestTarballFilename  string
-	TestProvfileFilename string
-	StorageDirectory     map[string]map[string][]string
-	LastCrashMessage     string
-	LastPrinted          string
-	LastExitCode         int
+	Depth0Server            *MultiTenantServer
+	Depth1Server            *MultiTenantServer
+	Depth2Server            *MultiTenantServer
+	Depth3Server            *MultiTenantServer
+	DisabledAPIServer       *MultiTenantServer
+	DisabledDeleteServer    *MultiTenantServer
+	OverwriteServer         *MultiTenantServer
+	ForceOverwriteServer    *MultiTenantServer
+	ChartURLServer          *MultiTenantServer
+	MaxObjectsServer        *MultiTenantServer
+	MaxUploadSizeServer     *MultiTenantServer
+	Semver2Server           *MultiTenantServer
+	PerChartLimitServer     *MultiTenantServer
+	ArtifactHubRepoIDServer *MultiTenantServer
+	TempDirectory           string
+	TestTarballFilename     string
+	TestProvfileFilename    string
+	StorageDirectory        map[string]map[string][]string
+	LastCrashMessage        string
+	LastPrinted             string
+	LastExitCode            int
 }
 
 func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string, output ...*bytes.Buffer) gin.ResponseWriter {
@@ -113,6 +117,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.Semver2Server.Router.HandleContext(c)
 	case "per-chart-limit":
 		suite.PerChartLimitServer.Router.HandleContext(c)
+	case "artifacthub":
+		suite.ArtifactHubRepoIDServer.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -464,6 +470,26 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new max upload size server")
 	suite.MaxUploadSizeServer = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
+		MaxUploadSize: 1, // intentionally small
+	})
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
+		EnableAPI:              true,
+		AllowOverwrite:         true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+		ArtifactHubRepoID:      artifactHubRepoID,
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new artifact hub repo id server")
+	suite.ArtifactHubRepoIDServer = server
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -908,6 +934,17 @@ func (suite *MultiTenantServerTestSuite) TestMetrics() {
 	suite.True(strings.Contains(metrics, "chartmuseum_chart_versions_served_total{repo=\"b\"} 0"))
 }
 
+func (suite *MultiTenantServerTestSuite) TestArtifactHubRepoID() {
+	buffer := bytes.NewBufferString("")
+	res := suite.doRequest("artifacthub", "GET", "/artifacthub-repo.yml", nil, "", buffer)
+	suite.Equal(200, res.Status(), "200 GET /artifacthub-repo.yml")
+
+	artifactHubYmlString := buffer.Bytes()
+	artifactHubYmlFile := &repo.ArtifactHubFile{}
+	yaml.Unmarshal(artifactHubYmlString, artifactHubYmlFile)
+	suite.Equal(artifactHubYmlFile.RepoID, artifactHubRepoID)
+}
+
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
 	suite.testAllRoutes("", 0)
 	for org, teams := range suite.StorageDirectory {
@@ -944,6 +981,11 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	// GET /:repo/index.yaml
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/index.yaml", repoPrefix), nil, "")
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/index.yaml", repoPrefix))
+
+	// GET /:repo/artifacthub-repo.yaml
+	// This should 404 since ArtifactHubRepoID is not configured on the Depth* test servers
+	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/artifacthub-repo.yml", repoPrefix), nil, "")
+	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/artifacthub-repo.yml", repoPrefix))
 
 	// Issue #21
 	suite.NotEqual("", res.Header().Get("X-Request-Id"), "X-Request-Id header is present")

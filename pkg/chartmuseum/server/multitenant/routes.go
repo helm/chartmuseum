@@ -30,6 +30,10 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 		{"GET", "/health", s.getHealthCheckHandler, ""},
 	}
 
+	artifactHubRoutes := []*cm_router.Route{
+		{"GET", "/artifacthub-repo.yml", s.getArtifactHubFileRequestHandler, cm_auth.PullAction},
+	}
+
 	helmChartRepositoryRoutes := []*cm_router.Route{
 		{"GET", "/:repo/index.yaml", s.getIndexFileRequestHandler, cm_auth.PullAction},
 		{"GET", "/:repo/charts/:filename", s.getStorageObjectRequestHandler, cm_auth.PullAction},
@@ -49,6 +53,10 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 
 	routes = append(routes, serverInfoRoutes...)
 	routes = append(routes, helmChartRepositoryRoutes...)
+
+	if s.ArtifactHubRepoID != "" {
+		routes = append(routes, artifactHubRoutes...)
+	}
 
 	if s.WebTemplatePath != "" {
 		routes = append(routes, &cm_router.Route{

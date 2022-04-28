@@ -805,6 +805,15 @@ var configVars = map[string]configVar{
 			EnvVar: "WEB_TEMPLATE_PATH",
 		},
 	},
+	"artifact-hub-repo-id": {
+		Type:    stringType,
+		Default: "",
+		CLIFlag: cli.StringFlag{
+			Name:   "artifact-hub-repo-id",
+			Usage:  "the artifact hub repositoryID used to populate a artifacthub-repo.yml file (only supports a single repo ID that is applied to all ChartMuseum repos)",
+			EnvVar: "ARTIFACT_HUB_REPO_ID",
+		},
+	},
 }
 
 func populateCLIFlags() {

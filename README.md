@@ -658,6 +658,20 @@ web/
 
 If you don't specify a custom welcome page, ChartMuseum will serve the default one.
 
+#### Artifact Hub
+
+By setting the flag `--artifact-hub-repo-id <repo id>`, ChartMuseum will serve a `artifacthub-repo.yml` file with the
+specified repo ID in the `repositoryID` field of the yaml file.
+
+```yaml
+repositoryID: The ID of the Artifact Hub repository where the packages will be published to (optional, but it enables verified publisher)
+```
+
+ChartMuseum is currently limited to only supporting the `repositoryID` field and also only allows specifying **one**
+repo ID per ChartMuseum instance.
+
+This means multitenancy is currently not supported in this feature.
+
 ## Original Logo
 
 <sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>

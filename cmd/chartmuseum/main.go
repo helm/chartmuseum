@@ -116,6 +116,7 @@ func cliHandler(c *cli.Context) {
 		Host:                   conf.GetString("listen.host"),
 		PerChartLimit:          conf.GetInt("per-chart-limit"),
 		WebTemplatePath:        conf.GetString("web-template-path"),
+		ArtifactHubRepoID:      conf.GetString("artifact-hub-repo-id"),
 	}
 
 	server, err := newServer(options)
