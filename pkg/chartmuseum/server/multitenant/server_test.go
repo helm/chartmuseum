@@ -52,8 +52,6 @@ var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0
 var badTestTarballPath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
 var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
 
-const artifactHubRepoID = "foo"
-
 type MultiTenantServerTestSuite struct {
 	suite.Suite
 	Depth0Server            *MultiTenantServer
@@ -77,6 +75,7 @@ type MultiTenantServerTestSuite struct {
 	LastCrashMessage        string
 	LastPrinted             string
 	LastExitCode            int
+	ArtifactHubIds          map[string]string
 }
 
 func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string, output ...*bytes.Buffer) gin.ResponseWriter {
@@ -212,6 +211,19 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		},
 	}
 
+	// build the map of Artifact Hub Repo Ids from the StorageDirectory
+	// so we can test the /:repo/artifact-hub.yml route in TestRoutes
+	suite.ArtifactHubIds = map[string]string{"": "depth0"}
+	for depth1, v := range suite.StorageDirectory {
+		suite.ArtifactHubIds[depth1] = "depth1"
+		for depth2, v := range v {
+			suite.ArtifactHubIds[fmt.Sprintf("%s/%s", depth1, depth2)] = "depth2"
+			for _, depth3 := range v {
+				suite.ArtifactHubIds[fmt.Sprintf("%s/%s/%s", depth1, depth2, depth3)] = "depth3"
+			}
+		}
+	}
+
 	// Scaffold out test storage directory structure
 	for org, teams := range suite.StorageDirectory {
 		for team, repos := range teams {
@@ -243,6 +255,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
 		IndexLimit:             1,
+		ArtifactHubRepoID:      suite.ArtifactHubIds,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=0) server")
@@ -262,6 +275,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
+		ArtifactHubRepoID:      suite.ArtifactHubIds,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=1) server")
@@ -280,6 +294,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
+		ArtifactHubRepoID:      suite.ArtifactHubIds,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=2) server")
@@ -298,6 +313,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		EnableAPI:              true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
+		ArtifactHubRepoID:      suite.ArtifactHubIds,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new multitenant (depth=3) server")
@@ -485,7 +501,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
-		ArtifactHubRepoID:      artifactHubRepoID,
+		ArtifactHubRepoID:      suite.ArtifactHubIds,
 	})
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new artifact hub repo id server")
@@ -942,7 +958,7 @@ func (suite *MultiTenantServerTestSuite) TestArtifactHubRepoID() {
 	artifactHubYmlString := buffer.Bytes()
 	artifactHubYmlFile := &repo.ArtifactHubFile{}
 	yaml.Unmarshal(artifactHubYmlString, artifactHubYmlFile)
-	suite.Equal(artifactHubYmlFile.RepoID, artifactHubRepoID)
+	suite.Equal(artifactHubYmlFile.RepoID, suite.ArtifactHubIds[""])
 }
 
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
@@ -983,9 +999,8 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/index.yaml", repoPrefix))
 
 	// GET /:repo/artifacthub-repo.yaml
-	// This should 404 since ArtifactHubRepoID is not configured on the Depth* test servers
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/artifacthub-repo.yml", repoPrefix), nil, "")
-	suite.Equal(404, res.Status(), fmt.Sprintf("404 GET %s/artifacthub-repo.yml", repoPrefix))
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/artifacthub-repo.yml", repoPrefix))
 
 	// Issue #21
 	suite.NotEqual("", res.Header().Get("X-Request-Id"), "X-Request-Id header is present")

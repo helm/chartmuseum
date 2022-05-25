@@ -25,6 +25,7 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/urfave/cli"
+
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 )
 
@@ -75,6 +76,12 @@ func (conf *Config) UpdateFromCLIContext(c *cli.Context) error {
 					conf.Set(key, c.Bool(name))
 				case durationType:
 					conf.Set(key, c.Duration(name))
+				case keyValueType:
+					keyValue, ok := c.Generic(name).(*KeyValueFlag)
+					if !ok {
+						return fmt.Errorf("failed to get flag value: %s", flag.GetName())
+					}
+					conf.Set(key, keyValue.m)
 				}
 			}
 		}

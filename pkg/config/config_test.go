@@ -129,6 +129,15 @@ func (suite *ConfigTestSuite) TestUpdateFromCLIContext() {
 	suite.Nil(err)
 	suite.Equal("otherdude", conf.GetString("basicauth.user"))
 	suite.Equal("mypass", conf.GetString("basicauth.pass"))
+
+	// Tests KeyValueFlag "generic" flag implementation
+	conf = NewConfig()
+	suite.NotNil(conf)
+	c = getNewContext()
+	c.Set("artifact-hub-repo-id", "foo=bar")
+	err = conf.UpdateFromCLIContext(c)
+	suite.Nil(err)
+	suite.Equal(map[string]string{"foo": "bar"}, conf.GetStringMapString("artifact-hub-repo-id"))
 }
 
 func getNewContext() *cli.Context {

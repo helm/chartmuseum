@@ -667,10 +667,15 @@ specified repo ID in the `repositoryID` field of the yaml file.
 repositoryID: The ID of the Artifact Hub repository where the packages will be published to (optional, but it enables verified publisher)
 ```
 
-ChartMuseum is currently limited to only supporting the `repositoryID` field and also only allows specifying **one**
-repo ID per ChartMuseum instance.
+##### Multitenancy
 
-This means multitenancy is currently not supported in this feature.
+For multitenancy setups, you can provide a key value pair to the flag in the format: `--artifact-hub-repo-id <repo>=<repo id>`
+
+```bash
+chartmuseum --storage local --storage-local-rootdir /tmp/ --depth 1 --artifact-hub-repo-id org1=<repo id> --artifact-hub-repo-id org2=<repo2 id>
+```
+
+The `artifacthub-repo.yml` file will then be served at `/org1/artifacthub-repo.yml` and `/org2/artifacthub-repo.yml`
 
 ## Original Logo
 

@@ -17,6 +17,8 @@ limitations under the License.
 package config
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/urfave/cli"
@@ -41,6 +43,7 @@ var (
 	intType      configVarType = "int"
 	boolType     configVarType = "bool"
 	durationType configVarType = "time.Duration"
+	keyValueType configVarType = "keyValue"
 )
 
 var configVars = map[string]configVar{
@@ -806,14 +809,40 @@ var configVars = map[string]configVar{
 		},
 	},
 	"artifact-hub-repo-id": {
-		Type:    stringType,
-		Default: "",
-		CLIFlag: cli.StringFlag{
-			Name:   "artifact-hub-repo-id",
-			Usage:  "the artifact hub repositoryID used to populate a artifacthub-repo.yml file (only supports a single repo ID that is applied to all ChartMuseum repos)",
+		Type: keyValueType,
+		CLIFlag: cli.GenericFlag{
+			Name:  "artifact-hub-repo-id",
+			Value: &KeyValueFlag{},
+			Usage: "the artifact hub repositoryID used to populate a artifacthub-repo.yml file. " +
+				"This can be a single repository ID for depth=0 servers or a key value pair for depth=N servers (i.e org1/repo1=foo).",
 			EnvVar: "ARTIFACT_HUB_REPO_ID",
 		},
 	},
+}
+
+type KeyValueFlag struct {
+	m map[string]string
+}
+
+func (k *KeyValueFlag) Set(value string) error {
+	if k.m == nil {
+		k.m = make(map[string]string)
+	}
+	parts := strings.SplitN(value, "=", 2)
+	if len(parts) == 1 { // depth=0 case
+		k.m[""] = parts[0]
+	} else if len(parts) == 2 {
+		k.m[parts[0]] = parts[1]
+	}
+	return nil
+}
+
+func (k *KeyValueFlag) String() string {
+	var str []string
+	for key, val := range k.m {
+		str = append(str, fmt.Sprintf("%s=%s", key, val))
+	}
+	return strings.Join(str, ",")
 }
 
 func populateCLIFlags() {

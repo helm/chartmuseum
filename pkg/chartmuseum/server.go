@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/chartmuseum/storage"
+
 	"helm.sh/chartmuseum/pkg/cache"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
@@ -70,7 +71,7 @@ type (
 		Host                   string
 		Version                string
 		WebTemplatePath        string
-		ArtifactHubRepoID      string
+		ArtifactHubRepoID      map[string]string
 		// PerChartLimit allow museum server to keep max N version Charts
 		// And avoid swelling too large(if so , the index genertion will become slow)
 		PerChartLimit int

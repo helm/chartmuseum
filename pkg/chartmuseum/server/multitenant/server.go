@@ -25,6 +25,7 @@ import (
 
 	cm_storage "github.com/chartmuseum/storage"
 	"github.com/gin-gonic/gin"
+
 	"helm.sh/chartmuseum/pkg/cache"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
@@ -67,7 +68,7 @@ type (
 		CacheInterval          time.Duration
 		EventChan              chan event
 		ChartLimits            *ObjectsPerChartLimit
-		ArtifactHubRepoID      string
+		ArtifactHubRepoID      map[string]string
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2  bool
 		WebTemplatePath string
@@ -99,7 +100,7 @@ type (
 		UseStatefiles          bool
 		CacheInterval          time.Duration
 		PerChartLimit          int
-		ArtifactHubRepoID      string
+		ArtifactHubRepoID      map[string]string
 		WebTemplatePath        string
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2 bool

@@ -17,8 +17,9 @@ limitations under the License.
 package multitenant
 
 import (
-	"github.com/ghodss/yaml"
 	"net/http"
+
+	"github.com/ghodss/yaml"
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
@@ -27,8 +28,11 @@ import (
 const artifactHubFileContentType = "application/x-yaml"
 
 func (server *MultiTenantServer) getArtifactHubYml(log cm_logger.LoggingFn, repo string) ([]byte, *HTTPError) {
+	if _, ok := server.ArtifactHubRepoID[repo]; !ok {
+		return nil, &HTTPError{http.StatusNotFound, "Artifact Hub repository ID not found"}
+	}
 	artifactHubFile := &cm_repo.ArtifactHubFile{
-		RepoID: server.ArtifactHubRepoID,
+		RepoID: server.ArtifactHubRepoID[repo],
 	}
 	log(cm_logger.DebugLevel, "Generating artifacthub-repo.yml file", "repo", repo)
 	rawArtifactHubFile, err := yaml.Marshal(&artifactHubFile)
