@@ -55,7 +55,7 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 	routes = append(routes, serverInfoRoutes...)
 	routes = append(routes, helmChartRepositoryRoutes...)
 
-	if s.ArtifactHubRepoID != nil {
+	if len(s.ArtifactHubRepoID) != 0 {
 		routes = append(routes, artifactHubRoutes...)
 	}
 
