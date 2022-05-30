@@ -535,7 +535,7 @@ func (server *MultiTenantServer) validateChartOrProv(repo, filename string, forc
 		f = repo + "/" + filename
 	}
 	// conflict does not mean the file is invalid.
-	// for example, when overwite is allowed, it's valid
+	// for example, when overwrite is allowed, it's valid
 	// so that the client can decide what to do and here we just return conflict with no error
 	if _, err := server.StorageBackend.GetObject(f); err == nil {
 		return http.StatusConflict, nil
