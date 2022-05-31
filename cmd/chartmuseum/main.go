@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/chartmuseum/storage"
+
 	"helm.sh/chartmuseum/pkg/cache"
 	"helm.sh/chartmuseum/pkg/chartmuseum"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
@@ -116,6 +117,7 @@ func cliHandler(c *cli.Context) {
 		Host:                   conf.GetString("listen.host"),
 		PerChartLimit:          conf.GetInt("per-chart-limit"),
 		WebTemplatePath:        conf.GetString("web-template-path"),
+		ArtifactHubRepoID:      conf.GetStringMapString("artifact-hub-repo-id"),
 	}
 
 	server, err := newServer(options)

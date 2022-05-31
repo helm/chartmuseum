@@ -25,7 +25,7 @@ import (
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 )
 
-var (
+const (
 	indexFileContentType = "application/x-yaml"
 )
 

@@ -18,6 +18,7 @@ package multitenant
 
 import (
 	cm_auth "github.com/chartmuseum/auth"
+
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
 )
 
@@ -28,6 +29,10 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 		{"GET", "/", s.getWelcomePageHandler, cm_auth.PullAction},
 		{"GET", "/info", s.getInfoHandler, ""},
 		{"GET", "/health", s.getHealthCheckHandler, ""},
+	}
+
+	artifactHubRoutes := []*cm_router.Route{
+		{"GET", "/artifacthub-repo.yml", s.getArtifactHubFileRequestHandler, cm_auth.PullAction},
 	}
 
 	helmChartRepositoryRoutes := []*cm_router.Route{
@@ -49,6 +54,10 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 
 	routes = append(routes, serverInfoRoutes...)
 	routes = append(routes, helmChartRepositoryRoutes...)
+
+	if len(s.ArtifactHubRepoID) != 0 {
+		routes = append(routes, artifactHubRoutes...)
+	}
 
 	if s.WebTemplatePath != "" {
 		routes = append(routes, &cm_router.Route{

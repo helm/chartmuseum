@@ -658,6 +658,25 @@ web/
 
 If you don't specify a custom welcome page, ChartMuseum will serve the default one.
 
+#### Artifact Hub
+
+By setting the flag `--artifact-hub-repo-id <repo id>`, ChartMuseum will serve a `artifacthub-repo.yml` file with the
+specified repo ID in the `repositoryID` field of the yaml file.
+
+```yaml
+repositoryID: The ID of the Artifact Hub repository where the packages will be published to (optional, but it enables verified publisher)
+```
+
+##### Multitenancy
+
+For multitenancy setups, you can provide a key value pair to the flag in the format: `--artifact-hub-repo-id <repo>=<repo id>`
+
+```bash
+chartmuseum --storage local --storage-local-rootdir /tmp/ --depth 1 --artifact-hub-repo-id org1=<repo id> --artifact-hub-repo-id org2=<repo2 id>
+```
+
+The `artifacthub-repo.yml` file will then be served at `/org1/artifacthub-repo.yml` and `/org2/artifacthub-repo.yml`
+
 ## Original Logo
 
 <sub>**_"Preserve your precious artifacts... in the cloud!"_**<sub>
