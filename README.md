@@ -99,7 +99,7 @@ Install binary using [GoFish](https://gofi.sh/):
 ```
 gofish install chartmuseum
 ==> Installing chartmuseum...
-🐠  chartmuseum 0.14.0: installed in 95.431145ms
+🐠  chartmuseum 0.15.0: installed in 95.431145ms
 ```
 
 or you can use the installer script:
@@ -480,7 +480,7 @@ docker run --rm -it \
   -e STORAGE=local \
   -e STORAGE_LOCAL_ROOTDIR=/charts \
   -v $(pwd)/charts:/charts \
-  ghcr.io/helm/chartmuseum:v0.14.0
+  ghcr.io/helm/chartmuseum:v0.15.0
 ```
 
 Example usage (S3):
@@ -493,7 +493,7 @@ docker run --rm -it \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/home/chartmuseum/.aws:ro \
-  ghcr.io/helm/chartmuseum:v0.14.0
+  ghcr.io/helm/chartmuseum:v0.15.0
 ```
 
 ### Helm Chart
