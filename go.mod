@@ -8,7 +8,7 @@ require (
 	github.com/chartmuseum/storage v0.12.4
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/size v0.0.0-20220102055520-f75bacbc2df3
-	github.com/gin-gonic/gin v1.8.0
+	github.com/gin-gonic/gin v1.8.1
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/prometheus/client_golang v1.12.2
