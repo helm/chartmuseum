@@ -565,11 +565,13 @@ func (server *MultiTenantServer) startEventListener() {
 }
 
 func (server *MultiTenantServer) rebuildIndex() {
+	server.TenantCacheKeyLock.Lock()
+	defer server.TenantCacheKeyLock.Unlock()
 	if len(server.Tenants) == 0 {
 		return
 	}
 	server.Logger.Info("Rebuilding index for all tenants in cache")
-	for repo, _ := range server.Tenants {
+	for repo := range server.Tenants {
 		go server.rebuildIndexForTenant(repo)
 	}
 }
