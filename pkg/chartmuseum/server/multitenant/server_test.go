@@ -541,8 +541,8 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		AllowOverwrite:         true,
 		ChartPostFormFieldName: "chart",
 		ProvPostFormFieldName:  "prov",
-		AlwaysRegenerateIndex:  true,
 		CacheInterval:          time.Second,
+		AlwaysRegenerateIndex:  true,
 	})
 
 	suite.NotNil(server)
@@ -586,7 +586,7 @@ func (suite *MultiTenantServerTestSuite) regenerateRepositoryIndex(repo string, 
 		return
 	}
 	suite.Nil(err, "no error on fetchChartsInStorage")
-	diff := storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
+	diff := storage.GetObjectSliceDiff(server.getRepoObjectSliceWithLock(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index")
 
@@ -596,7 +596,7 @@ func (suite *MultiTenantServerTestSuite) regenerateRepositoryIndex(repo string, 
 
 	objects, err = server.fetchChartsInStorage(log, repo)
 	suite.Nil(err, "no error on fetchChartsInStorage")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSliceWithLock(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "no error regenerating repo index with tarball updated")
 
@@ -606,7 +606,7 @@ func (suite *MultiTenantServerTestSuite) regenerateRepositoryIndex(repo string, 
 	defer destFile.Close()
 	objects, err = server.fetchChartsInStorage(log, repo)
 	suite.Nil(err, "no error on fetchChartsInStorage")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSliceWithLock(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball added")
 
@@ -614,7 +614,7 @@ func (suite *MultiTenantServerTestSuite) regenerateRepositoryIndex(repo string, 
 	suite.Nil(err, "no error changing modtime on broken tarball")
 	objects, err = server.fetchChartsInStorage(log, repo)
 	suite.Nil(err, "no error on fetchChartsInStorage")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSliceWithLock(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball updated")
 
@@ -622,7 +622,7 @@ func (suite *MultiTenantServerTestSuite) regenerateRepositoryIndex(repo string, 
 	suite.Nil(err, "no error removing broken tarball")
 	objects, err = server.fetchChartsInStorage(log, repo)
 	suite.Nil(err, "no error on fetchChartsInStorage")
-	diff = storage.GetObjectSliceDiff(server.getRepoObjectSlice(entry), objects, server.TimestampTolerance)
+	diff = storage.GetObjectSliceDiff(server.getRepoObjectSliceWithLock(entry), objects, server.TimestampTolerance)
 	_, err = server.regenerateRepositoryIndexWorker(log, entry, diff)
 	suite.Nil(err, "error not returned with broken tarball removed")
 }

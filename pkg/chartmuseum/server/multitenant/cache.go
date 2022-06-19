@@ -598,9 +598,7 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 		)
 		return
 	}
-	entry.RepoLock.Lock()
-	defer entry.RepoLock.Unlock()
-	objects := server.getRepoObjectSlice(entry)
+	objects := server.getRepoObjectSliceWithLock(entry)
 	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects, server.TimestampTolerance)
 
 	// return fast if no changes
@@ -614,6 +612,9 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 	log(cm_logger.DebugLevel, "Change detected between cache and storage",
 		"repo", repo,
 	)
+
+	entry.RepoLock.Lock()
+	defer entry.RepoLock.Unlock()
 
 	ir := <-server.regenerateRepositoryIndex(log, entry, diff)
 	if ir.err != nil {

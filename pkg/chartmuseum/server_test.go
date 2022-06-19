@@ -52,9 +52,9 @@ func (suite *ServerTestSuite) TestNewServer() {
 	})
 	suite.Nil(err, "no error creating logger")
 	serverOptions := ServerOptions{
-		StorageBackend: suite.Backend,
-		Logger:         log,
-		CacheInterval:  time.Second ,
+		StorageBackend:        suite.Backend,
+		Logger:                log,
+		AlwaysRegenerateIndex: true,
 	}
 
 	multiTenantServer, err := NewServer(serverOptions)
