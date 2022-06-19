@@ -41,7 +41,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 	entry.RepoLock.Lock()
 	defer entry.RepoLock.Unlock()
 
-	// if the always-regenerate-index flag is set, we always update the index file
+	// if the always-regenerate-chart-index flag is set, we always update the index file
 	// and ignore the chart cache
 	if server.AlwaysRegenerateIndex /* the flag is set */ ||
 		(!server.AlwaysRegenerateIndex && len(entry.RepoIndex.Entries) == 0) /* initial */ {

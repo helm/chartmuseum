@@ -822,7 +822,7 @@ var configVars = map[string]configVar{
 		Type: boolType,
 		CLIFlag: cli.BoolFlag{
 			Name:   "always-regenerate-chart-index",
-			Usage:  "always regenerate the chart index and ignore the chart cache , it will cost the even more disk I/O",
+			Usage:  "always regenerate the chart index and ignore the chart cache (this will result in decreased performance and an increase in resource consumption)",
 			EnvVar: "ALWAYS_REGENERATE_CHART_INDEX",
 		},
 	},
