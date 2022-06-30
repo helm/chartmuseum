@@ -7,8 +7,8 @@ BINNAME     ?= chartmuseum
 # Required for globs to work correctly
 SHELL      = /usr/bin/env bash
 
-TARGETS     := darwin/amd64 darwin/arm64 linux/amd64 linux/386 linux/arm linux/arm64 linux/mips64le linux/ppc64le linux/s390x windows/amd64
-TARGET_OBJS ?= darwin-amd64.tar.gz darwin-amd64.tar.gz.sha256sum darwin-arm64.tar.gz darwin-arm64.tar.gz.sha256sum linux-amd64.tar.gz linux-amd64.tar.gz.sha256sum linux-386.tar.gz linux-386.tar.gz.sha256sum linux-arm.tar.gz linux-arm.tar.gz.sha256sum linux-arm64.tar.gz linux-arm64.tar.gz.sha256sum linux-mips64le.tar.gz linux-mips64le.tar.gz.sha256sum linux-ppc64le.tar.gz linux-ppc64le.tar.gz.sha256sum linux-s390x.tar.gz linux-s390x.tar.gz.sha256sum windows-amd64.zip windows-amd64.zip.sha256sum
+TARGETS     := darwin/amd64 darwin/arm64 linux/amd64 linux/386 linux/arm linux/arm64 linux/mips64le linux/ppc64le linux/s390x windows/amd64 linux/loong64
+TARGET_OBJS ?= darwin-amd64.tar.gz darwin-amd64.tar.gz.sha256sum darwin-arm64.tar.gz darwin-arm64.tar.gz.sha256sum linux-amd64.tar.gz linux-amd64.tar.gz.sha256sum linux-386.tar.gz linux-386.tar.gz.sha256sum linux-arm.tar.gz linux-arm.tar.gz.sha256sum linux-arm64.tar.gz linux-arm64.tar.gz.sha256sum linux-mips64le.tar.gz linux-mips64le.tar.gz.sha256sum linux-ppc64le.tar.gz linux-ppc64le.tar.gz.sha256sum linux-s390x.tar.gz linux-s390x.tar.gz.sha256sum windows-amd64.zip windows-amd64.zip.sha256sum linux-loong64.tar.gz linux-loong64.tar.gz.sha256sum
 
 DIST_DIRS   := find * -type d -exec
 
@@ -30,7 +30,7 @@ bootstrap:
 	@go mod download && go mod vendor
 
 .PHONY: build
-build: build-linux build-mac build-mac-arm build-windows build-linux-mips
+build: build-linux build-mac build-mac-arm build-windows build-linux-mips build-linux-loongarch64
 
 .PHONY: build-windows
 build-windows: export GOOS=windows
@@ -63,6 +63,17 @@ build-linux-mips:
 	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
 		-o bin/linux/mips64/chartmuseum cmd/chartmuseum/main.go  # linux
 	sha256sum bin/linux/mips64/chartmuseum || shasum -a 256 bin/linux/mips64/chartmuseum
+
+.PHONY: build-linux-loongarch64
+build-linux-loongarch64: export GOOS=linux
+build-linux-loongarch64: export GOARCH=loong64
+build-linux-loongarch64: export CGO_ENABLED=0
+build-linux-loongarch64: export GO111MODULE=on
+build-linux-loongarch64: export GOPROXY=$(MOD_PROXY_URL)
+build-linux-loongarch64:
+	go build -v --ldflags="-w -X main.Version=$(VERSION) -X main.Revision=$(REVISION)" \
+		-o bin/linux/loongarch64/chartmuseum cmd/chartmuseum/main.go  # linux
+	sha256sum bin/linux/loongarch64/chartmuseum || shasum -a 256 bin/linux/loongarch64/chartmuseum
 
 .PHONY: build-armv7
 build-armv7: export GOOS=linux
