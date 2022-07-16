@@ -17,7 +17,9 @@ limitations under the License.
 package cache
 
 import (
-	"github.com/go-redis/redis"
+	"context"
+
+	"github.com/go-redis/redis/v8"
 )
 
 type (
@@ -41,18 +43,18 @@ func NewRedisStore(addr string, password string, db int) *RedisStore {
 
 // Get returns an object at key
 func (store *RedisStore) Get(key string) ([]byte, error) {
-	content, err := store.Client.Get(key).Bytes()
+	content, err := store.Client.Get(context.TODO(), key).Bytes()
 	return content, err
 }
 
 // Set saves a new value for key
 func (store *RedisStore) Set(key string, contents []byte) error {
-	err := store.Client.Set(key, contents, 0).Err()
+	err := store.Client.Set(context.TODO(), key, contents, 0).Err()
 	return err
 }
 
 // Delete removes a key from the store
 func (store *RedisStore) Delete(key string) error {
-	err := store.Client.Del(key).Err()
+	err := store.Client.Del(context.TODO(), key).Err()
 	return err
 }
