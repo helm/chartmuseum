@@ -774,7 +774,7 @@ var configVars = map[string]configVar{
 	},
 	"cacheinterval": {
 		Type:    durationType,
-		Default: time.Duration(0),
+		Default: 5 * time.Minute,
 		CLIFlag: cli.DurationFlag{
 			Name:   "cache-interval",
 			Usage:  "set the interval of delta updating the cache",
@@ -816,6 +816,14 @@ var configVars = map[string]configVar{
 			Usage: "the artifact hub repositoryID used to populate a artifacthub-repo.yml file. " +
 				"This can be a single repository ID for depth=0 servers or a key value pair for depth=N servers (i.e org1/repo1=foo).",
 			EnvVar: "ARTIFACT_HUB_REPO_ID",
+		},
+	},
+	"always-regenerate-chart-index": {
+		Type: boolType,
+		CLIFlag: cli.BoolFlag{
+			Name:   "always-regenerate-chart-index",
+			Usage:  "always regenerate the chart index and ignore the chart cache (this will result in decreased performance and an increase in resource consumption)",
+			EnvVar: "ALWAYS_REGENERATE_CHART_INDEX",
 		},
 	},
 }

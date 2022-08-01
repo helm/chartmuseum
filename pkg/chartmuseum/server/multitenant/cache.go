@@ -477,10 +477,11 @@ func (server *MultiTenantServer) initCacheTimer() {
 		// (in case the files on the disk are manually manipulated)
 		go func() {
 			t := time.NewTicker(server.CacheInterval)
-			for _ = range t.C {
+			for range t.C {
 				server.rebuildIndex()
 			}
 		}()
+
 	}
 }
 
@@ -496,7 +497,6 @@ func (server *MultiTenantServer) emitEvent(c *gin.Context, repo string, operatio
 func (server *MultiTenantServer) startEventListener() {
 	server.Router.Logger.Debug("Starting internal event listener")
 	for {
-
 		e := <-server.EventChan
 		log := server.Logger.ContextLoggingFn(e.Context)
 
@@ -565,11 +565,13 @@ func (server *MultiTenantServer) startEventListener() {
 }
 
 func (server *MultiTenantServer) rebuildIndex() {
+	server.TenantCacheKeyLock.Lock()
+	defer server.TenantCacheKeyLock.Unlock()
 	if len(server.Tenants) == 0 {
 		return
 	}
 	server.Logger.Info("Rebuilding index for all tenants in cache")
-	for repo, _ := range server.Tenants {
+	for repo := range server.Tenants {
 		go server.rebuildIndexForTenant(repo)
 	}
 }
@@ -598,9 +600,7 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 		)
 		return
 	}
-	entry.RepoLock.Lock()
-	defer entry.RepoLock.Unlock()
-	objects := server.getRepoObjectSlice(entry)
+	objects := server.getRepoObjectSliceWithLock(entry)
 	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects, server.TimestampTolerance)
 
 	// return fast if no changes
@@ -614,6 +614,9 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 	log(cm_logger.DebugLevel, "Change detected between cache and storage",
 		"repo", repo,
 	)
+
+	entry.RepoLock.Lock()
+	defer entry.RepoLock.Unlock()
 
 	ir := <-server.regenerateRepositoryIndex(log, entry, diff)
 	if ir.err != nil {

@@ -38,12 +38,13 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		)
 		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
-
 	entry.RepoLock.Lock()
 	defer entry.RepoLock.Unlock()
-	// if cache is nil, and not on a timer, regenerate it
-	if len(entry.RepoIndex.Entries) == 0 && server.CacheInterval == 0 {
 
+	// if the always-regenerate-chart-index flag is set, we always update the index file
+	// and ignore the chart cache
+	if server.AlwaysRegenerateIndex /* the flag is set */ ||
+		(!server.AlwaysRegenerateIndex && len(entry.RepoIndex.Entries) == 0) /* initial */ {
 		fo := <-server.getChartList(log, repo)
 
 		if fo.err != nil {
@@ -94,6 +95,13 @@ func (server *MultiTenantServer) saveStatefile(log cm_logger.LoggingFn, repo str
 	log(cm_logger.DebugLevel, "index-cache.yaml saved in storage",
 		"repo", repo,
 	)
+}
+
+func (server *MultiTenantServer) getRepoObjectSliceWithLock(entry *cacheEntry) []cm_storage.Object {
+	entry.RepoLock.RLock()
+	defer entry.RepoLock.RUnlock()
+
+	return server.getRepoObjectSlice(entry)
 }
 
 func (server *MultiTenantServer) getRepoObjectSlice(entry *cacheEntry) []cm_storage.Object {

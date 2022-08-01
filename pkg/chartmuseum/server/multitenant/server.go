@@ -70,8 +70,9 @@ type (
 		ChartLimits            *ObjectsPerChartLimit
 		ArtifactHubRepoID      map[string]string
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
-		EnforceSemver2  bool
-		WebTemplatePath string
+		EnforceSemver2        bool
+		WebTemplatePath       string
+		AlwaysRegenerateIndex bool
 	}
 
 	ObjectsPerChartLimit struct {
@@ -103,7 +104,8 @@ type (
 		ArtifactHubRepoID      map[string]string
 		WebTemplatePath        string
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
-		EnforceSemver2 bool
+		EnforceSemver2        bool
+		AlwaysRegenerateIndex bool
 	}
 
 	tenantInternals struct {
@@ -163,6 +165,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		ChartLimits:            l,
 		WebTemplatePath:        options.WebTemplatePath,
 		ArtifactHubRepoID:      options.ArtifactHubRepoID,
+		AlwaysRegenerateIndex:  options.AlwaysRegenerateIndex,
 	}
 
 	if server.WebTemplatePath != "" {
