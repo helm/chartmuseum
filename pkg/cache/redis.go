@@ -18,9 +18,12 @@ package cache
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-redis/redis/v8"
 )
+
+const maxRetries = 100
 
 type (
 	// RedisStore implements the Store interface, used for storing objects in-memory
@@ -57,4 +60,23 @@ func (store *RedisStore) Set(key string, contents []byte) error {
 func (store *RedisStore) Delete(key string) error {
 	err := store.Client.Del(context.TODO(), key).Err()
 	return err
+}
+
+// Watch runs the transaction function in a watch and retries the transaction
+// if the specified key has changed.
+func (store *RedisStore) Watch(key string, transactionalFunction func(tx *redis.Tx) error) error {
+	// Static number of retries if the key has been changed.
+	for i := 0; i < maxRetries; i++ {
+		err := store.Client.Watch(context.TODO(), transactionalFunction, key)
+		if err == nil {
+			return nil
+		}
+		if err == redis.TxFailedErr {
+			// Optimistic lock lost, retrying
+			continue
+		}
+		return err
+	}
+
+	return errors.New("reached maximum number of retries")
 }

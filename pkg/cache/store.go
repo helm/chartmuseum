@@ -16,11 +16,14 @@ limitations under the License.
 
 package cache
 
+import "github.com/go-redis/redis/v8"
+
 type (
 	// Store is a generic interface for cache stores
 	Store interface {
 		Get(key string) ([]byte, error)
 		Set(key string, contents []byte) error
 		Delete(key string) error
+		Watch(key string, txf func(tx *redis.Tx) error) error
 	}
 )

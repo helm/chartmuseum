@@ -30,6 +30,8 @@ class UserBehavior(TaskSet):
 
         self.client.post('/api/charts', files={chart_post_field_name: (chart_fn, tgz_buf)})
 
+        self.client.get(f'/api/charts/{chart_name}/{chart_version}')
+
 class WebsiteUser(HttpUser):
     tasks = [UserBehavior]
     min_wait = 1000
