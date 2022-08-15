@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli v1.22.9
 	github.com/zsais/go-gin-prometheus v0.1.0
-	go.uber.org/zap v1.21.0
+	go.uber.org/zap v1.22.0
 	helm.sh/helm/v3 v3.9.2
 )
 
