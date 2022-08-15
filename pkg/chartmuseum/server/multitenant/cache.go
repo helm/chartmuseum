@@ -132,7 +132,8 @@ func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo stri
 func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, entry *cacheEntry, diff cm_storage.ObjectSliceDiff) <-chan indexRegeneration {
 	ch := make(chan indexRegeneration, 1)
 	tenant := server.Tenants[entry.RepoName]
-
+	server.TenantCacheKeyLock.Lock()
+	defer server.TenantCacheKeyLock.Unlock()
 	tenant.RegeneratedIndexesChans = append(tenant.RegeneratedIndexesChans, ch)
 
 	if len(tenant.RegeneratedIndexesChans) == 1 {
