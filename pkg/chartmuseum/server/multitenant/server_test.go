@@ -30,6 +30,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis"
+
+	"helm.sh/chartmuseum/pkg/cache"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
 	"helm.sh/chartmuseum/pkg/repo"
@@ -70,6 +73,7 @@ type MultiTenantServerTestSuite struct {
 	ArtifactHubRepoIDServer *MultiTenantServer
 	UpdateToDateServer      *MultiTenantServer
 	CacheInternalServer     *MultiTenantServer
+	CacheExternalServer     *MultiTenantServer
 	TempDirectory           string
 	TestTarballFilename     string
 	TestProvfileFilename    string
@@ -79,6 +83,7 @@ type MultiTenantServerTestSuite struct {
 	LastExitCode            int
 	ArtifactHubIds          map[string]string
 	AlwaysRegenerateIndex   bool
+	RedisMock               *miniredis.Miniredis
 }
 
 func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, urlStr string, body io.Reader, contentType string, output ...*bytes.Buffer) gin.ResponseWriter {
@@ -125,6 +130,8 @@ func (suite *MultiTenantServerTestSuite) doRequest(stype string, method string, 
 		suite.UpdateToDateServer.Router.HandleContext(c)
 	case "cache-interval":
 		suite.CacheInternalServer.Router.HandleContext(c)
+	case "external-cache":
+		suite.CacheExternalServer.Router.HandleContext(c)
 	}
 
 	return c.Writer
@@ -529,6 +536,31 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	router = cm_router.NewRouter(cm_router.RouterOptions{
 		Logger:        logger,
 		Depth:         0,
+		MaxUploadSize: maxUploadSize,
+	})
+	redisMock, err := miniredis.Run()
+	suite.Nil(err, "able to create miniredis instance")
+	suite.RedisMock = redisMock
+	server, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		TimestampTolerance:     time.Duration(0),
+		EnableAPI:              true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+		IndexLimit:             1,
+		CacheInterval:          time.Second,
+		ArtifactHubRepoID:      suite.ArtifactHubIds,
+		ExternalCacheStore:     cache.NewRedisStore(redisMock.Addr(), "", 0),
+	})
+	suite.NotNil(server)
+	suite.Nil(err, "no error creating new external cache server")
+	suite.CacheExternalServer = server
+
+	router = cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
 		MaxUploadSize: 1,
 	})
 
@@ -564,6 +596,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 	suite.NotNil(server)
 	suite.Nil(err, "cannot create cache interval server")
 	suite.CacheInternalServer = server
+
 }
 
 func (suite *MultiTenantServerTestSuite) TearDownSuite() {
@@ -761,7 +794,7 @@ func (suite *MultiTenantServerTestSuite) TestDisabledDeleteServer() {
 	suite.Equal(404, res.Status(), "404 DELETE /api/charts/mychart/0.1.0")
 }
 
-func (suite *MultiTenantServerTestSuite) extractRepoEntryFromInternalCache(repo string) *cacheEntry {
+func (suite *MultiTenantServerTestSuite) extractRepoEntryFromInternalCache(repo string) *cache.CacheEntry {
 	local, ok := suite.OverwriteServer.InternalCacheStore.Load(repo)
 	if ok {
 		return local
@@ -1033,23 +1066,25 @@ func (suite *MultiTenantServerTestSuite) TestArtifactHubRepoID() {
 	suite.Equal(artifactHubYmlFile.RepoID, suite.ArtifactHubIds[""])
 }
 
+func (suite *MultiTenantServerTestSuite) TestRoutesExternalCache() {
+	suite.testAllRoutes("", "external-cache")
+}
+
 func (suite *MultiTenantServerTestSuite) TestRoutes() {
-	suite.testAllRoutes("", 0)
+	suite.testAllRoutes("", "depth0")
 	for org, teams := range suite.StorageDirectory {
-		suite.testAllRoutes(org, 1)
+		suite.testAllRoutes(org, "depth1")
 		for team, repos := range teams {
-			suite.testAllRoutes(pathutil.Join(org, team), 2)
+			suite.testAllRoutes(pathutil.Join(org, team), "depth2")
 			for _, repo := range repos {
-				suite.testAllRoutes(pathutil.Join(org, team, repo), 3)
+				suite.testAllRoutes(pathutil.Join(org, team, repo), "depth3")
 			}
 		}
 	}
 }
 
-func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
+func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, stype string) {
 	var res gin.ResponseWriter
-
-	stype := fmt.Sprintf("depth%d", depth)
 
 	// GET /
 	res = suite.doRequest(stype, "GET", "/", nil, "")

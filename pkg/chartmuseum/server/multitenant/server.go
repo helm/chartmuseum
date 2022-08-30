@@ -27,6 +27,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"helm.sh/chartmuseum/pkg/cache"
+	"helm.sh/chartmuseum/pkg/chartmuseum/events"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
@@ -66,7 +67,7 @@ type (
 		Tenants                map[string]*tenantInternals
 		TenantCacheKeyLock     *sync.Mutex
 		CacheInterval          time.Duration
-		EventChan              chan event
+		EventChan              chan events.Event
 		ChartLimits            *ObjectsPerChartLimit
 		ArtifactHubRepoID      map[string]string
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
@@ -185,7 +186,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		server.genIndex()
 	}
 
-	server.EventChan = make(chan event, server.IndexLimit)
+	server.EventChan = make(chan events.Event, server.IndexLimit)
 	go server.startEventListener()
 	server.initCacheTimer()
 

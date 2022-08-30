@@ -28,6 +28,7 @@ import (
 
 	cm_storage "github.com/chartmuseum/storage"
 
+	"helm.sh/chartmuseum/pkg/chartmuseum/events"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
@@ -316,7 +317,7 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		return
 	}
 
-	server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
+	server.emitEvent(c, repo, events.DeleteChart, &helm_repo.ChartVersion{
 		Metadata: &chart.Metadata{
 			Name:    name,
 			Version: version,
@@ -347,7 +348,7 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	}
 	log := server.Logger.ContextLoggingFn(c)
 	_, force := c.GetQuery("force")
-	action := addChart
+	action := events.AddChart
 	filename, err := server.uploadChartPackage(log, repo, content, force)
 	if err != nil {
 		// here should check both err.Status and err.Message
@@ -358,7 +359,7 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 				c.JSON(err.Status, gin.H{"error": err.Message})
 				return
 			}
-			action = updateChart
+			action = events.UpdateChart
 		} else {
 			c.JSON(err.Status, gin.H{"error": err.Message})
 			return
@@ -404,8 +405,9 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	_, force := c.GetQuery("force")
 	var chartContent []byte
 	var path string
+
 	// action used to determine what operation to emit
-	action := addChart
+	action := events.AddChart
 	cpFiles, status, err := server.getChartAndProvFiles(c.Request, repo, force)
 	if err != nil {
 		c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
@@ -420,7 +422,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		}
 		log(cm_logger.DebugLevel, "chart already exists, but overwrite is allowed", zap.String("repo", repo))
 		// update chart if chart already exists and overwrite is allowed
-		action = updateChart
+		action = events.UpdateChart
 	default:
 		c.JSON(status, gin.H{"error": fmt.Sprintf("%s", err)})
 		return

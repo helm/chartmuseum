@@ -18,9 +18,14 @@ package cache
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
+	cm_storage "github.com/chartmuseum/storage"
 	"github.com/go-redis/redis/v8"
+
+	"helm.sh/chartmuseum/pkg/chartmuseum/events"
+	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 )
 
 const maxRetries = 100
@@ -62,9 +67,9 @@ func (store *RedisStore) Delete(key string) error {
 	return err
 }
 
-// Watch runs the transaction function in a watch and retries the transaction
+// watch runs the transaction function in a Redis watch and retries the transaction
 // if the specified key has changed.
-func (store *RedisStore) Watch(key string, transactionalFunction func(tx *redis.Tx) error) error {
+func (store *RedisStore) watch(key string, transactionalFunction func(tx *redis.Tx) error) error {
 	// Static number of retries if the key has been changed.
 	for i := 0; i < maxRetries; i++ {
 		err := store.Client.Watch(context.TODO(), transactionalFunction, key)
@@ -79,4 +84,65 @@ func (store *RedisStore) Watch(key string, transactionalFunction func(tx *redis.
 	}
 
 	return errors.New("reached maximum number of retries")
+}
+
+func (store *RedisStore) UpdateEntryFromDiff(key string, log cm_logger.LoggingFn, diff cm_storage.ObjectSliceDiff, update func(log cm_logger.LoggingFn, repo string, entry *CacheEntry, diff cm_storage.ObjectSliceDiff) error) error {
+	txf := func(tx *redis.Tx) error {
+		var entry *CacheEntry
+		var value []byte
+		value, err := tx.Get(context.TODO(), key).Bytes()
+		if err != nil && err != redis.Nil {
+			return err
+		}
+		err = json.Unmarshal(value, &entry)
+		if err != nil {
+			return err
+		}
+
+		err = update(log, key, entry, diff)
+		if err != nil {
+			return err
+		}
+		bytes, err := json.Marshal(entry)
+		if err != nil {
+			return err
+		}
+		_, err = tx.TxPipelined(context.TODO(), func(pipeliner redis.Pipeliner) error {
+			pipeliner.Set(context.TODO(), key, bytes, 0)
+			return nil
+		})
+		return err
+	}
+	return store.watch(key, txf)
+}
+
+func (store *RedisStore) UpdateEntryFromEvent(key string, log cm_logger.LoggingFn, event events.Event, update func(log cm_logger.LoggingFn, cacheEntry *CacheEntry, event events.Event) error) error {
+	txf := func(tx *redis.Tx) error {
+		var entry *CacheEntry
+		var value []byte
+		value, err := tx.Get(context.TODO(), key).Bytes()
+		if err != nil && err != redis.Nil {
+			return err
+		}
+		err = json.Unmarshal(value, &entry)
+		if err != nil {
+			return err
+		}
+
+		err = update(log, entry, event)
+		if err != nil {
+			return err
+		}
+		bytes, err := json.Marshal(entry)
+		if err != nil {
+			return err
+		}
+		_, err = tx.TxPipelined(context.TODO(), func(pipeliner redis.Pipeliner) error {
+			pipeliner.Set(context.TODO(), key, bytes, 0)
+			return nil
+		})
+
+		return err
+	}
+	return store.watch(key, txf)
 }

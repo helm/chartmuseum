@@ -22,6 +22,7 @@ import (
 
 	cm_storage "github.com/chartmuseum/storage"
 
+	"helm.sh/chartmuseum/pkg/cache"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 )
@@ -98,14 +99,14 @@ func (server *MultiTenantServer) saveStatefile(log cm_logger.LoggingFn, repo str
 	)
 }
 
-func (server *MultiTenantServer) getRepoObjectSliceWithLock(entry *cacheEntry) []cm_storage.Object {
+func (server *MultiTenantServer) getRepoObjectSliceWithLock(entry *cache.CacheEntry) []cm_storage.Object {
 	entry.RepoLock.RLock()
 	defer entry.RepoLock.RUnlock()
 
 	return server.getRepoObjectSlice(entry)
 }
 
-func (server *MultiTenantServer) getRepoObjectSlice(entry *cacheEntry) []cm_storage.Object {
+func (server *MultiTenantServer) getRepoObjectSlice(entry *cache.CacheEntry) []cm_storage.Object {
 	var objects []cm_storage.Object
 	for _, entry := range entry.RepoIndex.Entries {
 		for _, chartVersion := range entry {

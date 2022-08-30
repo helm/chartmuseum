@@ -26,6 +26,7 @@ import (
 	"github.com/chartmuseum/storage"
 	"github.com/gin-gonic/gin"
 
+	"helm.sh/chartmuseum/pkg/chartmuseum/events"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
@@ -282,7 +283,7 @@ func (server *MultiTenantServer) PutWithLimit(ctx *gin.Context, log cm_logger.Lo
 	if err = server.StorageBackend.PutObject(pathutil.Join(repo, filename), content); err != nil {
 		return fmt.Errorf("PutWithLimit: put new chart: %w", err)
 	}
-	go server.emitEvent(ctx, repo, deleteChart, &helm_repo.ChartVersion{
+	go server.emitEvent(ctx, repo, events.DeleteChart, &helm_repo.ChartVersion{
 		Metadata: &chart.Metadata{
 			Name:    cv.Name,
 			Version: cv.Version,

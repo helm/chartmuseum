@@ -40,9 +40,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 
+	"helm.sh/chartmuseum/pkg/cache"
+	"helm.sh/chartmuseum/pkg/chartmuseum/events"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
@@ -54,31 +55,10 @@ import (
 )
 
 type (
-	cacheEntry struct {
-		// cryptic JSON field names to minimize size saved in cache
-		RepoName  string         `json:"a"`
-		RepoIndex *cm_repo.Index `json:"b"`
-		RepoLock  sync.RWMutex
-	}
-
+	// TODO: move memoryCacheStore behind the store interface
 	memoryCacheStore struct {
 		cache sync.Map
 	}
-
-	event struct {
-		Context      *gin.Context            `json:"-"`
-		RepoName     string                  `json:"repo_name"`
-		OpType       operationType           `json:"operation_type"`
-		ChartVersion *helm_repo.ChartVersion `json:"chart_version"`
-	}
-
-	operationType int
-)
-
-const (
-	updateChart operationType = 0
-	addChart    operationType = 1
-	deleteChart operationType = 2
 )
 
 var (
@@ -129,7 +109,7 @@ func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo stri
 	return ch
 }
 
-func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, entry *cacheEntry, diff cm_storage.ObjectSliceDiff) <-chan indexRegeneration {
+func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, entry *cache.CacheEntry, diff cm_storage.ObjectSliceDiff) <-chan indexRegeneration {
 	ch := make(chan indexRegeneration, 1)
 	tenant := server.Tenants[entry.RepoName]
 	server.TenantCacheKeyLock.Lock()
@@ -147,52 +127,16 @@ func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.Logging
 	return ch
 }
 
-func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.LoggingFn, entry *cacheEntry, diff cm_storage.ObjectSliceDiff) (*cm_repo.Index, error) {
+func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.LoggingFn, entry *cache.CacheEntry, diff cm_storage.ObjectSliceDiff) (*cm_repo.Index, error) {
 	repo := entry.RepoName
 
 	log(cm_logger.DebugLevel, "Regenerating index.yaml",
 		"repo", repo,
 	)
 	if server.ExternalCacheStore != nil {
-		txf := func(tx *redis.Tx) error {
-			var entry *cacheEntry
-			value, err := tx.Get(context.TODO(), repo).Bytes()
-			if err != nil && err != redis.Nil {
-				return err
-			}
-
-			if err == redis.Nil {
-				repoIndex := server.newRepositoryIndex(log, repo)
-				entry = &cacheEntry{
-					RepoName:  repo,
-					RepoIndex: repoIndex,
-					RepoLock:  sync.RWMutex{},
-				}
-			} else {
-				err = json.Unmarshal(value, &entry)
-				if err != nil {
-					return err
-				}
-			}
-
-			err = server.regenIndex(log, repo, entry, diff)
-			if err != nil {
-				return err
-			}
-
-			value, err = json.Marshal(entry)
-			if err != nil {
-				return err
-			}
-			_, err = tx.TxPipelined(context.TODO(), func(pipeliner redis.Pipeliner) error {
-				pipeliner.Set(context.TODO(), repo, value, 0)
-				return nil
-			})
-			return err
-		}
-		err := server.ExternalCacheStore.Watch(repo, txf)
+		err := server.ExternalCacheStore.UpdateEntryFromDiff(repo, log, diff, server.regenIndex)
 		if err != nil {
-			log(cm_logger.ErrorLevel, "transaction failed")
+			log(cm_logger.ErrorLevel, "Index regeneration failed")
 			return nil, err
 		}
 	} else {
@@ -210,7 +154,7 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 	return entry.RepoIndex, nil
 }
 
-func (server *MultiTenantServer) regenIndex(log cm_logger.LoggingFn, repo string, entry *cacheEntry, diff cm_storage.ObjectSliceDiff) error {
+func (server *MultiTenantServer) regenIndex(log cm_logger.LoggingFn, repo string, entry *cache.CacheEntry, diff cm_storage.ObjectSliceDiff) error {
 	for _, object := range diff.Removed {
 		err := server.removeIndexObject(log, repo, entry.RepoIndex, object)
 		if err != nil {
@@ -384,8 +328,8 @@ func (server *MultiTenantServer) checkInvalidChartPackageError(log cm_logger.Log
 	return err
 }
 
-func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo string) (*cacheEntry, error) {
-	var entry *cacheEntry
+func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo string) (*cache.CacheEntry, error) {
+	var entry *cache.CacheEntry
 	var content []byte
 	var err error
 
@@ -403,7 +347,7 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 		entry, ok = server.InternalCacheStore.Load(repo)
 		if !ok {
 			repoIndex := server.newRepositoryIndex(log, repo)
-			entry = &cacheEntry{
+			entry = &cache.CacheEntry{
 				RepoName:  repo,
 				RepoIndex: repoIndex,
 				RepoLock:  sync.RWMutex{},
@@ -418,7 +362,7 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 		content, err = server.ExternalCacheStore.Get(repo)
 		if err != nil {
 			repoIndex := server.newRepositoryIndex(log, repo)
-			entry = &cacheEntry{
+			entry = &cache.CacheEntry{
 				RepoName:  repo,
 				RepoIndex: repoIndex,
 				RepoLock:  sync.RWMutex{},
@@ -450,29 +394,13 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 	return entry, nil
 }
 
-func (server *MultiTenantServer) saveCacheEntry(log cm_logger.LoggingFn, entry *cacheEntry) error {
+func (server *MultiTenantServer) saveCacheEntry(log cm_logger.LoggingFn, entry *cache.CacheEntry) error {
 	repo := entry.RepoName
 	if server.ExternalCacheStore == nil {
 		server.InternalCacheStore.Store(repo, entry)
 		log(cm_logger.DebugLevel, EntrySavedMessage,
 			"repo", repo,
 		)
-	} else {
-		content, err := json.Marshal(entry)
-		if err != nil {
-			return err
-		}
-		err = server.ExternalCacheStore.Set(repo, content)
-		if err != nil {
-			log(cm_logger.ErrorLevel, CouldNotSaveEntryErrorMessage,
-				"error", err.Error(),
-				"repo", repo,
-			)
-		} else {
-			log(cm_logger.DebugLevel, EntrySavedMessage,
-				"repo", repo,
-			)
-		}
 	}
 	return nil
 }
@@ -537,8 +465,8 @@ func (server *MultiTenantServer) initCacheTimer() {
 	}
 }
 
-func (server *MultiTenantServer) emitEvent(c *gin.Context, repo string, operationType operationType, chart *helm_repo.ChartVersion) {
-	server.EventChan <- event{
+func (server *MultiTenantServer) emitEvent(c *gin.Context, repo string, operationType events.OperationType, chart *helm_repo.ChartVersion) {
+	server.EventChan <- events.Event{
 		Context:      c,
 		RepoName:     repo,
 		OpType:       operationType,
@@ -570,49 +498,9 @@ func (server *MultiTenantServer) startEventListener() {
 		}
 
 		if server.ExternalCacheStore != nil {
-			txf := func(tx *redis.Tx) error {
-				var entry *cacheEntry
-				var value []byte
-				value, err := tx.Get(context.TODO(), repo).Bytes()
-				if err != nil && err != redis.Nil {
-					return err
-				}
-				if err == redis.Nil {
-					repoIndex := server.newRepositoryIndex(log, repo)
-					entry = &cacheEntry{
-						RepoName:  repo,
-						RepoIndex: repoIndex,
-						RepoLock:  sync.RWMutex{},
-					}
-				} else {
-					err = json.Unmarshal(value, &entry)
-					if err != nil {
-						return err
-					}
-				}
-
-				err = server.processEvent(entry, e)
-				if err != nil {
-					return err
-				}
-				bytes, err := json.Marshal(entry)
-				if err != nil {
-					return err
-				}
-				_, err = tx.TxPipelined(context.TODO(), func(pipeliner redis.Pipeliner) error {
-					pipeliner.Set(context.TODO(), repo, bytes, 0)
-					return nil
-				})
-				if server.UseStatefiles {
-					// Dont wait, save index-cache.yaml to storage in the background.
-					// It is not crucial if this does not succeed, we will just log any errors
-					go server.saveStatefile(log, e.RepoName, entry.RepoIndex.Raw)
-				}
-				return err
-			}
-			err := server.ExternalCacheStore.Watch(repo, txf)
+			err := server.ExternalCacheStore.UpdateEntryFromEvent(repo, log, e, server.processEvent)
 			if err != nil {
-				log(cm_logger.ErrorLevel, "Transaction failed", zap.Error(err), zap.Any("event", e))
+				log(cm_logger.ErrorLevel, "Error processing event", zap.Error(err), zap.Any("event", e))
 				continue
 			}
 		} else {
@@ -622,7 +510,7 @@ func (server *MultiTenantServer) startEventListener() {
 				continue
 			}
 			entry.RepoLock.Lock()
-			err = server.processEvent(entry, e)
+			err = server.processEvent(log, entry, e)
 			if err != nil {
 				entry.RepoLock.Unlock()
 				log(cm_logger.ErrorLevel, "Error processing event", zap.Error(err), zap.String("repo", repo))
@@ -634,11 +522,6 @@ func (server *MultiTenantServer) startEventListener() {
 				log(cm_logger.ErrorLevel, "Error saving cache entry", zap.Error(err), zap.String("repo", repo))
 				continue
 			}
-			if server.UseStatefiles {
-				// Dont wait, save index-cache.yaml to storage in the background.
-				// It is not crucial if this does not succeed, we will just log any errors
-				go server.saveStatefile(log, e.RepoName, entry.RepoIndex.Raw)
-			}
 			entry.RepoLock.Unlock()
 		}
 
@@ -646,13 +529,13 @@ func (server *MultiTenantServer) startEventListener() {
 	}
 }
 
-func (server *MultiTenantServer) processEvent(entry *cacheEntry, event event) error {
+func (server *MultiTenantServer) processEvent(log cm_logger.LoggingFn, entry *cache.CacheEntry, event events.Event) error {
 	switch event.OpType {
-	case updateChart:
+	case events.UpdateChart:
 		entry.RepoIndex.UpdateEntry(event.ChartVersion)
-	case addChart:
+	case events.AddChart:
 		entry.RepoIndex.AddEntry(event.ChartVersion)
-	case deleteChart:
+	case events.DeleteChart:
 		entry.RepoIndex.RemoveEntry(event.ChartVersion)
 	default:
 		return errors.New("unknown operation type")
@@ -661,6 +544,12 @@ func (server *MultiTenantServer) processEvent(entry *cacheEntry, event event) er
 	err := entry.RepoIndex.Regenerate()
 	if err != nil {
 		return err
+	}
+
+	if server.UseStatefiles {
+		// Dont wait, save index-cache.yaml to storage in the background.
+		// It is not crucial if this does not succeed, we will just log any errors
+		go server.saveStatefile(log, event.RepoName, entry.RepoIndex.Raw)
 	}
 
 	return nil
@@ -692,7 +581,7 @@ func (server *MultiTenantServer) rebuildIndexForTenant(repo string) {
 	server.refreshCacheEntry(log, repo, entry)
 }
 
-func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo string, entry *cacheEntry) {
+func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo string, entry *cache.CacheEntry) {
 	fo := <-server.getChartList(log, repo)
 
 	if fo.err != nil {
@@ -736,12 +625,12 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 	}
 }
 
-func (m *memoryCacheStore) Load(key interface{}) (*cacheEntry, bool) {
-	var entry *cacheEntry
+func (m *memoryCacheStore) Load(key interface{}) (*cache.CacheEntry, bool) {
+	var entry *cache.CacheEntry
 	var okinterface bool
 	value, ok := m.cache.Load(key)
 	if ok {
-		entry, okinterface = value.(*cacheEntry)
+		entry, okinterface = value.(*cache.CacheEntry)
 		if !okinterface {
 			return nil, okinterface
 		}
