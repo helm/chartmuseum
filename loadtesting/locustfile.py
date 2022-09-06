@@ -30,7 +30,12 @@ class UserBehavior(TaskSet):
 
         self.client.post('/api/charts', files={chart_post_field_name: (chart_fn, tgz_buf)})
 
-        self.client.get(f'/api/charts/{chart_name}/{chart_version}')
+        # This is expected to fail as we don't support read/write consistency (ChartMuseum is eventually consistent).
+        # Even though this fails most of the time, it was introduced to attempt to reproduce some data inconsistency issues
+        # when using Redis as an external cache.
+        resp = self.client.get(f'/api/charts/{chart_name}/{chart_version}', catch_response=True)
+        if resp.status_code == "404":
+            resp.success()
 
 class WebsiteUser(HttpUser):
     tasks = [UserBehavior]
