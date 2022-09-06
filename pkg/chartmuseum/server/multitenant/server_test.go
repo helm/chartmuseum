@@ -554,6 +554,7 @@ func (suite *MultiTenantServerTestSuite) SetupSuite() {
 		ArtifactHubRepoID:      suite.ArtifactHubIds,
 		ExternalCacheStore:     cache.NewRedisStore(redisMock.Addr(), "", 0),
 	})
+
 	suite.NotNil(server)
 	suite.Nil(err, "no error creating new external cache server")
 	suite.CacheExternalServer = server
@@ -1304,8 +1305,8 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, stype string
 	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts", apiPrefix), buf, w.FormDataContentType())
 	suite.Equal(400, res.Status(), fmt.Sprintf("400 POST %s/charts", apiPrefix))
 
-	// Create form file with chart=@mychart-0.1.0.tgz
-	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{testTarballPath})
+	// Create form file with chart=@mychart-0.1.0.tgz and prov=@mychart-0.1.0.tgz.prov
+	buf, w = suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{testTarballPath, testProvfilePath})
 	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts", apiPrefix), buf, w.FormDataContentType())
 	suite.Equal(201, res.Status(), fmt.Sprintf("201 POST %s/charts", apiPrefix))
 
