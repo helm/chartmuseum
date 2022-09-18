@@ -123,7 +123,7 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(2, val)
-			suite.Equal([]gin.Param{{"repo", repo}}, params)
+			suite.Equal([]gin.Param{{Key: "repo", Value: repo}}, params)
 
 			// GET /charts/mychart-0.1.0.tgz
 			r = pathutil.Join("/", contextPath, repo, "charts/mychart-0.1.0.tgz")
@@ -139,7 +139,7 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(3, val)
-			suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", repo}}, params)
+			suite.Equal([]gin.Param{{Key: "filename", Value: "mychart-0.1.0.tgz"}, {Key: "repo", Value: repo}}, params)
 
 			// GET /api/charts
 			r = pathutil.Join("/", contextPath, "api", repo, "charts")
@@ -155,7 +155,7 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(4, val)
-			suite.Equal([]gin.Param{{"repo", repo}}, params)
+			suite.Equal([]gin.Param{{Key: "repo", Value: repo}}, params)
 
 			// GET /api/charts/mychart
 			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart")
@@ -171,7 +171,7 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(5, val)
-			suite.Equal([]gin.Param{{"name", "mychart"}, {"repo", repo}}, params)
+			suite.Equal([]gin.Param{{Key: "name", Value: "mychart"}, {Key: "repo", Value: repo}}, params)
 
 			// GET /api/charts/mychart/0.1.0
 			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart/0.1.0")
@@ -187,7 +187,7 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(6, val)
-			suite.Equal([]gin.Param{{"name", "mychart"}, {"version", "0.1.0"}, {"repo", repo}}, params)
+			suite.Equal([]gin.Param{{Key: "name", Value: "mychart"}, {Key: "version", Value: "0.1.0"}, {Key: "repo", Value: repo}}, params)
 
 			// POST /api/charts
 			r = pathutil.Join("/", contextPath, "api", repo, "charts")
@@ -203,7 +203,7 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(7, val)
-			suite.Equal([]gin.Param{{"repo", repo}}, params)
+			suite.Equal([]gin.Param{{Key: "repo", Value: repo}}, params)
 
 			// POST /api/prov
 			r = pathutil.Join("/", contextPath, "api", repo, "prov")
@@ -219,7 +219,7 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(8, val)
-			suite.Equal([]gin.Param{{"repo", repo}}, params)
+			suite.Equal([]gin.Param{{Key: "repo", Value: repo}}, params)
 
 			// DELETE /api/charts/mychart/0.1.0
 			r = pathutil.Join("/", contextPath, "api", repo, "charts/mychart/0.1.0")
@@ -235,7 +235,7 @@ func (suite *MatchTestSuite) TestMatch() {
 			val, exists = c.Get("index")
 			suite.True(exists)
 			suite.Equal(9, val)
-			suite.Equal([]gin.Param{{"name", "mychart"}, {"version", "0.1.0"}, {"repo", repo}}, params)
+			suite.Equal([]gin.Param{{Key: "name", Value: "mychart"}, {Key: "version", Value: "0.1.0"}, {Key: "repo", Value: repo}}, params)
 
 			// GET /static
 			r = pathutil.Join("/", contextPath, "static/main.css")
@@ -269,7 +269,7 @@ func (suite *MatchTestSuite) TestMatch() {
 	val, exists := c.Get("index")
 	suite.True(exists)
 	suite.Equal(2, val)
-	suite.Equal([]gin.Param{{"repo", "apix"}}, params)
+	suite.Equal([]gin.Param{{Key: "repo", Value: "apix"}}, params)
 
 	r = "/apix/charts/mychart-0.1.0.tgz"
 	route, params = match(routes, "GET", r, "", 1, false)
@@ -284,7 +284,7 @@ func (suite *MatchTestSuite) TestMatch() {
 	val, exists = c.Get("index")
 	suite.True(exists)
 	suite.Equal(3, val)
-	suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", "apix"}}, params)
+	suite.Equal([]gin.Param{{Key: "filename", Value: "mychart-0.1.0.tgz"}, {Key: "repo", Value: "apix"}}, params)
 
 	// Test route repos named just "api"
 	r = "/api/index.yaml"
@@ -300,7 +300,7 @@ func (suite *MatchTestSuite) TestMatch() {
 	val, exists = c.Get("index")
 	suite.True(exists)
 	suite.Equal(2, val)
-	suite.Equal([]gin.Param{{"repo", "api"}}, params)
+	suite.Equal([]gin.Param{{Key: "repo", Value: "api"}}, params)
 
 	r = "/api/charts/mychart-0.1.0.tgz"
 	route, params = match(routes, "GET", r, "", 1, false)
@@ -315,7 +315,7 @@ func (suite *MatchTestSuite) TestMatch() {
 	val, exists = c.Get("index")
 	suite.True(exists)
 	suite.Equal(3, val)
-	suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", "api"}}, params)
+	suite.Equal([]gin.Param{{Key: "filename", Value: "mychart-0.1.0.tgz"}, {Key: "repo", Value: "api"}}, params)
 
 	// just "api" as repo name, depth=2
 	r = "/api/xyz/index.yaml"
@@ -331,7 +331,7 @@ func (suite *MatchTestSuite) TestMatch() {
 	val, exists = c.Get("index")
 	suite.True(exists)
 	suite.Equal(2, val)
-	suite.Equal([]gin.Param{{"repo", "api/xyz"}}, params)
+	suite.Equal([]gin.Param{{Key: "repo", Value: "api/xyz"}}, params)
 
 	r = "/api/xyz/charts/mychart-0.1.0.tgz"
 	route, params = match(routes, "GET", r, "", 2, false)
@@ -346,7 +346,7 @@ func (suite *MatchTestSuite) TestMatch() {
 	val, exists = c.Get("index")
 	suite.True(exists)
 	suite.Equal(3, val)
-	suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", "api/xyz"}}, params)
+	suite.Equal([]gin.Param{{Key: "filename", Value: "mychart-0.1.0.tgz"}, {Key: "repo", Value: "api/xyz"}}, params)
 
 	// Test route repos named "health"
 	r = "/health/index.yaml"
@@ -362,7 +362,7 @@ func (suite *MatchTestSuite) TestMatch() {
 	val, exists = c.Get("index")
 	suite.True(exists)
 	suite.Equal(2, val)
-	suite.Equal([]gin.Param{{"repo", "health"}}, params)
+	suite.Equal([]gin.Param{{Key: "repo", Value: "health"}}, params)
 
 	r = "/health/charts/mychart-0.1.0.tgz"
 	route, params = match(routes, "GET", r, "", 1, false)
@@ -377,7 +377,7 @@ func (suite *MatchTestSuite) TestMatch() {
 	val, exists = c.Get("index")
 	suite.True(exists)
 	suite.Equal(3, val)
-	suite.Equal([]gin.Param{{"filename", "mychart-0.1.0.tgz"}, {"repo", "health"}}, params)
+	suite.Equal([]gin.Param{{Key: "filename", Value: "mychart-0.1.0.tgz"}, {Key: "repo", Value: "health"}}, params)
 }
 
 func TestMatchTestSuite(t *testing.T) {

@@ -274,23 +274,23 @@ func (suite *RouterTestSuite) TestMapURLWithParamsBackToRouteTemplate() {
 		}, "/index.yaml"},
 		{&gin.Context{
 			Request: &http.Request{URL: &url.URL{Path: "/charts/foo-1.2.3.tgz"}},
-			Params:  gin.Params{gin.Param{"filename", "foo-1.2.3.tgz"}},
+			Params:  gin.Params{gin.Param{Key: "filename", Value: "foo-1.2.3.tgz"}},
 		}, "/charts/:filename"},
 		{&gin.Context{
 			Request: &http.Request{URL: &url.URL{Path: "/api/charts/foo/1.2.3"}},
-			Params:  gin.Params{gin.Param{"name", "foo"}, gin.Param{"version", "1.2.3"}},
+			Params:  gin.Params{gin.Param{Key: "name", Value: "foo"}, gin.Param{Key: "version", Value: "1.2.3"}},
 		}, "/api/charts/:name/:version"},
 		{&gin.Context{
 			Request: &http.Request{URL: &url.URL{Path: "/api/charts/charts-repo/1.2.3+api"}},
-			Params:  gin.Params{gin.Param{"name", "charts-repo"}, gin.Param{"version", "1.2.3+api"}},
+			Params:  gin.Params{gin.Param{Key: "name", Value: "charts-repo"}, gin.Param{Key: "version", Value: "1.2.3+api"}},
 		}, "/api/charts/:name/:version"},
 		{&gin.Context{
 			Request: &http.Request{URL: &url.URL{Path: "/api/charts/chart/1.2.3"}},
-			Params:  gin.Params{gin.Param{"name", "chart"}, gin.Param{"version", "1.2.3"}},
+			Params:  gin.Params{gin.Param{Key: "name", Value: "chart"}, gin.Param{Key: "version", Value: "1.2.3"}},
 		}, "/api/charts/:name/:version"},
 		{&gin.Context{
 			Request: &http.Request{URL: &url.URL{Path: "/api/charts/chart"}},
-			Params:  gin.Params{gin.Param{"name", "chart"}},
+			Params:  gin.Params{gin.Param{Key: "name", Value: "chart"}},
 		}, "/api/charts/:name"},
 	}
 	for _, tt := range tests {

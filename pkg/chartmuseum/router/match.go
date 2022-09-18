@@ -143,7 +143,7 @@ func match(routes []*Route, method string, url string, contextPath string, depth
 			return route, nil
 		} else if tryRepoRoutes {
 			if route.Path == repoPath {
-				return route, []gin.Param{{"repo", repo}}
+				return route, []gin.Param{{Key: "repo", Value: repo}}
 			} else {
 				p := strings.Replace(route.Path, "/:repo", "", 1)
 				if routeSplit := strings.Split(p, "/"); len(routeSplit) == numNoRepoPathParts {

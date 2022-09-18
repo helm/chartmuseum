@@ -26,30 +26,30 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 	var routes []*cm_router.Route
 
 	serverInfoRoutes := []*cm_router.Route{
-		{"GET", "/", s.getWelcomePageHandler, cm_auth.PullAction},
-		{"GET", "/info", s.getInfoHandler, ""},
-		{"GET", "/health", s.getHealthCheckHandler, ""},
+		{Method: "GET", Path: "/", Handler: s.getWelcomePageHandler, Action: cm_auth.PullAction},
+		{Method: "GET", Path: "/info", Handler: s.getInfoHandler, Action: ""},
+		{Method: "GET", Path: "/health", Handler: s.getHealthCheckHandler, Action: ""},
 	}
 
 	artifactHubRoutes := []*cm_router.Route{
-		{"GET", "/artifacthub-repo.yml", s.getArtifactHubFileRequestHandler, cm_auth.PullAction},
+		{Method: "GET", Path: "/artifacthub-repo.yml", Handler: s.getArtifactHubFileRequestHandler, Action: cm_auth.PullAction},
 	}
 
 	helmChartRepositoryRoutes := []*cm_router.Route{
-		{"GET", "/:repo/index.yaml", s.getIndexFileRequestHandler, cm_auth.PullAction},
-		{"GET", "/:repo/charts/:filename", s.getStorageObjectRequestHandler, cm_auth.PullAction},
+		{Method: "GET", Path: "/:repo/index.yaml", Handler: s.getIndexFileRequestHandler, Action: cm_auth.PullAction},
+		{Method: "GET", Path: "/:repo/charts/:filename", Handler: s.getStorageObjectRequestHandler, Action: cm_auth.PullAction},
 	}
 
 	chartManipulationRoutes := []*cm_router.Route{
-		{"GET", "/api/:repo/charts", s.getAllChartsRequestHandler, cm_auth.PullAction},
-		{"HEAD", "/api/:repo/charts/:name", s.headChartRequestHandler, cm_auth.PullAction},
-		{"GET", "/api/:repo/charts/:name", s.getChartRequestHandler, cm_auth.PullAction},
-		{"HEAD", "/api/:repo/charts/:name/:version", s.headChartVersionRequestHandler, cm_auth.PullAction},
-		{"GET", "/api/:repo/charts/:name/:version", s.getChartVersionRequestHandler, cm_auth.PullAction},
-		{"GET", "/api/:repo/charts/:name/:version/templates", s.getStorageObjectTemplateRequestHandler, cm_auth.PullAction},
-		{"GET", "/api/:repo/charts/:name/:version/values", s.getStorageObjectValuesRequestHandler, cm_auth.PullAction},
-		{"POST", "/api/:repo/charts", s.postRequestHandler, cm_auth.PushAction},
-		{"POST", "/api/:repo/prov", s.postProvenanceFileRequestHandler, cm_auth.PushAction},
+		{Method: "GET", Path: "/api/:repo/charts", Handler: s.getAllChartsRequestHandler, Action: cm_auth.PullAction},
+		{Method: "HEAD", Path: "/api/:repo/charts/:name", Handler: s.headChartRequestHandler, Action: cm_auth.PullAction},
+		{Method: "GET", Path: "/api/:repo/charts/:name", Handler: s.getChartRequestHandler, Action: cm_auth.PullAction},
+		{Method: "HEAD", Path: "/api/:repo/charts/:name/:version", Handler: s.headChartVersionRequestHandler, Action: cm_auth.PullAction},
+		{Method: "GET", Path: "/api/:repo/charts/:name/:version", Handler: s.getChartVersionRequestHandler, Action: cm_auth.PullAction},
+		{Method: "GET", Path: "/api/:repo/charts/:name/:version/templates", Handler: s.getStorageObjectTemplateRequestHandler, Action: cm_auth.PullAction},
+		{Method: "GET", Path: "/api/:repo/charts/:name/:version/values", Handler: s.getStorageObjectValuesRequestHandler, Action: cm_auth.PullAction},
+		{Method: "POST", Path: "/api/:repo/charts", Handler: s.postRequestHandler, Action: cm_auth.PushAction},
+		{Method: "POST", Path: "/api/:repo/prov", Handler: s.postProvenanceFileRequestHandler, Action: cm_auth.PushAction},
 	}
 
 	routes = append(routes, serverInfoRoutes...)
@@ -73,7 +73,7 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 	}
 
 	if s.APIEnabled && !s.DisableDelete {
-		routes = append(routes, &cm_router.Route{"DELETE", "/api/:repo/charts/:name/:version", s.deleteChartVersionRequestHandler, cm_auth.PushAction})
+		routes = append(routes, &cm_router.Route{Method: "DELETE", Path: "/api/:repo/charts/:name/:version", Handler: s.deleteChartVersionRequestHandler, Action: cm_auth.PushAction})
 	}
 
 	return routes
