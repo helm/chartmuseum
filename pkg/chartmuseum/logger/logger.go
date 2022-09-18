@@ -37,7 +37,7 @@ type (
 		LogJSON bool
 	}
 
-	// LoggingFn is generic logging function with some additonal context
+	// LoggingFn is generic logging function with some additional context
 	LoggingFn func(level logLevel, msg string, keysAndValues ...interface{})
 
 	logLevel string
