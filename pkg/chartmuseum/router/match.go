@@ -39,15 +39,22 @@ that routes can be reused for different levels of multitenancy.
 For example, the route GET /:repo/index.yaml will be matched differently depending on value used for --depth:
 
 --depth=0:
+
 	Path: "/index.yaml"
 	Repo: ""
+
 --depth=1:
+
 	Path: "/myrepo/index.yaml"
 	Repo: "myrepo"
+
 --depth=2:
+
 	Path: "/myorg/myrepo/index.yaml"
 	Repo: "myorg/myrepo"
+
 --depth=3:
+
 	Path: "/myorg/myteam/myrepo/index.yaml"
 	Repo: "myorg/myteam/myrepo"
 */

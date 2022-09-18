@@ -311,7 +311,7 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		return
 	}
 
-	 server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
+	server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
 		Metadata: &chart.Metadata{
 			Name:    name,
 			Version: version,
