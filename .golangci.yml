@@ -4,21 +4,25 @@ run:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - dupl
     - gofmt
     - goimports
     - gosimple
     - govet
-    - ineffassign
     - misspell
     - nakedret
     - revive
-    - structcheck
     - unused
-    - varcheck
-    - staticcheck
 
 linters-settings:
   gofmt:
     simplify: true
+  revive:
+    rules:
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#exported
+      - name: exported
+        severity: warning
+        disabled: true
+
+
+
