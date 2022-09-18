@@ -21,10 +21,12 @@ import (
 	"testing"
 	"time"
 
+	"strings"
+
 	"github.com/stretchr/testify/suite"
+
 	"helm.sh/helm/v3/pkg/chart"
 	helm_repo "helm.sh/helm/v3/pkg/repo"
-	"strings"
 )
 
 type IndexTestSuite struct {

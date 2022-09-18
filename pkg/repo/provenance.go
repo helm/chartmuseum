@@ -22,8 +22,9 @@ import (
 	"fmt"
 	"strings"
 
-	"helm.sh/helm/v3/pkg/provenance"
 	"regexp"
+
+	"helm.sh/helm/v3/pkg/provenance"
 )
 
 var (

@@ -26,9 +26,10 @@ import (
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 
+	"net/http/httptest"
+
 	cm_auth "github.com/chartmuseum/auth"
 	"github.com/gin-gonic/gin"
-	"net/http/httptest"
 )
 
 var (
