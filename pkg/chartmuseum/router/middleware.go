@@ -57,7 +57,7 @@ func requestWrapper(logger *cm_logger.Logger, logHealth bool, logLatencyInt bool
 			"statusCode", status,
 		}
 
-		latency := time.Now().Sub(start)
+		latency := time.Since(start)
 		if logLatencyInt {
 			meta = append(meta, []interface{}{"latency", int64(latency)}...)
 		} else {

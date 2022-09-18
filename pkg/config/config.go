@@ -101,7 +101,7 @@ func (conf *Config) ShowDeprecationWarnings(c *cli.Context, logger *cm_logger.Lo
 func (conf *Config) readConfigFileFromCLIContext(c *cli.Context) error {
 	if confFilePath := c.String("config"); confFilePath != "" {
 		if _, err := os.Stat(confFilePath); os.IsNotExist(err) {
-			return errors.New(fmt.Sprintf("config file \"%s\" does not exist", confFilePath))
+			return fmt.Errorf("config file not found: %s", confFilePath)
 		}
 
 		ext := filepath.Ext(confFilePath)
