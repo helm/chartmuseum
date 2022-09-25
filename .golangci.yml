@@ -1,0 +1,28 @@
+run:
+  timeout: 5m
+
+linters:
+  disable-all: true
+  enable:
+    - dupl
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - misspell
+    - nakedret
+    - revive
+    - unused
+
+linters-settings:
+  gofmt:
+    simplify: true
+  revive:
+    rules:
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#exported
+      - name: exported
+        severity: warning
+        disabled: true
+
+
+

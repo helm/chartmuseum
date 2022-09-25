@@ -219,3 +219,16 @@ release-notes:
 	fi
 
 	@./scripts/release-notes.sh ${PREVIOUS_RELEASE} v${VERSION}
+
+.PHONY: lint
+lint: export CGO_ENABLED=0
+lint: export GO111MODULE=on
+lint:
+	@if [ -x "$$(command -v golangci-lint)" ]; then \
+	    golangci-lint run; \
+	else \
+		echo "golangci-lint is not installed, please install it from https://golangci-lint.run/usage/install/"; \
+		exit 1; \
+	fi
+
+

@@ -27,6 +27,7 @@ import (
 	"time"
 
 	cm_storage "github.com/chartmuseum/storage"
+
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
@@ -311,7 +312,7 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 		return
 	}
 
-	 server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
+	server.emitEvent(c, repo, deleteChart, &helm_repo.ChartVersion{
 		Metadata: &chart.Metadata{
 			Name:    name,
 			Version: version,

@@ -50,7 +50,7 @@ type (
 		RepoName   string `json:"b"`
 		Raw        []byte `json:"c"`
 		ChartURL   string `json:"d"`
-		IndexLock sync.RWMutex
+		IndexLock  sync.RWMutex
 	}
 )
 
