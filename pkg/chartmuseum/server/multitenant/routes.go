@@ -37,6 +37,7 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 
 	helmChartRepositoryRoutes := []*cm_router.Route{
 		{Method: "GET", Path: "/:repo/index.yaml", Handler: s.getIndexFileRequestHandler, Action: cm_auth.PullAction},
+		{Method: "HEAD", Path: "/:repo/index.yaml", Handler: s.headIndexFileRequestHandler, Action: cm_auth.PullAction},
 		{Method: "GET", Path: "/:repo/charts/:filename", Handler: s.getStorageObjectRequestHandler, Action: cm_auth.PullAction},
 	}
 

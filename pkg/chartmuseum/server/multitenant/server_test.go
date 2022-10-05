@@ -1070,6 +1070,10 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/index.yaml", repoPrefix), nil, "")
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/index.yaml", repoPrefix))
 
+	// HEAD /:repo/index.yaml
+	res = suite.doRequest(stype, "HEAD", fmt.Sprintf("%s/index.yaml", repoPrefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 HEAD %s/index.yaml", repoPrefix))
+
 	// GET /:repo/artifacthub-repo.yaml
 	res = suite.doRequest(stype, "GET", fmt.Sprintf("%s/artifacthub-repo.yml", repoPrefix), nil, "")
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 GET %s/artifacthub-repo.yml", repoPrefix))
