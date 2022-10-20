@@ -130,6 +130,10 @@ func (server *MultiTenantServer) getIndexFileRequestHandler(c *gin.Context) {
 	c.Data(200, indexFileContentType, indexFile.Raw)
 }
 
+func (server *MultiTenantServer) headIndexFileRequestHandler(c *gin.Context) {
+	c.Status(200)
+}
+
 func (server *MultiTenantServer) getArtifactHubFileRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	log := server.Logger.ContextLoggingFn(c)
