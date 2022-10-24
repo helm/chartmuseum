@@ -39,6 +39,8 @@ func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo stri
 	if err != nil {
 		return nil, &HTTPError{http.StatusInternalServerError, err.Message}
 	}
+	indexFile.IndexLock.Lock()
+	defer indexFile.IndexLock.Unlock()
 	if offset == 0 && limit == -1 {
 		return indexFile.Entries, nil
 	}
@@ -75,6 +77,8 @@ func (server *MultiTenantServer) getChartVersion(log cm_logger.LoggingFn, repo s
 	if err != nil {
 		return nil, &HTTPError{http.StatusInternalServerError, err.Message}
 	}
+	indexFile.IndexLock.Lock()
+	defer indexFile.IndexLock.Unlock()
 	if version == "latest" {
 		version = ""
 	}

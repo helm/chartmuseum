@@ -59,7 +59,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 			return nil, &HTTPError{http.StatusInternalServerError, errStr}
 		}
 
-		objects := server.getRepoObjectSlice(entry)
+		objects := server.getRepoObjectSliceWithLock(entry)
 		diff := cm_storage.GetObjectSliceDiff(objects, fo.objects, server.TimestampTolerance)
 
 		// return fast if no changes
@@ -77,6 +77,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 				return ir.index, &HTTPError{http.StatusInternalServerError, errStr}
 			}
 			entry.RepoLock.Lock()
+			defer entry.RepoLock.Unlock()
 			entry.RepoIndex = ir.index
 
 			if server.UseStatefiles {
@@ -84,7 +85,6 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 				// It is not crucial if this does not succeed, we will just log any errors
 				go server.saveStatefile(log, repo, ir.index.Raw)
 			}
-			entry.RepoLock.Unlock()
 		}
 	}
 	return entry.RepoIndex, nil
