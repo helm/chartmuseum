@@ -179,15 +179,15 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		}
 	}
 
-	server.Router.SetRoutes(server.Routes())
-	err := server.primeCache()
-
 	if options.GenIndex && server.Router.Depth == 0 {
 		server.genIndex()
 	}
 
+	server.Router.SetRoutes(server.Routes())
 	server.EventChan = make(chan events.Event, server.IndexLimit)
 	go server.startEventListener()
+
+	err := server.primeCache()
 	server.initCacheTimer()
 
 	return server, err

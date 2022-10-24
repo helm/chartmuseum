@@ -19,8 +19,6 @@ package cache
 import (
 	"sync"
 
-	cm_storage "github.com/chartmuseum/storage"
-
 	"helm.sh/chartmuseum/pkg/chartmuseum/events"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
@@ -39,7 +37,6 @@ type (
 		Get(key string) ([]byte, error)
 		Set(key string, contents []byte) error
 		Delete(key string) error
-		UpdateEntryFromDiff(key string, log cm_logger.LoggingFn, diff cm_storage.ObjectSliceDiff, update func(log cm_logger.LoggingFn, repo string, entry *CacheEntry, diff cm_storage.ObjectSliceDiff) error) error
 		UpdateEntryFromEvent(key string, log cm_logger.LoggingFn, event events.Event, update func(log cm_logger.LoggingFn, entry *CacheEntry, event events.Event) error) error
 	}
 )

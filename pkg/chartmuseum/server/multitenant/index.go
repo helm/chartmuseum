@@ -40,13 +40,15 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 		)
 		return nil, &HTTPError{http.StatusInternalServerError, errStr}
 	}
-	entry.RepoLock.Lock()
-	defer entry.RepoLock.Unlock()
+
+	entry.RepoLock.RLock()
+	numOfEntries := len(entry.RepoIndex.Entries)
+	entry.RepoLock.RUnlock()
 
 	// if the always-regenerate-chart-index flag is set, we always update the index file
 	// and ignore the chart cache
 	if server.AlwaysRegenerateIndex /* the flag is set */ ||
-		(!server.AlwaysRegenerateIndex && len(entry.RepoIndex.Entries) == 0) /* initial */ {
+		(!server.AlwaysRegenerateIndex && numOfEntries == 0) /* initial */ {
 		fo := <-server.getChartList(log, repo)
 
 		if fo.err != nil {
@@ -74,6 +76,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 				)
 				return ir.index, &HTTPError{http.StatusInternalServerError, errStr}
 			}
+			entry.RepoLock.Lock()
 			entry.RepoIndex = ir.index
 
 			if server.UseStatefiles {
@@ -81,6 +84,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 				// It is not crucial if this does not succeed, we will just log any errors
 				go server.saveStatefile(log, repo, ir.index.Raw)
 			}
+			entry.RepoLock.Unlock()
 		}
 	}
 	return entry.RepoIndex, nil

@@ -111,9 +111,9 @@ func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo stri
 
 func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.LoggingFn, entry *cache.CacheEntry, diff cm_storage.ObjectSliceDiff) <-chan indexRegeneration {
 	ch := make(chan indexRegeneration, 1)
-	tenant := server.Tenants[entry.RepoName]
 	server.TenantCacheKeyLock.Lock()
-	defer server.TenantCacheKeyLock.Unlock()
+	tenant := server.Tenants[entry.RepoName]
+	server.TenantCacheKeyLock.Unlock()
 	tenant.RegeneratedIndexesChans = append(tenant.RegeneratedIndexesChans, ch)
 
 	if len(tenant.RegeneratedIndexesChans) == 1 {
@@ -133,22 +133,10 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 	log(cm_logger.DebugLevel, "Regenerating index.yaml",
 		"repo", repo,
 	)
-	if server.ExternalCacheStore != nil {
-		err := server.ExternalCacheStore.UpdateEntryFromDiff(repo, log, diff, server.regenIndex)
-		if err != nil {
-			log(cm_logger.ErrorLevel, "Index regeneration failed")
-			return nil, err
-		}
-	} else {
-		err := server.regenIndex(log, repo, entry, diff)
-		if err != nil {
-			log(cm_logger.ErrorLevel, "Index regeneration failed", zap.Error(err))
-			return nil, err
-		}
-		err = server.saveCacheEntry(log, entry)
-		if err != nil {
-			return nil, err
-		}
+	err := server.regenIndex(log, repo, entry, diff)
+	if err != nil {
+		log(cm_logger.ErrorLevel, "Index regeneration failed", zap.Error(err))
+		return nil, err
 	}
 
 	return entry.RepoIndex, nil
@@ -171,11 +159,6 @@ func (server *MultiTenantServer) regenIndex(log cm_logger.LoggingFn, repo string
 
 	// Parallelize retrieval of added objects to improve speed
 	err := server.addIndexObjectsAsync(log, repo, entry.RepoIndex, diff.Added)
-	if err != nil {
-		return err
-	}
-
-	err = entry.RepoIndex.Regenerate()
 	if err != nil {
 		return err
 	}
@@ -216,7 +199,7 @@ func (server *MultiTenantServer) removeIndexObject(log cm_logger.LoggingFn, repo
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
-	index.RemoveEntry(chartVersion)
+	server.emitEvent(&gin.Context{}, repo, events.DeleteChart, chartVersion)
 	return nil
 }
 
@@ -230,7 +213,7 @@ func (server *MultiTenantServer) updateIndexObject(log cm_logger.LoggingFn, repo
 		"name", chartVersion.Name,
 		"version", chartVersion.Version,
 	)
-	index.UpdateEntry(chartVersion)
+	server.emitEvent(&gin.Context{}, repo, events.UpdateChart, chartVersion)
 	return nil
 }
 
@@ -294,7 +277,7 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 			"name", cvRes.cv.Name,
 			"version", cvRes.cv.Version,
 		)
-		index.AddEntry(cvRes.cv)
+		server.emitEvent(&gin.Context{}, repo, events.AddChart, cvRes.cv)
 	}
 
 	return nil
@@ -483,14 +466,6 @@ func (server *MultiTenantServer) startEventListener() {
 		repo := e.RepoName
 		log(cm_logger.DebugLevel, "event received", zap.Any("event", e))
 
-		server.TenantCacheKeyLock.Lock()
-		_, ok := server.Tenants[e.RepoName]
-		server.TenantCacheKeyLock.Unlock()
-		if !ok {
-			log(cm_logger.ErrorLevel, "Error find tenants repo name", zap.String("repo", repo))
-			continue
-		}
-
 		if e.ChartVersion == nil {
 			log(cm_logger.WarnLevel, "event does not contain chart version", zap.String("repo", repo),
 				"operation_type", e.OpType)
@@ -512,13 +487,11 @@ func (server *MultiTenantServer) startEventListener() {
 			entry.RepoLock.Lock()
 			err = server.processEvent(log, entry, e)
 			if err != nil {
-				entry.RepoLock.Unlock()
 				log(cm_logger.ErrorLevel, "Error processing event", zap.Error(err), zap.String("repo", repo))
 				continue
 			}
 			err = server.saveCacheEntry(log, entry)
 			if err != nil {
-				entry.RepoLock.Unlock()
 				log(cm_logger.ErrorLevel, "Error saving cache entry", zap.Error(err), zap.String("repo", repo))
 				continue
 			}
@@ -606,9 +579,6 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 		"repo", repo,
 	)
 
-	entry.RepoLock.Lock()
-	defer entry.RepoLock.Unlock()
-
 	ir := <-server.regenerateRepositoryIndex(log, entry, diff)
 	if ir.err != nil {
 		errStr := ir.err.Error()
@@ -617,6 +587,8 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 		)
 		return
 	}
+	entry.RepoLock.Lock()
+	defer entry.RepoLock.Unlock()
 	entry.RepoIndex = ir.index
 	if server.UseStatefiles {
 		// Dont wait, save index-cache.yaml to storage in the background.
