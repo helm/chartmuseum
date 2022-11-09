@@ -21,7 +21,7 @@ GOX           = $(GOBIN)/gox
 CM_LOADTESTING_HOST ?= http://localhost:8080
 
 $(GOX):
-	(cd /; GO111MODULE=on go get -u github.com/mitchellh/gox)
+	(cd /; GO111MODULE=on go install github.com/mitchellh/gox@latest)
 
 .PHONY: bootstrap
 bootstrap: export GO111MODULE=on
