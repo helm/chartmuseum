@@ -18,7 +18,7 @@ require (
 	github.com/urfave/cli v1.22.10
 	github.com/zsais/go-gin-prometheus v0.1.0
 	go.uber.org/zap v1.23.0
-	helm.sh/helm/v3 v3.10.1
+	helm.sh/helm/v3 v3.10.2
 )
 
 require (
