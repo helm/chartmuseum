@@ -75,9 +75,10 @@ type (
 )
 
 const (
-	updateChart operationType = 0
-	addChart    operationType = 1
-	deleteChart operationType = 2
+	updateChart    operationType = 0
+	addChart       operationType = 1
+	deleteChart    operationType = 2
+	deleteAllChart operationType = 3
 )
 
 var (
@@ -536,6 +537,8 @@ func (server *MultiTenantServer) startEventListener() {
 			index.AddEntry(e.ChartVersion)
 		case deleteChart:
 			index.RemoveEntry(e.ChartVersion)
+		case deleteAllChart:
+			index.RemoveAllEntry(e.ChartVersion)
 		default:
 			log(cm_logger.ErrorLevel, "Invalid operation type", zap.String("repo", repo),
 				"operation_type", e.OpType)
