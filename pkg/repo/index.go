@@ -50,7 +50,7 @@ type (
 		RepoName   string `json:"b"`
 		Raw        []byte `json:"c"`
 		ChartURL   string `json:"d"`
-		IndexLock  sync.RWMutex
+		IndexLock  *sync.RWMutex
 	}
 )
 
@@ -60,7 +60,7 @@ func NewIndex(chartURL string, repo string, serverInfo *ServerInfo) *Index {
 		IndexFile:  &helm_repo.IndexFile{},
 		ServerInfo: serverInfo,
 	}
-	index := Index{indexFile, repo, []byte{}, chartURL, sync.RWMutex{}}
+	index := Index{indexFile, repo, []byte{}, chartURL, &sync.RWMutex{}}
 	index.Entries = map[string]helm_repo.ChartVersions{}
 	index.APIVersion = helm_repo.APIVersionV1
 	index.Regenerate()
@@ -84,6 +84,8 @@ func (index *Index) Regenerate() error {
 
 // RemoveEntry removes a chart version from index
 func (index *Index) RemoveEntry(chartVersion *helm_repo.ChartVersion) {
+	index.IndexLock.Lock()
+	defer index.IndexLock.Unlock()
 	if entries, ok := index.Entries[chartVersion.Name]; ok {
 		for i, cv := range entries {
 			if cv.Version == chartVersion.Version {
@@ -100,6 +102,8 @@ func (index *Index) RemoveEntry(chartVersion *helm_repo.ChartVersion) {
 
 // AddEntry adds a chart version to index
 func (index *Index) AddEntry(chartVersion *helm_repo.ChartVersion) {
+	index.IndexLock.Lock()
+	defer index.IndexLock.Unlock()
 	if _, ok := index.Entries[chartVersion.Name]; !ok {
 		index.Entries[chartVersion.Name] = helm_repo.ChartVersions{}
 	}
@@ -120,6 +124,8 @@ func (index *Index) AddEntry(chartVersion *helm_repo.ChartVersion) {
 
 // HasEntry checks if index has already an entry
 func (index *Index) HasEntry(chartVersion *helm_repo.ChartVersion) bool {
+	index.IndexLock.RLock()
+	defer index.IndexLock.RUnlock()
 	if entries, ok := index.Entries[chartVersion.Name]; ok {
 		for _, cv := range entries {
 			if cv.Version == chartVersion.Version {
@@ -132,6 +138,8 @@ func (index *Index) HasEntry(chartVersion *helm_repo.ChartVersion) bool {
 
 // UpdateEntry updates a chart version in index
 func (index *Index) UpdateEntry(chartVersion *helm_repo.ChartVersion) {
+	index.IndexLock.Lock()
+	defer index.IndexLock.Unlock()
 	if entries, ok := index.Entries[chartVersion.Name]; ok {
 		for i, cv := range entries {
 			if cv.Version == chartVersion.Version {

@@ -29,7 +29,7 @@ type (
 		// cryptic JSON field names to minimize size saved in cache
 		RepoName  string         `json:"a"`
 		RepoIndex *cm_repo.Index `json:"b"`
-		RepoLock  sync.RWMutex
+		RepoLock  *sync.RWMutex
 	}
 
 	// Store is a generic interface for cache stores

@@ -114,6 +114,10 @@ func (server *MultiTenantServer) regenerateRepositoryIndex(log cm_logger.Logging
 	server.TenantCacheKeyLock.Lock()
 	tenant := server.Tenants[entry.RepoName]
 	server.TenantCacheKeyLock.Unlock()
+
+	tenant.FetchedObjectsLock.Lock()
+	defer tenant.FetchedObjectsLock.Unlock()
+
 	tenant.RegeneratedIndexesChans = append(tenant.RegeneratedIndexesChans, ch)
 
 	if len(tenant.RegeneratedIndexesChans) == 1 {
@@ -333,7 +337,7 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 			entry = &cache.CacheEntry{
 				RepoName:  repo,
 				RepoIndex: repoIndex,
-				RepoLock:  sync.RWMutex{},
+				RepoLock:  &sync.RWMutex{},
 			}
 			server.InternalCacheStore.Store(repo, entry)
 		} else {
@@ -348,7 +352,7 @@ func (server *MultiTenantServer) initCacheEntry(log cm_logger.LoggingFn, repo st
 			entry = &cache.CacheEntry{
 				RepoName:  repo,
 				RepoIndex: repoIndex,
-				RepoLock:  sync.RWMutex{},
+				RepoLock:  &sync.RWMutex{},
 			}
 			content, err = json.Marshal(entry)
 			if err != nil {
@@ -430,7 +434,7 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 		RepoName:  repo,
 		Raw:       object.Content,
 		ChartURL:  chartURL,
-		IndexLock: sync.RWMutex{},
+		IndexLock: &sync.RWMutex{},
 	}
 }
 
