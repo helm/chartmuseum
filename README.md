@@ -6,7 +6,7 @@
 
 <p align="center"><img align="center" src="logo2.png"></p><br/>
 
-*ChartMuseum* is an open-source **[Helm Chart Repository](https://helm.sh/docs/topics/chart_repository/)** server written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage), [Baidu Cloud BOS Storage](https://cloud.baidu.com/product/bos.html), [Tencent Cloud Object Storage](https://intl.cloud.tencent.com/product/cos), [Netease Cloud NOS Storage](https://www.163yun.com/product/nos), [DigitalOcean Spaces](https://www.digitalocean.com/products/spaces/), [Minio](https://min.io/), and [etcd](https://etcd.io/).
+*ChartMuseum* is an open-source **[Helm Chart Repository](https://helm.sh/docs/topics/chart_repository/)** server written in Go (Golang), with support for cloud storage backends, including [Google Cloud Storage](https://cloud.google.com/storage/), [Amazon S3](https://aws.amazon.com/s3/), [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/), [Alibaba Cloud OSS Storage](https://www.alibabacloud.com/product/oss), [Openstack Object Storage](https://developer.openstack.org/api-ref/object-store/), [Oracle Cloud Infrastructure Object Storage](https://cloud.oracle.com/storage), [Baidu Cloud BOS Storage](https://cloud.baidu.com/product/bos.html), [Tencent Cloud Object Storage](https://intl.cloud.tencent.com/product/cos), [DigitalOcean Spaces](https://www.digitalocean.com/products/spaces/), [Minio](https://min.io/), and [etcd](https://etcd.io/).
 
 Works as a valid Helm Chart Repository, and also provides an API for uploading charts.
 
@@ -340,22 +340,6 @@ chartmuseum --debug --port=8080 \
   --storage-tencent-bucket="my-cos-bucket" \
   --storage-tencent-prefix="" \
   --storage-tencent-endpoint="cos.ap-beijing.myqcloud.com"
-```
-
-#### Using with Netease Cloud NOS Storage
-
-Make sure your environment is properly setup to access `my-nos-bucket`.
-
-To do so, you must set the following env vars:
-- `NETEASE_CLOUD_ACCESS_KEY_ID`
-- `NETEASE_CLOUD_ACCESS_KEY_SECRET`
-
-```bash
-chartmuseum --debug --port=8080 \
-  --storage="netease" \
-  --storage-netease-bucket="my-nos-bucket" \
-  --storage-netease-prefix="" \
-  --storage-netease-endpoint="nos-eastchina1.126.net"
 ```
 
 #### Using with etcd

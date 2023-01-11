@@ -156,8 +156,6 @@ func backendFromConfig(conf *config.Config) storage.Backend {
 		backend = etcdBackendFromConfig(conf)
 	case "tencent":
 		backend = tencentBackendFromConfig(conf)
-	case "netease":
-		backend = neteaseBackendFromConfig(conf)
 	default:
 		crash("Unsupported storage backend: ", storageFlag)
 	}
@@ -276,15 +274,6 @@ func tencentBackendFromConfig(conf *config.Config) storage.Backend {
 		conf.GetString("storage.tencent.bucket"),
 		conf.GetString("storage.tencent.prefix"),
 		conf.GetString("storage.tencent.endpoint"),
-	)
-}
-
-func neteaseBackendFromConfig(conf *config.Config) storage.Backend {
-	crashIfConfigMissingVars(conf, []string{"storage.netease.bucket"})
-	return storage.NewNeteaseNOSBackend(
-		conf.GetString("storage.netease.bucket"),
-		conf.GetString("storage.netease.prefix"),
-		conf.GetString("storage.netease.endpoint"),
 	)
 }
 

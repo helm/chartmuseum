@@ -101,10 +101,6 @@ func (suite *MainTestSuite) TestMain() {
 	suite.Panics(main, "baidu storage")
 	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with baidu backend")
 
-	os.Args = []string{"chartmuseum", "--storage", "netease", "--storage-netease-bucket", "x", "--storage-netease-endpoint", "nos-eastchina1.126.net"}
-	suite.Panics(main, "netease storage")
-	suite.Equal("graceful crash", suite.LastCrashMessage, "no error with netease backend")
-
 	// Redis cache
 	os.Args = []string{"chartmuseum", "--storage", "local", "--storage-local-rootdir", "../../.chartstorage", "--cache", "redis", "--cache-redis-addr", suite.RedisMock.Addr()}
 	suite.Panics(main, "redis cache")
