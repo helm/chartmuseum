@@ -94,8 +94,6 @@ github.com/Masterminds/semver/v3 v3.1.1 h1:hLg3sBzpNErnxhQtUy/mmLR2I9foDujNK030I
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/Microsoft/go-winio v0.5.1 h1:aPJp2QD7OOrhO5tQXqQoGSJc+DjDtWTGLOmNyAm6FgY=
 github.com/Microsoft/hcsshim v0.9.3 h1:k371PzBuRrz2b+ebGuI2nVgVhgsVX60jMfSw80NECxo=
-github.com/NetEase-Object-Storage/nos-golang-sdk v0.0.0-20191125093154-335c2b73bf6b h1:jZIv0SILYL0wRLzAB8Ha19VDm7JnYn8t9NYbz2s2AVc=
-github.com/NetEase-Object-Storage/nos-golang-sdk v0.0.0-20191125093154-335c2b73bf6b/go.mod h1:0N5CbwYI/8V1T6YOEwkgMvLmiGDNn661vLutBZQrC2c=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/purell v1.1.1 h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tNFfI=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
@@ -136,8 +134,8 @@ github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cb
 github.com/cespare/xxhash/v2 v2.1.2/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chartmuseum/auth v0.5.0 h1:ENNmoxvjxcR/JR0HrghAEtGQe7hToMNj16+UoS5CK9Y=
 github.com/chartmuseum/auth v0.5.0/go.mod h1:BvoSXHyvbsq+/bbhNgVTDQsModM+HERBTNY5o9Vyrig=
-github.com/chartmuseum/storage v0.12.5 h1:mPZOG2wVHgCe3CjdPnVGMMX/8LSbwC5TQiOTyFI1Aj4=
-github.com/chartmuseum/storage v0.12.5/go.mod h1:hs0Gu9+cTt9gY2BOrTnyvJ2xWwGInPDIwfzQJhhy7hg=
+github.com/chartmuseum/storage v0.13.0 h1:1HjwJwZiisUrF8ZTSmGoIXorctBmvA8J5PIGu7kR+60=
+github.com/chartmuseum/storage v0.13.0/go.mod h1:4g1fp4OlfGeVZcgQH+7XKp9a0MiVKPZyP3JJQIre1a0=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=

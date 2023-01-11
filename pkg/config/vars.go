@@ -607,34 +607,6 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_TENCENT_ENDPOINT",
 		},
 	},
-	"storage.netease.prefix": {
-		Type:    stringType,
-		Default: "",
-		CLIFlag: cli.StringFlag{
-			Name:   "storage-netease-prefix",
-			Usage:  "prefix to store charts for --storage-netease-cloud-bucket",
-			EnvVar: "STORAGE_NETEASE_PREFIX",
-		},
-	},
-	"storage.netease.bucket": {
-		Type:    stringType,
-		Default: "",
-		CLIFlag: cli.StringFlag{
-			Name:   "storage-netease-bucket",
-			Usage:  "NOS bucket to store charts for Netease Cloud storage backend",
-			EnvVar: "STORAGE_NETEASE_BUCKET",
-		},
-	},
-	"storage.netease.endpoint": {
-		Type:    stringType,
-		Default: "",
-		CLIFlag: cli.StringFlag{
-			Name:   "storage-netease-endpoint",
-			Usage:  "NOS endpoint",
-			EnvVar: "STORAGE_NETEASE_ENDPOINT",
-		},
-	},
-
 	"chartpostformfieldname": {
 		Type:    stringType,
 		Default: "chart",
