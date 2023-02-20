@@ -22,7 +22,7 @@ get_all_tgzs() {
 }
 
 # Stable
-get_all_tgzs https://kubernetes-charts.storage.googleapis.com
+get_all_tgzs https://charts.helm.sh/stable
 
 # Incubator
-get_all_tgzs https://kubernetes-charts-incubator.storage.googleapis.com
+get_all_tgzs https://charts.helm.sh/incubator
