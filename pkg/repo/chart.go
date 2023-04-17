@@ -133,3 +133,19 @@ func emptyChartVersionFromPackageFilename(filename string) *helm_repo.ChartVersi
 	metadata := &helm_chart.Metadata{Name: name, Version: version}
 	return &helm_repo.ChartVersion{Metadata: metadata}
 }
+
+func ChartVersionFromContent(content []byte) (*helm_repo.ChartVersion, error) {
+	chart, err := chartFromContent(content)
+	if err != nil {
+		return nil, ErrorInvalidChartPackage
+	}
+	digest, err := provenanceDigestFromContent(content)
+	if err != nil {
+		return nil, err
+	}
+	chartVersion := &helm_repo.ChartVersion{
+		Metadata: chart.Metadata,
+		Digest:   digest,
+	}
+	return chartVersion, nil
+}
