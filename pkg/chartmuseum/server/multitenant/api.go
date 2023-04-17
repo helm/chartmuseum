@@ -132,6 +132,12 @@ func (server *MultiTenantServer) uploadChartPackage(log cm_logger.LoggingFn, rep
 	_, err = server.StorageBackend.GetObject(pathutil.Join(repo, filename))
 	// found
 	if err == nil {
+		cv, _ := cm_repo.ChartVersionFromContent(content)
+		ce, _ := server.initCacheEntry(log, repo)
+		isHave := ce.RepoIndex.HasEntry(cv)
+		if !isHave {
+			return filename, nil
+		}
 		found = true
 		// For those no-overwrite servers, return the Conflict error.
 		if !server.AllowOverwrite && (!server.AllowForceOverwrite || !force) {
