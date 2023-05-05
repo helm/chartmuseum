@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
-	github.com/urfave/cli v1.22.12
+	github.com/urfave/cli v1.22.13
 	github.com/zsais/go-gin-prometheus v0.1.0
 	go.uber.org/zap v1.24.0
 	helm.sh/helm/v3 v3.11.3
