@@ -17,7 +17,7 @@ limitations under the License.
 package repo
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -35,7 +35,7 @@ type ChartTestSuite struct {
 
 func (suite *ChartTestSuite) SetupSuite() {
 	tarballPath := "../../testdata/charts/mychart/mychart-0.1.0.tgz"
-	content, err := ioutil.ReadFile(tarballPath)
+	content, err := os.ReadFile(tarballPath)
 	suite.Nil(err, "no error reading test tarball")
 	suite.TarballContent = content
 }
