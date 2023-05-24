@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -677,7 +676,7 @@ entries:
     - charts/acs-engine-autoscaler-2.1.2.tgz
     version: 2.1.2
 generated: "2018-05-23T15:14:46-05:00"`)
-	err = ioutil.WriteFile(indexCacheFilePath, content, 0644)
+	err = os.WriteFile(indexCacheFilePath, content, 0644)
 	suite.Nil(err, "no error creating test index-cache.yaml")
 	defer os.Remove(indexCacheFilePath)
 
@@ -700,7 +699,7 @@ generated: "2018-05-23T15:14:46-05:00"`)
 	// invalid, unparsable index-cache.yaml
 	indexCacheFilePath = pathutil.Join(suite.TempDirectory, repo.StatefileFilename)
 	content = []byte(`is this valid yaml? maybe. but its definitely not a valid index.yaml!`)
-	err = ioutil.WriteFile(indexCacheFilePath, content, 0644)
+	err = os.WriteFile(indexCacheFilePath, content, 0644)
 	suite.Nil(err, "no error creating test index-cache.yaml")
 
 	NewMultiTenantServer(MultiTenantServerOptions{
@@ -771,7 +770,7 @@ func (suite *MultiTenantServerTestSuite) extractRepoEntryFromInternalCache(repo 
 
 func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 	// Check if files can be overwritten
-	content, err := ioutil.ReadFile(testTarballPath)
+	content, err := os.ReadFile(testTarballPath)
 	suite.Nil(err, "no error opening test tarball")
 	body := bytes.NewBuffer(content)
 	res := suite.doRequest("overwrite", "POST", "/api/charts", body, "")
@@ -792,7 +791,7 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 		e.RepoLock.RUnlock()
 	}
 
-	content, err = ioutil.ReadFile(testProvfilePath)
+	content, err = os.ReadFile(testProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("overwrite", "POST", "/api/prov", body, "")
@@ -819,14 +818,14 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 }
 
 func (suite *MultiTenantServerTestSuite) TestBadChartUpload() {
-	content, err := ioutil.ReadFile(badTestTarballPath)
+	content, err := os.ReadFile(badTestTarballPath)
 	suite.Nil(err, "no error opening test tarball")
 
 	body := bytes.NewBuffer(content)
 	res := suite.doRequest("depth0", "POST", "/api/charts", body, "")
 	suite.Equal(400, res.Status(), "400 POST /api/charts")
 
-	content, err = ioutil.ReadFile(badTestProvfilePath)
+	content, err = os.ReadFile(badTestProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
 
 	body = bytes.NewBuffer(content)
@@ -844,7 +843,7 @@ func (suite *MultiTenantServerTestSuite) TestForceOverwriteServer() {
 	suite.Equal(200, res.Status(), "200 DELETE /api/charts/mychart/0.1.0")
 
 	// Check if files can be overwritten when ?force is on URL
-	content, err := ioutil.ReadFile(testTarballPath)
+	content, err := os.ReadFile(testTarballPath)
 	suite.Nil(err, "no error opening test tarball")
 	body := bytes.NewBuffer(content)
 	res = suite.doRequest("forceoverwrite", "POST", "/api/charts", body, "")
@@ -856,7 +855,7 @@ func (suite *MultiTenantServerTestSuite) TestForceOverwriteServer() {
 	res = suite.doRequest("forceoverwrite", "POST", "/api/charts?force", body, "")
 	suite.Equal(201, res.Status(), "201 POST /api/charts?force")
 
-	content, err = ioutil.ReadFile(testProvfilePath)
+	content, err = os.ReadFile(testProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("forceoverwrite", "POST", "/api/prov", body, "")
@@ -890,26 +889,26 @@ func (suite *MultiTenantServerTestSuite) TestCustomChartURLServer() {
 
 func (suite *MultiTenantServerTestSuite) TestMaxObjectsServer() {
 	// Overwrites should still be allowed if limit is reached
-	content, err := ioutil.ReadFile(testTarballPath)
+	content, err := os.ReadFile(testTarballPath)
 	suite.Nil(err, "no error opening test tarball")
 	body := bytes.NewBuffer(content)
 	res := suite.doRequest("maxobjects", "POST", "/api/charts", body, "")
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
-	content, err = ioutil.ReadFile(testProvfilePath)
+	content, err = os.ReadFile(testProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("maxobjects", "POST", "/api/prov", body, "")
 	suite.Equal(201, res.Status(), "201 POST /api/prov")
 
 	// trigger error, reached max
-	content, err = ioutil.ReadFile(otherTestTarballPath)
+	content, err = os.ReadFile(otherTestTarballPath)
 	suite.Nil(err, "no error opening other test tarball")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("maxobjects", "POST", "/api/charts", body, "")
 	suite.Equal(507, res.Status(), "507 POST /api/charts")
 
-	content, err = ioutil.ReadFile(otherTestProvfilePath)
+	content, err = os.ReadFile(otherTestProvfilePath)
 	suite.Nil(err, "no error opening other test provenance file")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("maxobjects", "POST", "/api/prov", body, "")
@@ -918,19 +917,19 @@ func (suite *MultiTenantServerTestSuite) TestMaxObjectsServer() {
 
 func (suite *MultiTenantServerTestSuite) TestPerChartLimit() {
 	ns := "per-chart-limit"
-	content, err := ioutil.ReadFile(testTarballPathV0)
+	content, err := os.ReadFile(testTarballPathV0)
 	suite.Nil(err, "no error opening test tarball")
 	body := bytes.NewBuffer(content)
 	res := suite.doRequest(ns, "POST", "/api/charts", body, "")
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
-	content, err = ioutil.ReadFile(testTarballPathV2)
+	content, err = os.ReadFile(testTarballPathV2)
 	suite.Nil(err, "no error opening test tarball")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest(ns, "POST", "/api/charts", body, "")
 	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
-	content, err = ioutil.ReadFile(testTarballPath)
+	content, err = os.ReadFile(testTarballPath)
 	suite.Nil(err, "no error opening test tarball")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest(ns, "POST", "/api/charts", body, "")
@@ -950,13 +949,13 @@ func (suite *MultiTenantServerTestSuite) TestPerChartLimit() {
 
 func (suite *MultiTenantServerTestSuite) TestMaxUploadSizeServer() {
 	// trigger 413s, "request too large"
-	content, err := ioutil.ReadFile(testTarballPath)
+	content, err := os.ReadFile(testTarballPath)
 	suite.Nil(err, "no error opening test tarball")
 	body := bytes.NewBuffer(content)
 	res := suite.doRequest("maxuploadsize", "POST", "/api/charts", body, "")
 	suite.Equal(413, res.Status(), "413 POST /api/charts")
 
-	content, err = ioutil.ReadFile(testProvfilePath)
+	content, err = os.ReadFile(testProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
 	body = bytes.NewBuffer(content)
 	res = suite.doRequest("maxuploadsize", "POST", "/api/prov", body, "")
@@ -971,14 +970,14 @@ func (suite *MultiTenantServerTestSuite) TestMetrics() {
 
 	apiPrefix := pathutil.Join("/api", "a")
 
-	content, err := ioutil.ReadFile(testTarballPath)
+	content, err := os.ReadFile(testTarballPath)
 	suite.Nil(err, "error opening test tarball")
 
 	body := bytes.NewBuffer(content)
 	res := suite.doRequest("depth1", "POST", fmt.Sprintf("%s/charts", apiPrefix), body, "")
 	suite.Equal(201, res.Status(), fmt.Sprintf("201 post %s/charts", apiPrefix))
 
-	otherChart, err := ioutil.ReadFile(testTarballPathV2)
+	otherChart, err := os.ReadFile(testTarballPathV2)
 	suite.Nil(err, "error opening test tarball")
 
 	body = bytes.NewBuffer(otherChart)
@@ -1204,7 +1203,7 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	suite.Equal(500, res.Status(), fmt.Sprintf("500 POST %s/prov", apiPrefix))
 
 	// POST /api/:repo/charts
-	content, err := ioutil.ReadFile(testTarballPath)
+	content, err := os.ReadFile(testTarballPath)
 	suite.Nil(err, "no error opening test tarball")
 
 	body = bytes.NewBuffer(content)
@@ -1221,7 +1220,7 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	suite.Equal(409, res.Status(), fmt.Sprintf("409 POST %s/charts?force", apiPrefix))
 
 	// POST /api/:repo/prov
-	content, err = ioutil.ReadFile(testProvfilePath)
+	content, err = os.ReadFile(testProvfilePath)
 	suite.Nil(err, "no error opening test provenance file")
 
 	body = bytes.NewBuffer(content)

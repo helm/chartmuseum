@@ -20,8 +20,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 
@@ -186,7 +186,7 @@ func (router *Router) Start(port int) {
 		if router.TlsCACert != "" {
 			keypair, _ := tls.LoadX509KeyPair(router.TlsCert, router.TlsKey)
 			certpool := x509.NewCertPool()
-			capem, _ := ioutil.ReadFile(router.TlsCACert)
+			capem, _ := os.ReadFile(router.TlsCACert)
 			if !certpool.AppendCertsFromPEM(capem) {
 				router.Logger.Fatal("Can't parse CA certificate file")
 			}

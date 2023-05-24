@@ -18,7 +18,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	pathutil "path"
 	"testing"
@@ -50,7 +49,7 @@ basicauth:
 `,
 	)
 
-	err := ioutil.WriteFile(tempConfigFile, data, 0644)
+	err := os.WriteFile(tempConfigFile, data, 0644)
 	suite.Nil(err, fmt.Sprintf("no error creating new config file %s", tempConfigFile))
 	suite.TempConfigFile = tempConfigFile
 }
