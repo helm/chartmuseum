@@ -19,7 +19,7 @@ package multitenant
 import (
 	"net/http"
 
-	"github.com/ghodss/yaml"
+	"sigs.k8s.io/yaml"
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"

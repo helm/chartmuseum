@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ghodss/yaml"
+	"sigs.k8s.io/yaml"
 
 	helm_repo "helm.sh/helm/v3/pkg/repo"
 )

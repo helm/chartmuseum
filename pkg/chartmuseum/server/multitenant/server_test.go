@@ -34,7 +34,7 @@ import (
 	"helm.sh/chartmuseum/pkg/repo"
 
 	"github.com/chartmuseum/storage"
-	"github.com/ghodss/yaml"
+	"sigs.k8s.io/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 )
