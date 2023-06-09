@@ -83,7 +83,7 @@ jobs:
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          SKIP_BUILD=true VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh
+          SKIP_BUILD=true VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh || true
       - name: Sign the published images (via GitHub OIDC token)
         env:
           COSIGN_EXPERIMENTAL: "true"
