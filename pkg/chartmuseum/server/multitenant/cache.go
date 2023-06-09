@@ -46,8 +46,8 @@ import (
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
 
 	cm_storage "github.com/chartmuseum/storage"
-	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
+	"sigs.k8s.io/yaml"
 
 	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
