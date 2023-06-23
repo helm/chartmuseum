@@ -34,9 +34,9 @@ import (
 	"helm.sh/chartmuseum/pkg/repo"
 
 	"github.com/chartmuseum/storage"
-	"sigs.k8s.io/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
+	"sigs.k8s.io/yaml"
 )
 
 var maxUploadSize = 1024 * 1024 * 20
@@ -992,20 +992,28 @@ func (suite *MultiTenantServerTestSuite) TestMetrics() {
 	res = suite.doRequest("depth1", "GET", "/b/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /b/index.yaml")
 
-	// Get metrics
-	buffer := bytes.NewBufferString("")
-	res = suite.doRequest("depth1", "GET", "/metrics", nil, "", buffer)
-	suite.Equal(200, res.Status(), "200 GET /metrics")
+	var buffer *bytes.Buffer
+	var metrics string
 
-	metrics := buffer.String()
-	//fmt.Print(metrics) // observe the metric output
+	// The metrics should eventually show up
+	suite.Eventually(func() bool {
+		// Get metrics
+		buffer = bytes.NewBufferString("")
+		res = suite.doRequest("depth1", "GET", "/metrics", nil, "", buffer)
+		suite.Equal(200, res.Status(), "200 GET /metrics")
+
+		metrics = buffer.String()
+		totalChartsServed := strings.Contains(metrics, "chartmuseum_charts_served_total{repo=\"a\"} 1")
+		totalVersionsServed := strings.Contains(metrics, "chartmuseum_chart_versions_served_total{repo=\"a\"} 2")
+		if totalChartsServed && totalVersionsServed {
+			return true
+		}
+		return false
+	}, 10*time.Second, time.Second)
 
 	// Ensure that we have the Gauges as documented
 	suite.True(strings.Contains(metrics, "# TYPE chartmuseum_chart_versions_served_total gauge"))
 	suite.True(strings.Contains(metrics, "# TYPE chartmuseum_charts_served_total gauge"))
-
-	suite.True(strings.Contains(metrics, "chartmuseum_charts_served_total{repo=\"a\"} 1"))
-	suite.True(strings.Contains(metrics, "chartmuseum_chart_versions_served_total{repo=\"a\"} 2"))
 
 	// Ensure that the b repo has no charts
 	suite.True(strings.Contains(metrics, "chartmuseum_chart_versions_served_total{repo=\"b\"} 0"))
