@@ -100,7 +100,9 @@ func (server *MultiTenantServer) primeCache() error {
 // getChartList fetches from the server and accumulates concurrent requests to be fulfilled all at once.
 func (server *MultiTenantServer) getChartList(log cm_logger.LoggingFn, repo string) <-chan fetchedObjects {
 	ch := make(chan fetchedObjects, 1)
+	server.TenantCacheKeyLock.Lock()
 	tenant := server.Tenants[repo]
+	server.TenantCacheKeyLock.Unlock()
 
 	tenant.FetchedObjectsLock.Lock()
 	tenant.FetchedObjectsChans = append(tenant.FetchedObjectsChans, ch)
