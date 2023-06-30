@@ -95,14 +95,8 @@ helm install chartmuseum/mychart --generate-name
 ## How to Run
 ### CLI
 #### Installation
-Install binary using [GoFish](https://gofi.sh/):
-```
-gofish install chartmuseum
-==> Installing chartmuseum...
-🐠  chartmuseum 0.16.0: installed in 95.431145ms
-```
 
-or you can use the installer script:
+You can use the installer script:
 ```
 curl https://raw.githubusercontent.com/helm/chartmuseum/main/scripts/get-chartmuseum | bash
 ```
@@ -464,7 +458,7 @@ docker run --rm -it \
   -e STORAGE=local \
   -e STORAGE_LOCAL_ROOTDIR=/charts \
   -v $(pwd)/charts:/charts \
-  ghcr.io/helm/chartmuseum:v0.16.0
+  ghcr.io/helm/chartmuseum:v0.16.1
 ```
 
 Example usage (S3):
@@ -477,7 +471,7 @@ docker run --rm -it \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/home/chartmuseum/.aws:ro \
-  ghcr.io/helm/chartmuseum:v0.16.0
+  ghcr.io/helm/chartmuseum:v0.16.1
 ```
 
 ### Helm Chart
