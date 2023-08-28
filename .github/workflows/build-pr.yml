@@ -19,6 +19,12 @@ jobs:
         run: make bootstrap
       - name: run unit tests
         run: make test
+      - name: lint
+        uses: golangci/golangci-lint-action@v3.7.0
+        with:
+          version: latest
+
+
       - name: build binary
         run: make build-linux
       - name: run acceptance tests
