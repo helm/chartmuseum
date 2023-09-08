@@ -27,17 +27,13 @@ import (
 	"time"
 
 	cm_storage "github.com/chartmuseum/storage"
-
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
-
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	helm_repo "helm.sh/helm/v3/pkg/repo"
-
-	"github.com/gin-gonic/gin"
-
-	"go.uber.org/zap"
 )
 
 var (
@@ -157,6 +153,7 @@ func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) 
 	}
 	c.Data(200, storageObject.ContentType, storageObject.Content)
 }
+
 func (server *MultiTenantServer) getStorageObjectTemplateRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
@@ -183,6 +180,34 @@ func (server *MultiTenantServer) getStorageObjectTemplateRequestHandler(c *gin.C
 	c.JSON(200, map[string]interface{}{
 		"templates": chrt.Templates,
 		"values":    chrt.Values,
+	})
+}
+
+func (server *MultiTenantServer) getStorageObjectRawRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	name := c.Param("name")
+	version := c.Param("version")
+
+	log := server.Logger.ContextLoggingFn(c)
+
+	fileName, err := server.getChartFileName(log, repo, name, version)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Message})
+		return
+	}
+
+	storageObject, err := server.getStorageObject(log, repo, fileName)
+	if err != nil {
+		c.JSON(err.Status, gin.H{"error": err.Message})
+		return
+	}
+	chrt, err1 := loader.LoadArchive(bytes.NewReader(storageObject.Content))
+	if err1 != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err1})
+		return
+	}
+	c.JSON(200, map[string]interface{}{
+		"raw": chrt.Raw,
 	})
 }
 
@@ -222,6 +247,7 @@ func (server *MultiTenantServer) getStorageObjectValuesRequestHandler(c *gin.Con
 	}
 	c.Data(200, "application/yaml", data)
 }
+
 func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	offset := 0
@@ -368,7 +394,8 @@ func (server *MultiTenantServer) postPackageRequestHandler(c *gin.Context) {
 	chart, chartErr := cm_repo.ChartVersionFromStorageObject(cm_storage.Object{
 		Path:         pathutil.Join(repo, filename),
 		Content:      content,
-		LastModified: time.Now()})
+		LastModified: time.Now(),
+	})
 	if chartErr != nil {
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(chartErr), zap.Binary("content", content))
 	}
@@ -430,9 +457,10 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		if len(c.Errors) > 0 {
 			return // this is a "request too large"
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf(
-			"no package or provenance file found in form fields %s and %s",
-			server.ChartPostFormFieldName, server.ProvPostFormFieldName),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf(
+				"no package or provenance file found in form fields %s and %s",
+				server.ChartPostFormFieldName, server.ProvPostFormFieldName),
 		})
 		return
 	}
@@ -466,7 +494,8 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 	chart, chartErr := cm_repo.ChartVersionFromStorageObject(cm_storage.Object{
 		Path:         path,
 		Content:      chartContent,
-		LastModified: time.Now()})
+		LastModified: time.Now(),
+	})
 	if chartErr != nil {
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(err), zap.Binary("content", chartContent))
 	}
