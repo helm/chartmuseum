@@ -42,14 +42,17 @@ import (
 var maxUploadSize = 1024 * 1024 * 20
 
 // These are generated from scripts/setup-test-environment.sh
-var testTarballPath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz"
-var testTarballPathV2 = "../../../../testdata/charts/mychart/mychart-0.2.0.tgz"
-var testTarballPathV0 = "../../../../testdata/charts/mychart/mychart-0.0.1.tgz"
-var testProvfilePath = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.prov"
-var otherTestTarballPath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz"
-var otherTestProvfilePath = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
-var badTestTarballPath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
-var badTestProvfilePath = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
+var (
+	testTarballPath          = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz"
+	testTarballPathV2        = "../../../../testdata/charts/mychart/mychart-0.2.0.tgz"
+	testTarballPathV0        = "../../../../testdata/charts/mychart/mychart-0.0.1.tgz"
+	testServiceTarballPathV0 = "../../../../testdata/charts/mychart-service/mychart-service-0.0.1.tgz"
+	testProvfilePath         = "../../../../testdata/charts/mychart/mychart-0.1.0.tgz.prov"
+	otherTestTarballPath     = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz"
+	otherTestProvfilePath    = "../../../../testdata/charts/otherchart/otherchart-0.1.0.tgz.prov"
+	badTestTarballPath       = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz"
+	badTestProvfilePath      = "../../../../testdata/badcharts/mybadchart/mybadchart-1.0.0.tgz.prov"
+)
 
 type MultiTenantServerTestSuite struct {
 	suite.Suite
@@ -676,7 +679,7 @@ entries:
     - charts/acs-engine-autoscaler-2.1.2.tgz
     version: 2.1.2
 generated: "2018-05-23T15:14:46-05:00"`)
-	err = os.WriteFile(indexCacheFilePath, content, 0644)
+	err = os.WriteFile(indexCacheFilePath, content, 0o644)
 	suite.Nil(err, "no error creating test index-cache.yaml")
 	defer os.Remove(indexCacheFilePath)
 
@@ -699,7 +702,7 @@ generated: "2018-05-23T15:14:46-05:00"`)
 	// invalid, unparsable index-cache.yaml
 	indexCacheFilePath = pathutil.Join(suite.TempDirectory, repo.StatefileFilename)
 	content = []byte(`is this valid yaml? maybe. but its definitely not a valid index.yaml!`)
-	err = os.WriteFile(indexCacheFilePath, content, 0644)
+	err = os.WriteFile(indexCacheFilePath, content, 0o644)
 	suite.Nil(err, "no error creating test index-cache.yaml")
 
 	NewMultiTenantServer(MultiTenantServerOptions{
@@ -917,27 +920,25 @@ func (suite *MultiTenantServerTestSuite) TestMaxObjectsServer() {
 
 func (suite *MultiTenantServerTestSuite) TestPerChartLimit() {
 	ns := "per-chart-limit"
-	content, err := os.ReadFile(testTarballPathV0)
-	suite.Nil(err, "no error opening test tarball")
-	body := bytes.NewBuffer(content)
-	res := suite.doRequest(ns, "POST", "/api/charts", body, "")
-	suite.Equal(201, res.Status(), "201 POST /api/charts")
 
-	content, err = os.ReadFile(testTarballPathV2)
-	suite.Nil(err, "no error opening test tarball")
-	body = bytes.NewBuffer(content)
-	res = suite.doRequest(ns, "POST", "/api/charts", body, "")
-	suite.Equal(201, res.Status(), "201 POST /api/charts")
+	expectUploadFiles := []string{
+		testServiceTarballPathV0,
+		testTarballPathV0,
+		testTarballPathV2,
+		testTarballPath,
+	}
 
-	content, err = os.ReadFile(testTarballPath)
-	suite.Nil(err, "no error opening test tarball")
-	body = bytes.NewBuffer(content)
-	res = suite.doRequest(ns, "POST", "/api/charts", body, "")
-	suite.Equal(201, res.Status(), "201 POST /api/charts")
+	for _, f := range expectUploadFiles {
+		content, err := os.ReadFile(f)
+		suite.Nil(err, "no error opening test tarball")
+		body := bytes.NewBuffer(content)
+		res := suite.doRequest(ns, "POST", "/api/charts", body, "")
+		suite.Equal(201, res.Status(), "201 POST /api/charts")
+	}
 
 	time.Sleep(time.Second)
 
-	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.2.0", nil, "")
+	res := suite.doRequest(ns, "GET", "/api/charts/mychart/0.2.0", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-0.2.0")
 
 	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.1.0", nil, "")
@@ -945,6 +946,9 @@ func (suite *MultiTenantServerTestSuite) TestPerChartLimit() {
 
 	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.0.1", nil, "")
 	suite.Equal(404, res.Status(), "200 GET /api/charts/mychart-0.0.1")
+
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart-service/0.0.1", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-service-0.0.1")
 }
 
 func (suite *MultiTenantServerTestSuite) TestMaxUploadSizeServer() {
@@ -967,7 +971,6 @@ func (suite *MultiTenantServerTestSuite) TestMaxUploadSizeServer() {
 }
 
 func (suite *MultiTenantServerTestSuite) TestMetrics() {
-
 	apiPrefix := pathutil.Join("/api", "a")
 
 	content, err := os.ReadFile(testTarballPath)
@@ -1300,7 +1303,6 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	buf, w = suite.getBodyWithMultipartFormFiles([]string{"prov"}, []string{testTarballPath})
 	res = suite.doRequest(stype, "POST", fmt.Sprintf("%s/charts", apiPrefix), buf, w.FormDataContentType())
 	suite.Equal(400, res.Status(), fmt.Sprintf("400 POST %s/charts", apiPrefix))
-
 }
 
 func (suite *MultiTenantServerTestSuite) getBodyWithMultipartFormFiles(fields []string, filenames []string) (io.Reader, *multipart.Writer) {

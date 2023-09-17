@@ -51,6 +51,8 @@ package_test_charts() {
     helm package --sign --key helm-test --keyring ../pgp/helm-test-key.secret --version 0.2.0 -d mychart/ mychart/.
     # add another version for per chart limit test
     helm package --sign --key helm-test --keyring ../pgp/helm-test-key.secret --version 0.0.1 -d mychart/ mychart/.
+
+    helm package --sign --key helm-test --keyring ../pgp/helm-test-key.secret --version 0.0.1 -d mychart-service/ mychart-service/.
     popd
 
     pushd testdata/badcharts/

@@ -230,7 +230,8 @@ func extractFromChart(content []byte) (name string, version string, err error) {
 }
 
 func (server *MultiTenantServer) PutWithLimit(ctx *gin.Context, log cm_logger.LoggingFn, repo string,
-	filename string, content []byte) error {
+	filename string, content []byte,
+) error {
 	if server.ChartLimits == nil {
 		log(cm_logger.DebugLevel, "PutWithLimit: per-chart-limit not set")
 		return server.StorageBackend.PutObject(pathutil.Join(repo, filename), content)
@@ -251,7 +252,8 @@ func (server *MultiTenantServer) PutWithLimit(ctx *gin.Context, log cm_logger.Lo
 	}
 	var newObjs []storage.Object
 	for _, obj := range objs {
-		if !strings.HasPrefix(obj.Path, name) || strings.HasSuffix(obj.Path, ".prov") {
+		n, _ := cm_repo.GetExactChartNameVersion(obj.Path)
+		if strings.Compare(n, name) != 0 || strings.HasSuffix(obj.Path, ".prov") {
 			continue
 		}
 		log(cm_logger.DebugLevel, "PutWithLimit", "current object name", obj.Path)
