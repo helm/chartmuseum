@@ -111,8 +111,6 @@ github.com/cespare/xxhash/v2 v2.2.0 h1:DC2CZ1Ep5Y4k3ZQ899DldepgrayRUGE6BBZ/cd9Cj
 github.com/cespare/xxhash/v2 v2.2.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chartmuseum/auth v0.5.0 h1:ENNmoxvjxcR/JR0HrghAEtGQe7hToMNj16+UoS5CK9Y=
 github.com/chartmuseum/auth v0.5.0/go.mod h1:BvoSXHyvbsq+/bbhNgVTDQsModM+HERBTNY5o9Vyrig=
-github.com/chartmuseum/storage v0.14.0 h1:R/Mp4fRaY5HCtLIEJomrsT415kEi6QumertR74cbHZU=
-github.com/chartmuseum/storage v0.14.0/go.mod h1:LB+/k4kZkOu2AW3myaOw/AQt0JtjcNLwL1ktKxoWVug=
 github.com/chenzhuoyu/base64x v0.0.0-20211019084208-fb5309c8db06/go.mod h1:DH46F32mSOjUmXrMHnKwZdA8wcEefY7UVqBKYGjpdQY=
 github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 h1:qSGYFH7+jGhDF8vLC+iwCD4WpbV1EBDSzWkJODFLams=
 github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311/go.mod h1:b583jCggY9gE99b6G5LEC39OIiVsWj+R97kbl5odCEk=
@@ -531,6 +529,8 @@ github.com/ugorji/go/codec v1.2.11 h1:BMaWp1Bb6fHwEtbplGBGJ498wD+LKlNSl25MjdZY4d
 github.com/ugorji/go/codec v1.2.11/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/urfave/cli v1.22.14 h1:ebbhrRiGK2i4naQJr+1Xj92HXZCrK7MsyTS/ob3HnAk=
 github.com/urfave/cli v1.22.14/go.mod h1:X0eDS6pD6Exaclxm99NJ3FiCDRED7vIHpx2mDOHLvkA=
+github.com/warjiang/storage v0.1.0 h1:l67S0N6NjB3/VXsjpok/CsxZqVKLwCuCP9G2OVJAQrU=
+github.com/warjiang/storage v0.1.0/go.mod h1:UoHcQmlvu0Ef3843TJuaf3EauGqCEuDCo1y60unbTMY=
 github.com/xlab/treeprint v1.1.0 h1:G/1DjNkPpfZCFt9CSh6b5/nY4VimlbHF3Rh4obvtzDk=
 github.com/xlab/treeprint v1.1.0/go.mod h1:gj5Gd3gPdKtR1ikdDK6fnFLdmIS0X30kTTuNd/WEJu0=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

@@ -355,6 +355,15 @@ var configVars = map[string]configVar{
 			EnvVar: "STORAGE_AMAZON_SSE",
 		},
 	},
+	"storage.amazon.forcepathstyle": {
+		Type:    boolType,
+		Default: true,
+		CLIFlag: cli.StringFlag{
+			Name:   "storage-amazon-force-path-style",
+			Usage:  "whether to force path style for amazon storage backend",
+			EnvVar: "STORAGE_AMAZON_FORCE_PATH_STYLE",
+		},
+	},
 	"storage.google.bucket": {
 		Type:    stringType,
 		Default: "",

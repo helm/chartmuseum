@@ -176,12 +176,16 @@ func amazonBackendFromConfig(conf *config.Config) storage.Backend {
 		conf.Set("storage.amazon.region", "us-east-1")
 	}
 	crashIfConfigMissingVars(conf, []string{"storage.amazon.bucket", "storage.amazon.region"})
-	return storage.NewAmazonS3Backend(
+	forcePathStyle := conf.GetBool("storage.amazon.forcepathstyle")
+	return storage.NewAmazonS3BackendWithOptions(
 		conf.GetString("storage.amazon.bucket"),
 		conf.GetString("storage.amazon.prefix"),
 		conf.GetString("storage.amazon.region"),
 		conf.GetString("storage.amazon.endpoint"),
 		conf.GetString("storage.amazon.sse"),
+		&storage.AmazonS3Options{
+			S3ForcePathStyle: &forcePathStyle,
+		},
 	)
 }
 

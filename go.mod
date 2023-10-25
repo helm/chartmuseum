@@ -181,3 +181,5 @@ require (
 	sigs.k8s.io/kustomize/kyaml v0.14.1 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
+
+replace github.com/chartmuseum/storage => github.com/warjiang/storage v0.1.0
