@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.5.0
-	github.com/chartmuseum/storage v0.14.0
+	github.com/chartmuseum/storage v0.14.1
 	github.com/gin-contrib/size v0.0.0-20230212012657-e14a14094dc4
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis v6.15.9+incompatible
@@ -181,5 +181,3 @@ require (
 	sigs.k8s.io/kustomize/kyaml v0.14.1 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
-
-replace github.com/chartmuseum/storage => github.com/warjiang/storage v0.1.0
