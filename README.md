@@ -188,6 +188,20 @@ You need at least the following permissions inside your IAM Policy
 In order to work with AWS service accounts you may need to set `AWS_SDK_LOAD_CONFIG=1` in your environment.
 For more context, please see [here](https://github.com/helm/chartmuseum/issues/280#issuecomment-592292527).
 
+If you are using S3-Compatible storage, provider of S3 storage has [disabled path-style and force virtual hosted-style](https://aws.amazon.com/cn/blogs/aws/amazon-s3-path-deprecation-plan-the-rest-of-the-story/), you can use specify `storage-amazon-force-path-style` options as following example:
+```
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+chartmuseum --debug --port=8080 \
+  --storage="amazon" \
+  --storage-amazon-bucket="my-s3-bucket" \
+  --storage-amazon-prefix="" \
+  --storage-amazon-region="us-east-1" \
+  --storage-amazon-endpoint="my-s3-compatible-service-endpoint"
+  --storage-amazon-force-path-style=false
+```
+
+
 For DigitalOcean, set the credentials using environment variable and pass the `endpoint`.
 Note below, that the region `us-east-1` needs to be set, since that is how the DigitalOcean cli implementation functions. The actual region of your spaces location is defined by the endpoint. Below we are using Frankfurt as an example.
 ```bash
