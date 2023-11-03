@@ -198,7 +198,7 @@ sbom:
 cosign:
 	for f in $$(ls _dist/*.{gz,zip,sha256sum,spdx} 2>/dev/null) ; do \
 		echo "Creating $${f}.sig" ; \
-		cosign sign-blob --output-file "$${f}.sig" "$${f}"; \
+		cosign sign-blob --yes --output-file "$${f}.sig" "$${f}"; \
 	done
 
 .PHONY: sign
