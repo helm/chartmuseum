@@ -73,9 +73,7 @@ jobs:
       - name: Install Kubernetes SBOM Tool
         uses: puerco/bom-installer@aa0837e37b6965b5fc50adfad0683ec3c0a2c2c4
       - name: Install sigstore cosign
-        uses: sigstore/cosign-installer@48866aa521d8bf870604709cd43ec2f602d03ff2
-        with:
-          cosign-release: 'v1.13.0'
+        uses: sigstore/cosign-installer@v3.1.1
       - name: Release artifacts (includes SBOM and signatures)
         id: release-artifacts
         env:
