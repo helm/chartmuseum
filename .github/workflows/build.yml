@@ -86,7 +86,7 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign sign ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+          cosign sign --yes ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
       - name: Attach SBOM to published images
         env:
           COSIGN_EXPERIMENTAL: "true"
