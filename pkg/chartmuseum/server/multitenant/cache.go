@@ -152,11 +152,12 @@ func (server *MultiTenantServer) regenerateRepositoryIndexWorker(log cm_logger.L
 		"repo", repo,
 	)
 	index := &cm_repo.Index{
-		IndexFile: entry.RepoIndex.IndexFile,
-		RepoName:  repo,
-		Raw:       entry.RepoIndex.Raw,
-		ChartURL:  entry.RepoIndex.ChartURL,
-		IndexLock: sync.RWMutex{},
+		IndexFile:  entry.RepoIndex.IndexFile,
+		RepoName:   repo,
+		Raw:        entry.RepoIndex.Raw,
+		ChartURL:   entry.RepoIndex.ChartURL,
+		IndexLock:  sync.RWMutex{},
+		OutputJSON: server.JSONIndex,
 	}
 
 	for _, object := range diff.Removed {
@@ -442,23 +443,28 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 	}
 
 	if !server.UseStatefiles {
-		return cm_repo.NewIndex(chartURL, repo, serverInfo)
+		return cm_repo.NewIndex(chartURL, repo, serverInfo, server.JSONIndex)
 	}
 
 	objectPath := pathutil.Join(repo, cm_repo.StatefileFilename)
 	object, err := server.StorageBackend.GetObject(objectPath)
 	if err != nil {
-		return cm_repo.NewIndex(chartURL, repo, serverInfo)
+		return cm_repo.NewIndex(chartURL, repo, serverInfo, server.JSONIndex)
 	}
 
 	indexFile := &cm_repo.IndexFile{}
-	err = yaml.Unmarshal(object.Content, indexFile)
+	if json.Valid(object.Content) {
+		err = json.Unmarshal(object.Content, indexFile)
+	} else {
+		err = yaml.Unmarshal(object.Content, indexFile)
+	}
+
 	if err != nil {
 		log(cm_logger.WarnLevel, "index-cache.yaml found but could not be parsed",
 			"repo", repo,
 			"error", err.Error(),
 		)
-		return cm_repo.NewIndex(chartURL, repo, serverInfo)
+		return cm_repo.NewIndex(chartURL, repo, serverInfo, server.JSONIndex)
 	}
 
 	log(cm_logger.DebugLevel, "index-cache.yaml loaded",
@@ -466,11 +472,12 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 	)
 
 	return &cm_repo.Index{
-		IndexFile: indexFile,
-		RepoName:  repo,
-		Raw:       object.Content,
-		ChartURL:  chartURL,
-		IndexLock: sync.RWMutex{},
+		IndexFile:  indexFile,
+		RepoName:   repo,
+		Raw:        object.Content,
+		ChartURL:   chartURL,
+		IndexLock:  sync.RWMutex{},
+		OutputJSON: server.JSONIndex,
 	}
 }
 

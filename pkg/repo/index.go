@@ -52,7 +52,7 @@ type (
 		Raw        []byte `json:"c"`
 		ChartURL   string `json:"d"`
 		IndexLock  sync.RWMutex
-		outputJSON bool
+		OutputJSON bool
 	}
 )
 
@@ -75,7 +75,7 @@ func (index *Index) Regenerate() (err error) {
 	index.Generated = time.Now().Round(time.Second)
 
 	var raw []byte
-	if index.outputJSON {
+	if index.OutputJSON {
 		raw, err = json.Marshal(index.IndexFile)
 	} else {
 		raw, err = yaml.Marshal(index.IndexFile)

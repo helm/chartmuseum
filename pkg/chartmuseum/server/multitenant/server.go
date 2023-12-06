@@ -73,6 +73,7 @@ type (
 		EnforceSemver2        bool
 		WebTemplatePath       string
 		AlwaysRegenerateIndex bool
+		JSONIndex             bool
 	}
 
 	ObjectsPerChartLimit struct {
@@ -106,6 +107,7 @@ type (
 		// Deprecated: see https://github.com/helm/chartmuseum/issues/485 for more info
 		EnforceSemver2        bool
 		AlwaysRegenerateIndex bool
+		JSONIndex             bool
 	}
 
 	tenantInternals struct {
@@ -166,6 +168,7 @@ func NewMultiTenantServer(options MultiTenantServerOptions) (*MultiTenantServer,
 		WebTemplatePath:        options.WebTemplatePath,
 		ArtifactHubRepoID:      options.ArtifactHubRepoID,
 		AlwaysRegenerateIndex:  options.AlwaysRegenerateIndex,
+		JSONIndex:              options.JSONIndex,
 	}
 
 	if server.WebTemplatePath != "" {
