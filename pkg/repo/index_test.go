@@ -17,6 +17,7 @@ limitations under the License.
 package repo
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -24,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/stretchr/testify/suite"
+	"sigs.k8s.io/yaml"
 
 	"helm.sh/helm/v3/pkg/chart"
 	helm_repo "helm.sh/helm/v3/pkg/repo"
@@ -117,6 +119,27 @@ func (suite *IndexTestSuite) TestServerInfo() {
 	}
 	index = NewIndex("", "", serverInfo, false)
 	suite.True(strings.Contains(string(index.Raw), "contextPath: /v1/helm"), "context path is in index")
+}
+
+func (suite *IndexTestSuite) TestYAMLIndex() {
+	index := NewIndex("", "", &ServerInfo{}, false)
+	chartVersion := getChartVersion("a", 0, time.Now())
+	index.AddEntry(chartVersion)
+	suite.NoError(index.Regenerate())
+
+	suite.False(json.Valid(index.Raw))
+	suite.NoError(yaml.Unmarshal(index.Raw, &IndexFile{}))
+}
+
+func (suite *IndexTestSuite) TestJSONIndex() {
+	index := NewIndex("", "", &ServerInfo{}, true)
+	chartVersion := getChartVersion("a", 0, time.Now())
+	index.AddEntry(chartVersion)
+	suite.NoError(index.Regenerate())
+
+	// Since YAML is a superset of JSON, any valid JSON should be valid YAML
+	suite.True(json.Valid(index.Raw))
+	suite.NoError(yaml.Unmarshal(index.Raw, &IndexFile{}))
 }
 
 func TestIndexTestSuite(t *testing.T) {
