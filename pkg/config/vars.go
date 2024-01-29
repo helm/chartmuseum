@@ -138,6 +138,15 @@ var configVars = map[string]configVar{
 			EnvVar: "DISABLE_STATEFILES",
 		},
 	},
+	"json-index": {
+		Type:    boolType,
+		Default: false,
+		CLIFlag: cli.BoolFlag{
+			Name:   "json-index",
+			Usage:  "generates an index in JSON format, improves parsing performance for large index files",
+			EnvVar: "JSON_INDEX",
+		},
+	},
 	"allowoverwrite": {
 		Type:    boolType,
 		Default: false,

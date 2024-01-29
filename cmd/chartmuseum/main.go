@@ -119,6 +119,7 @@ func cliHandler(c *cli.Context) {
 		WebTemplatePath:        conf.GetString("web-template-path"),
 		ArtifactHubRepoID:      conf.GetStringMapString("artifact-hub-repo-id"),
 		AlwaysRegenerateIndex:  conf.GetBool("always-regenerate-chart-index"),
+		JSONIndex:              conf.GetBool("json-index"),
 	}
 
 	server, err := newServer(options)
