@@ -146,6 +146,7 @@ func ChartVersionFromContent(content []byte) (*helm_repo.ChartVersion, error) {
 	chartVersion := &helm_repo.ChartVersion{
 		Metadata: chart.Metadata,
 		Digest:   digest,
+		URLs:     []string{fmt.Sprintf("charts/%s", pathutil.Base(chart.ChartPath()))},
 	}
 	return chartVersion, nil
 }
