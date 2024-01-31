@@ -51,7 +51,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 	if len(entry.RepoIndex.Entries) != 0 || server.CacheInterval != 0 {
 		allObjects, err := server.fetchChartsInStorage(log, repo)
 		if err != nil || allChartsCount != len(allObjects) {
-			entry.RepoIndex.Entries = map[string]repo.ChartVersions{}
+			entry.RepoIndex.Entries = map[string]cm_repo.ChartVersions{}
 			server.CacheInterval = 0
 		}
 	}
