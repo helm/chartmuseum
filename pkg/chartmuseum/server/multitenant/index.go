@@ -24,6 +24,7 @@ import (
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_repo "helm.sh/chartmuseum/pkg/repo"
+	repo2 "helm.sh/helm/v3/pkg/repo"
 )
 
 const (
@@ -51,7 +52,7 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 	if len(entry.RepoIndex.Entries) != 0 || server.CacheInterval != 0 {
 		allObjects, err := server.fetchChartsInStorage(log, repo)
 		if err != nil || allChartsCount != len(allObjects) {
-			entry.RepoIndex.Entries = map[string]cm_repo.ChartVersions{}
+			entry.RepoIndex.Entries = map[string]repo2.ChartVersions{}
 			server.CacheInterval = 0
 		}
 	}
