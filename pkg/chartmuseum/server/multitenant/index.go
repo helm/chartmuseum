@@ -42,6 +42,20 @@ func (server *MultiTenantServer) getIndexFile(log cm_logger.LoggingFn, repo stri
 	entry.RepoLock.Lock()
 	defer entry.RepoLock.Unlock()
 
+	allChartsCount := 0
+	if len(entry.RepoIndex.Entries) != 0 || server.CacheInterval != 0 {
+		for _, chVersions := range entry.RepoIndex.Entries {
+			allChartsCount += len(chVersions)
+		}
+	}
+	if len(entry.RepoIndex.Entries) != 0 || server.CacheInterval != 0 {
+		allObjects, err := server.fetchChartsInStorage(log, repo)
+		if err != nil || allChartsCount != len(allObjects) {
+			entry.RepoIndex.Entries = map[string]repo.ChartVersions{}
+			server.CacheInterval = 0
+		}
+	}
+	
 	// if the always-regenerate-chart-index flag is set, we always update the index file
 	// and ignore the chart cache
 	if server.AlwaysRegenerateIndex /* the flag is set */ ||
