@@ -1,11 +1,13 @@
 module helm.sh/chartmuseum
 
-go 1.20
+go 1.21
+
+toolchain go1.22.0
 
 require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.5.0
-	github.com/chartmuseum/storage v0.14.1
+	github.com/chartmuseum/storage v0.15.0
 	github.com/gin-contrib/size v0.0.0-20230212012657-e14a14094dc4
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis v6.15.9+incompatible
@@ -40,7 +42,7 @@ require (
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.4+incompatible // indirect
-	github.com/aws/aws-sdk-go v1.44.288 // indirect
+	github.com/aws/aws-sdk-go v1.47.11 // indirect
 	github.com/baidubce/bce-sdk-go v0.9.123 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
