@@ -40,7 +40,7 @@ require (
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.4+incompatible // indirect
-	github.com/aws/aws-sdk-go v1.47.11 // indirect
+	github.com/aws/aws-sdk-go v1.48.7 // indirect
 	github.com/baidubce/bce-sdk-go v0.9.123 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
