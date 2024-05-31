@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.5.0
-	github.com/chartmuseum/storage v0.15.0
+	github.com/chartmuseum/storage v0.16.0
 	github.com/gin-contrib/size v0.0.0-20230212012657-e14a14094dc4
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis v6.15.9+incompatible
