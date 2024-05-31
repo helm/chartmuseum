@@ -120,8 +120,8 @@ github.com/cespare/xxhash/v2 v2.2.0 h1:DC2CZ1Ep5Y4k3ZQ899DldepgrayRUGE6BBZ/cd9Cj
 github.com/cespare/xxhash/v2 v2.2.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chartmuseum/auth v0.5.0 h1:ENNmoxvjxcR/JR0HrghAEtGQe7hToMNj16+UoS5CK9Y=
 github.com/chartmuseum/auth v0.5.0/go.mod h1:BvoSXHyvbsq+/bbhNgVTDQsModM+HERBTNY5o9Vyrig=
-github.com/chartmuseum/storage v0.15.0 h1:DQEyR8xiamEpGunuB809hNMS5P3co3ViuWvVAa0zL70=
-github.com/chartmuseum/storage v0.15.0/go.mod h1:1vIEr2c8wwKuEvowGwxEJ1lDKwo72C9ATe6lNwX1/x0=
+github.com/chartmuseum/storage v0.16.0 h1:Foj4sCt0NJnUZ0BWFWwTjhtiJB+SSSBAIEdIBsvj95U=
+github.com/chartmuseum/storage v0.16.0/go.mod h1:bdR0ivrBAk4f8qBnqijvgzmLFop9A2Ils4yOpoiLKuQ=
 github.com/chenzhuoyu/base64x v0.0.0-20211019084208-fb5309c8db06/go.mod h1:DH46F32mSOjUmXrMHnKwZdA8wcEefY7UVqBKYGjpdQY=
 github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 h1:qSGYFH7+jGhDF8vLC+iwCD4WpbV1EBDSzWkJODFLams=
 github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311/go.mod h1:b583jCggY9gE99b6G5LEC39OIiVsWj+R97kbl5odCEk=
