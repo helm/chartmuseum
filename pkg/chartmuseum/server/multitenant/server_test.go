@@ -971,13 +971,16 @@ func (suite *MultiTenantServerTestSuite) TestMaxUploadSizeServer() {
 }
 
 func (suite *MultiTenantServerTestSuite) TestMetrics() {
+	res := suite.doRequest("depth1", "GET", "bad-url", nil, "")
+	suite.Equal(404, res.Status(), "404 GET bad-url")
+
 	apiPrefix := pathutil.Join("/api", "a")
 
 	content, err := os.ReadFile(testTarballPath)
 	suite.Nil(err, "error opening test tarball")
 
 	body := bytes.NewBuffer(content)
-	res := suite.doRequest("depth1", "POST", fmt.Sprintf("%s/charts", apiPrefix), body, "")
+	res = suite.doRequest("depth1", "POST", fmt.Sprintf("%s/charts", apiPrefix), body, "")
 	suite.Equal(201, res.Status(), fmt.Sprintf("201 post %s/charts", apiPrefix))
 
 	otherChart, err := os.ReadFile(testTarballPathV2)
@@ -994,9 +997,6 @@ func (suite *MultiTenantServerTestSuite) TestMetrics() {
 	// GET /b/index.yaml to regenerate b index (and metrics)
 	res = suite.doRequest("depth1", "GET", "/b/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /b/index.yaml")
-
-	res = suite.doRequest("depth1", "GET", "/bad-url", nil, "")
-	suite.Equal(404, res.Status(), "404 GET /bad-url")
 
 	var buffer *bytes.Buffer
 	var metrics string
