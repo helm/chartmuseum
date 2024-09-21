@@ -1,6 +1,6 @@
 module helm.sh/chartmuseum
 
-go 1.22.5
+go 1.23
 
 require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
@@ -11,7 +11,7 @@ require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/prometheus/client_golang v1.20.4
-	github.com/scbizu/go-gin-prometheus v0.0.0-20240921102643-a0c3b41a4666
+	github.com/scbizu/go-gin-prometheus v0.1.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.9.0
