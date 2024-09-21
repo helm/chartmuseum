@@ -995,6 +995,9 @@ func (suite *MultiTenantServerTestSuite) TestMetrics() {
 	res = suite.doRequest("depth1", "GET", "/b/index.yaml", nil, "")
 	suite.Equal(200, res.Status(), "200 GET /b/index.yaml")
 
+	res = suite.doRequest("depth1", "GET", "/bad-url", nil, "")
+	suite.Equal(404, res.Status(), "404 GET /bad-url")
+
 	var buffer *bytes.Buffer
 	var metrics string
 
@@ -1011,7 +1014,8 @@ func (suite *MultiTenantServerTestSuite) TestMetrics() {
 		if totalChartsServed && totalVersionsServed {
 			return true
 		}
-		return false
+		notServeBadURL := !strings.Contains(metrics, "bad-url")
+		return notServeBadURL
 	}, 10*time.Second, time.Second)
 
 	// Ensure that we have the Gauges as documented
