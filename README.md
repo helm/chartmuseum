@@ -28,6 +28,8 @@ Powered by some great Go technology:
 - `GET /index.yaml` - retrieved when you run `helm repo add chartmuseum http://localhost:8080/`
 - `GET /charts/mychart-0.1.0.tgz` - retrieved when you run `helm install chartmuseum/mychart`
 - `GET /charts/mychart-0.1.0.tgz.prov` - retrieved when you run `helm install` with the `--verify` flag
+- `HEAD` requests for the above routes are also supported; they are **not** used in `helm`,
+  but they might be used by hubs like JFrog Artifactory 
 
 ### Chart Manipulation
 - `POST /api/charts` - upload a new chart version
