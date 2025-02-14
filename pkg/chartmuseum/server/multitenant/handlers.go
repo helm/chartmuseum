@@ -445,8 +445,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 			"filename", ppf.filename,
 			"field", ppf.field,
 		)
-		err := server.StorageBackend.PutObject(pathutil.Join(repo, ppf.filename), ppf.content)
-		if err == nil {
+		if err := server.PutWithLimit(&gin.Context{}, log, repo, ppf.filename, ppf.content); err == nil {
 			storedFiles = append(storedFiles, ppf)
 		} else {
 			// Clean up what's already been saved
