@@ -30,7 +30,6 @@ import (
 	cm_auth "github.com/chartmuseum/auth"
 	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
-	ginprometheus "github.com/scbizu/go-gin-prometheus"
 )
 
 var _ http.Handler = (*Router)(nil)
@@ -102,7 +101,7 @@ func NewRouter(options RouterOptions) *Router {
 	engine.Use(limits.RequestSizeLimiter(int64(options.MaxUploadSize)))
 
 	if options.EnableMetrics {
-		p := ginprometheus.NewPrometheus("chartmuseum")
+		p := NewPrometheus("chartmuseum", options.Logger)
 		p.ReqCntURLLabelMappingFn = mapURLWithParamsBackToRouteTemplate
 		p.IgnoreNotFoundMetric = true
 		p.Use(engine)

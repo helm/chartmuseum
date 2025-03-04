@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -124,8 +123,4 @@ func transformLogcArgs(c *gin.Context, msg string, keysAndValues []interface{}) 
 		}
 	}
 	return msg, keysAndValues
-}
-
-func init() {
-	logrus.SetLevel(logrus.WarnLevel) // silence logs from zsais/go-gin-prometheus
 }

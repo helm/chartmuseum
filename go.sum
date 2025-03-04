@@ -517,12 +517,6 @@ github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/satori/go.uuid v1.2.0 h1:0uYX9dsZ2yD7q2RtLRtPSdGDWzjeM3TbMJP9utgA0ww=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
-github.com/scbizu/go-gin-prometheus v0.0.0-20240921102643-a0c3b41a4666 h1:RelcvsjhbAH+I2Y6x2eJAyvlQqb5c+VMhXN10wyzm+k=
-github.com/scbizu/go-gin-prometheus v0.0.0-20240921102643-a0c3b41a4666/go.mod h1:n+whsTHeMh2DzpEhzlAV/Rj+P66m+c2NZpHLobidtYU=
-github.com/scbizu/go-gin-prometheus v0.1.0 h1:qfITwpg0Pu6HGNo/p9JSXpUfKIWNshI7hmbIXG9uCk0=
-github.com/scbizu/go-gin-prometheus v0.1.0/go.mod h1:n+whsTHeMh2DzpEhzlAV/Rj+P66m+c2NZpHLobidtYU=
-github.com/scbizu/go-gin-prometheus v0.1.1 h1:xeDNAGxJefFTrc8Vm63sTtb1qpx7MNIBHetnJnH1TlQ=
-github.com/scbizu/go-gin-prometheus v0.1.1/go.mod h1:I5RihSOS19CGpyJiAxtmQ/OsBLRapsHKvTuVVTCJJfU=
 github.com/sergi/go-diff v1.1.0 h1:we8PVUC3FE2uYfodKH/nBHMSetSfHDR6scGdBi+erh0=
 github.com/sergi/go-diff v1.1.0/go.mod h1:STckp+ISIX8hZLjrqAeVduY0gWCT9IjLuqbuNXdaHfM=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
