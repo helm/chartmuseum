@@ -951,6 +951,37 @@ func (suite *MultiTenantServerTestSuite) TestPerChartLimit() {
 	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-service-0.0.1")
 }
 
+func (suite *MultiTenantServerTestSuite) TestPerChartLimitWithFormData() {
+	ns := "per-chart-limit"
+
+	expectUploadFiles := []string{
+		testServiceTarballPathV0,
+		testTarballPathV0,
+		testTarballPathV2,
+		testTarballPath,
+	}
+
+	for _, f := range expectUploadFiles {
+		buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart"}, []string{f})
+		res := suite.doRequest(ns, "POST", "/api/charts", buf, w.FormDataContentType())
+		suite.Equal(201, res.Status(), "201 POST /api/charts")
+	}
+
+	time.Sleep(time.Second)
+
+	res := suite.doRequest(ns, "GET", "/api/charts/mychart/0.2.0", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-0.2.0")
+
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.1.0", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-0.1.0")
+
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart/0.0.1", nil, "")
+	suite.Equal(404, res.Status(), "200 GET /api/charts/mychart-0.0.1")
+
+	res = suite.doRequest(ns, "GET", "/api/charts/mychart-service/0.0.1", nil, "")
+	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-service-0.0.1")
+}
+
 func (suite *MultiTenantServerTestSuite) TestMaxUploadSizeServer() {
 	// trigger 413s, "request too large"
 	content, err := os.ReadFile(testTarballPath)
