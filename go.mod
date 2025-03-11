@@ -1,6 +1,9 @@
 module helm.sh/chartmuseum
 
 go 1.23
+
+toolchain go1.23.0
+
 require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.5.0
