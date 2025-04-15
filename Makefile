@@ -1,4 +1,5 @@
-VERSION ?= 0.16.2
+# TODO(cbuto): Pull from git tag to avoid needing to bump this prior to releasing
+VERSION ?= 0.16.3
 REVISION := $(shell git rev-parse --short HEAD;)
 
 BINDIR      := $(CURDIR)/bin
@@ -230,5 +231,3 @@ lint:
 		echo "golangci-lint is not installed, please install it from https://golangci-lint.run/usage/install/"; \
 		exit 1; \
 	fi
-
-
