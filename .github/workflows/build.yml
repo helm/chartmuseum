@@ -15,6 +15,10 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - name: Reclaim disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
       - name: Checkout
         uses: actions/checkout@v2
       - name: setup go environment
