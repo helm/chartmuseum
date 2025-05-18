@@ -198,7 +198,7 @@ func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, r
 	log(cm_logger.DebugLevel, "Fetching chart list from storage",
 		"repo", repo,
 	)
-	allObjects, err := server.StorageBackend.ListObjects(pathutil.Join(repo, "")) 
+	allObjects, err := server.StorageBackend.ListObjects(pathutil.Join(repo, ""))  // adds trailing slash
 	if err != nil {
 		return []cm_storage.Object{}, err
 	}
