@@ -319,8 +319,9 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 func (server *MultiTenantServer) getObjectChartVersion(repo string, object cm_storage.Object, load bool) (*helm_repo.ChartVersion, error) {
 	op := object.Path
 	if load {
-		var err error
-		objectPath := pathutil.Join(repo, op)
+        var err error
+        // object.Path already includes the repo prefix (if any), so avoid duplicating it.
+        objectPath := op
 		object, err = server.StorageBackend.GetObject(objectPath)
 		if err != nil {
 			return nil, err
