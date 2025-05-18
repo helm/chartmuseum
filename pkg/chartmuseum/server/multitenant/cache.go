@@ -211,6 +211,8 @@ func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, r
 		}
 	}
 
+	
+	
 	// filter out storage objects that dont have extension used for chart packages (.tgz)
 	filteredObjects := []cm_storage.Object{}
 	for _, object := range allObjects {
