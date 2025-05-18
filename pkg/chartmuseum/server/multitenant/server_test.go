@@ -18,6 +18,7 @@ package multitenant
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -38,6 +39,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"sigs.k8s.io/yaml"
 )
+
+var TenantPrefixFixTestError = errors.New("tenant prefix test error")
 
 var maxUploadSize = 1024 * 1024 * 20
 
@@ -1358,4 +1361,142 @@ func (suite *MultiTenantServerTestSuite) getBodyWithMultipartFormFiles(fields []
 
 func TestMultiTenantServerTestSuite(t *testing.T) {
 	suite.Run(t, new(MultiTenantServerTestSuite))
+}
+
+type TenantPrefixTestSuite struct {
+	suite.Suite
+	StorageBackend storage.Backend
+	Logger         *cm_logger.Logger
+	Server         *MultiTenantServer
+}
+
+func (suite *TenantPrefixTestSuite) SetupSuite() {
+	// Create test logger
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug: true,
+	})
+	suite.Nil(err, "no error creating logger")
+	suite.Logger = logger
+
+	// No physical files needed, just a mock backend
+	suite.StorageBackend = getMockStorageBackend()
+
+	// Create server with the mock backend and logger
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger: logger,
+		Depth:  1,
+	})
+	server, err := NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         suite.StorageBackend,
+		TimestampTolerance:     time.Second * 0,
+		EnableAPI:              true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+		CacheInterval:          time.Second * 0,
+	})
+	suite.Nil(err, "no error creating server")
+	suite.Server = server
+}
+
+// Custom mock storage backend to simulate the issue with prefixes
+type mockStorageBackend struct {
+	objects []storage.Object
+}
+
+func (m *mockStorageBackend) ListObjects(prefix string) ([]storage.Object, error) {
+	result := []storage.Object{}
+	for _, object := range m.objects {
+		if prefix == "" || strings.HasPrefix(object.Path, prefix) {
+			result = append(result, object)
+		}
+	}
+	return result, nil
+}
+
+func (m *mockStorageBackend) GetObject(path string) (storage.Object, error) {
+	for _, object := range m.objects {
+		if object.Path == path {
+			return object, nil
+		}
+	}
+	
+	// This mock needs to handle the fact that our test charts aren't real charts
+	// Return fake data for any xyz chart to allow the test to continue
+	if strings.Contains(path, "xyz") {
+		return storage.Object{
+			Path:    path,
+			Content: []byte(`{"metadata":{"name":"xyz","version":"1.0.0"}}`),
+		}, nil
+	}
+	
+	return storage.Object{}, TenantPrefixFixTestError
+}
+
+func (m *mockStorageBackend) PutObject(path string, content []byte) error {
+	// Not needed for this test
+	return nil
+}
+
+func (m *mockStorageBackend) DeleteObject(path string) error {
+	// Not needed for this test
+	return nil
+}
+
+// getMockStorageBackend creates a storage backend with files arranged to simulate the issue:
+// - abc-def-1.0.0.tgz (root)
+// - abc/xyz-1.0.0.tgz
+// - abc/xyz-1.0.1.tgz
+func getMockStorageBackend() storage.Backend {
+	now := time.Now()
+	return &mockStorageBackend{
+		objects: []storage.Object{
+			{
+				Path:         "abc-def-1.0.0.tgz",
+				Content:      []byte("not-actually-a-chart"),
+				LastModified: now,
+			},
+			{
+				Path:         "abc/xyz-1.0.0.tgz",
+				Content:      []byte("xyz-chart-content-1.0.0"),
+				LastModified: now,
+			},
+			{
+				Path:         "abc/xyz-1.0.1.tgz",
+				Content:      []byte("xyz-chart-content-1.0.1"),
+				LastModified: now,
+			},
+		},
+	}
+}
+
+// TestTenantPrefixSeparation tests that similar prefixes don't bleed between repos
+func (suite *TenantPrefixTestSuite) TestTenantPrefixSeparation() {
+	log := suite.Logger.ContextLoggingFn(&gin.Context{})
+
+	// Directly test the fetchChartsInStorage method which is where our fix was applied
+	objects, err := suite.Server.fetchChartsInStorage(log, "abc")
+	suite.Nil(err, "no error fetching charts for abc tenant")
+	
+	// Should find exactly 2 objects in abc tenant
+	suite.Equal(2, len(objects), "should find exactly 2 objects in abc tenant")
+
+	// Each object should be inside the tenant directory
+	for _, obj := range objects {
+		suite.True(strings.HasPrefix(obj.Path, "abc/"), "object path should be inside tenant directory")
+		suite.NotEqual("abc-def-1.0.0.tgz", obj.Path, "should not include root-level abc-def charts")
+	}
+
+	// Verify the paths of the returned objects
+	foundPaths := map[string]bool{}
+	for _, obj := range objects {
+		foundPaths[obj.Path] = true
+	}
+	suite.True(foundPaths["abc/xyz-1.0.0.tgz"], "should include abc/xyz-1.0.0.tgz")
+	suite.True(foundPaths["abc/xyz-1.0.1.tgz"], "should include abc/xyz-1.0.1.tgz") 
+}
+
+func TestTenantPrefixTestSuite(t *testing.T) {
+	suite.Run(t, new(TenantPrefixTestSuite))
 }
