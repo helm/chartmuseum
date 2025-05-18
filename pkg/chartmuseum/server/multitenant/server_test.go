@@ -1356,6 +1356,23 @@ func (suite *MultiTenantServerTestSuite) getBodyWithMultipartFormFiles(fields []
 	return buf, w
 }
 
+func (suite *MultiTenantServerTestSuite) TestTenantIsolation() {
+	// Create test scenario with conflicting chart names
+	base := suite.TempDirectory
+	must := func(err error) { suite.Nil(err) }
+
+	must(os.WriteFile(pathutil.Join(base, "abc-def-1.1.1.tgz"), []byte("root"), 0644))
+	must(os.WriteFile(pathutil.Join(base, "abc-def-1.1.24.tgz"), []byte("root"), 0644))
+	must(os.MkdirAll(pathutil.Join(base, "abc"), 0755))
+	must(os.WriteFile(pathutil.Join(base, "abc/xyz-1.1.1.tgz"), []byte("tenant"), 0644))
+
+	log := suite.Depth1Server.Logger.ContextLoggingFn(&gin.Context{})
+	objects, err := suite.Depth1Server.fetchChartsInStorage(log, "abc")
+	suite.Nil(err, "no error fetching charts")
+	suite.Equal(1, len(objects), "only one chart should be found")
+	suite.Equal("abc/xyz-1.1.1.tgz", objects[0].Path, "only tenant chart should be found")
+}
+
 func TestMultiTenantServerTestSuite(t *testing.T) {
 	suite.Run(t, new(MultiTenantServerTestSuite))
 }

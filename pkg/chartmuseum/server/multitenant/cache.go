@@ -37,6 +37,7 @@ import (
 	"encoding/json"
 	"errors"
 	pathutil "path"
+	"strings"
 	"sync"
 	"time"
 
@@ -198,9 +199,16 @@ func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, r
 	log(cm_logger.DebugLevel, "Fetching chart list from storage",
 		"repo", repo,
 	)
-	allObjects, err := server.StorageBackend.ListObjects(pathutil.Join(repo, "")) 
+	prefix := pathutil.Join(repo, "")
+	allObjects, err := server.StorageBackend.ListObjects(prefix)
 	if err != nil {
 		return []cm_storage.Object{}, err
+	}
+	// Ensure paths include the repo prefix for proper tenant isolation
+	for i := range allObjects {
+		if !strings.HasPrefix(allObjects[i].Path, repo+"/") {
+			allObjects[i].Path = pathutil.Join(repo, allObjects[i].Path)
+		}
 	}
 
 	// filter out storage objects that dont have extension used for chart packages (.tgz)
