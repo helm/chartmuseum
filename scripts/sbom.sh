@@ -29,6 +29,12 @@ echo "Adding image ghcr.io/helm/chartmuseum:${VERSION}"
 echo "  - type: image" >> .sbom.yaml
 echo "    source: ghcr.io/helm/chartmuseum:${VERSION}" >> .sbom.yaml
 
+if [[ "${VERSION}" != "canary" ]]; then
+  echo "Adding image ghcr.io/helm/chartmuseum:latest"
+  echo "  - type: image" >> .sbom.yaml
+  echo "    source: ghcr.io/helm/chartmuseum:latest" >> .sbom.yaml
+fi
+
 echo "Wrote configuration file:"
 cat .sbom.yaml
 
