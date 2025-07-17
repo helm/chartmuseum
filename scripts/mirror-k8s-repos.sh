@@ -15,7 +15,7 @@ get_all_tgzs() {
     pushd mirror/
     for tgz in $tgzs; do
         if [ ! -f "${tgz##*/}" ]; then
-            wget $tgz
+            wget $repo_url/$tgz
         fi
     done
     popd
