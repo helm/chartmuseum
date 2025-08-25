@@ -14,7 +14,7 @@ require (
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/prometheus/client_golang v1.22.0
 	github.com/spf13/viper v1.16.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	github.com/urfave/cli v1.22.15
 	go.uber.org/zap v1.27.0
 	helm.sh/helm/v3 v3.18.4
