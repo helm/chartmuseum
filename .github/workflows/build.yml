@@ -39,12 +39,12 @@ jobs:
           DOCKER_IMAGE=ghcr.io/helm/chartmuseum
           DOCKER_PLATFORMS=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386
           VERSION=canary
+          TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
+            TAGS="--tag ${DOCKER_IMAGE}:${VERSION} --tag ${DOCKER_IMAGE}:latest"
           fi
-
-          TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
 
           echo ::set-output name=docker_image::${DOCKER_IMAGE}
           echo ::set-output name=version::${VERSION}
@@ -77,9 +77,7 @@ jobs:
       - name: Install Kubernetes SBOM Tool
         uses: puerco/bom-installer@aa0837e37b6965b5fc50adfad0683ec3c0a2c2c4
       - name: Install sigstore cosign
-        uses: sigstore/cosign-installer@main
-        with:
-          cosign-version: 'v2.2.4'
+        uses: sigstore/cosign-installer@v3.8.1
       - name: Release artifacts (includes SBOM and signatures)
         id: release-artifacts
         env:
@@ -92,12 +90,18 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign sign --yes ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+          for TAG in ${{ steps.prepare.outputs.version }} latest; do
+            [[ $TAG == latest && ${{ steps.prepare.outputs.version }} == "canary" ]] && continue
+            cosign sign --yes ${{ steps.prepare.outputs.docker_image }}:${TAG}
+          done
       - name: Attach SBOM to published images
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign attach sbom --sbom _dist/chartmuseum-${{ steps.prepare.outputs.version }}.spdx ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+          for TAG in ${{ steps.prepare.outputs.version }} latest; do
+            [[ $TAG == latest && ${{ steps.prepare.outputs.version }} == "canary" ]] && continue
+            cosign attach sbom --sbom _dist/chartmuseum-${{ steps.prepare.outputs.version }}.spdx ${{ steps.prepare.outputs.docker_image }}:${TAG}
+          done
       - name: Clear
         if: always()
         run: |
