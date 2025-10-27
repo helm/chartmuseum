@@ -21,8 +21,8 @@ import (
 	pathutil "path"
 	"testing"
 
-	cm_auth "github.com/chartmuseum/auth"
 	"github.com/gin-gonic/gin"
+	cm_auth "github.com/jwc-kta/chartmuseum-auth"
 	"github.com/stretchr/testify/suite"
 )
 

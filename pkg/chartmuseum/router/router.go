@@ -27,9 +27,9 @@ import (
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 
-	cm_auth "github.com/chartmuseum/auth"
 	limits "github.com/gin-contrib/size"
 	"github.com/gin-gonic/gin"
+	cm_auth "github.com/jwc-kta/chartmuseum-auth"
 )
 
 var _ http.Handler = (*Router)(nil)

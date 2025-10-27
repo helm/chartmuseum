@@ -17,7 +17,7 @@ limitations under the License.
 package multitenant
 
 import (
-	cm_auth "github.com/chartmuseum/auth"
+	cm_auth "github.com/jwc-kta/chartmuseum-auth"
 
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
 )

@@ -28,8 +28,8 @@ import (
 
 	"net/http/httptest"
 
-	cm_auth "github.com/chartmuseum/auth"
 	"github.com/gin-gonic/gin"
+	cm_auth "github.com/jwc-kta/chartmuseum-auth"
 )
 
 var (

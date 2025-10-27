@@ -19,7 +19,7 @@ Powered by some great Go technology:
 - [urfave/cli](https://github.com/urfave/cli) - for command line option parsing
 - [spf13/viper](https://github.com/spf13/viper) - for configuration
 - [uber-go/zap](https://github.com/uber-go/zap) - for logging
-- [chartmuseum/auth](https://github.com/chartmuseum/auth) - for auth
+- [chartmuseum/auth](https://github.com/jwc-kta/chartmuseum-auth) - for auth
 - [chartmuseum/storage](https://github.com/chartmuseum/storage) - for multi-cloud storage
 
 ## API
@@ -391,7 +391,7 @@ If all of the following options are provided, bearer auth will protect all route
 - `--auth-cert-path=<path>` - path to authorization server public pem file
 - `--auth-actions-search-path=<JMESPath>` - (optional) JMESPath to find allowed actions in a jwt token
 
-Using options above, *ChartMuseum* is configured with a public key, and will accept RS256 JWT tokens signed by the associated private key, passed in the `Authorization` header. You can use the [chartmuseum/auth](https://github.com/chartmuseum/auth) Go library to generate valid JWT tokens.
+Using options above, *ChartMuseum* is configured with a public key, and will accept RS256 JWT tokens signed by the associated private key, passed in the `Authorization` header. You can use the [chartmuseum/auth](https://github.com/jwc-kta/chartmuseum-auth) Go library to generate valid JWT tokens.
 
 ##### JWT Token without a custom JMESPath to find actions
 
@@ -422,7 +422,7 @@ For the `type` and the the `name` you can use following placeholder
 
 E.g.: If you want to represent the default configuration, the JMESPath looks like: `access[?name=='$NAMESPACE' && type=='$ACCESS_ENTRY_TYPE'].actions[]`.
 
-For more information about how this works, please see [chartmuseum/auth-server-example](https://github.com/chartmuseum/auth-server-example).
+For more information about how this works, please see [chartmuseum/auth-server-example](https://github.com/jwc-kta/chartmuseum-auth-server-example).
 
 
 #### HTTPS
@@ -681,8 +681,8 @@ The following subprojects are maintained by *ChartMuseum*:
 
 - [chartmuseum/helm-push](https://github.com/chartmuseum/helm-push) - Helm plugin to push chart package to ChartMuseum
 - [chartmuseum/storage](https://github.com/chartmuseum/storage) - Go library providing common interface for working across multiple cloud storage backends
-- [chartmuseum/auth](https://github.com/chartmuseum/auth) - Go library for generating ChartMuseum JWT Tokens, authorizing HTTP requests, etc.
-- [chartmuseum/auth-server-example](https://github.com/chartmuseum/auth-server-example) - Example server providing JWT tokens for ChartMuseum auth
+- [chartmuseum/auth](https://github.com/jwc-kta/chartmuseum-auth) - Go library for generating ChartMuseum JWT Tokens, authorizing HTTP requests, etc.
+- [chartmuseum/auth-server-example](https://github.com/jwc-kta/chartmuseum-auth-server-example) - Example server providing JWT tokens for ChartMuseum auth
 - [chartmuseum/testbed](https://github.com/chartmuseum/testbed) - Docker testbed for continuous integration
 - [chartmuseum/www](https://github.com/chartmuseum/www) - chartmuseum.com static site source code
 - [chartmuseum/ui](https://github.com/chartmuseum/ui) - ChartMuseum frontend UI
