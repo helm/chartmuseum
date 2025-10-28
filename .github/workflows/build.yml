@@ -42,7 +42,7 @@ jobs:
         id: prepare
         run: |
           DOCKER_IMAGE=ghcr.io/jwc-kta/chartmuseum
-          DOCKER_PLATFORMS=linux/amd64,linux/arm64
+          DOCKER_PLATFORMS=linux/amd64
           VERSION=latest
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
