@@ -36,8 +36,8 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
-          DOCKER_IMAGE=ghcr.io/helm/chartmuseum
-          DOCKER_PLATFORMS=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386
+          DOCKER_IMAGE=ghcr.io/jwc-kta/chartmuseum
+          DOCKER_PLATFORMS=linux/amd64,linux/arm64
           VERSION=canary
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
