@@ -6,6 +6,9 @@ on:
       - main
     tags:
       - v*
+  # Build nightly
+  schedule:
+    - cron: '42 2 * * *'
 
 jobs:
   build:
