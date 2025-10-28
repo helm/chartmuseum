@@ -30,7 +30,9 @@ jobs:
       - name: run unit tests
         run: make test
       - name: build binaries
-        run: make build-cross
+        # This takes too damn long
+        #run: make build-cross
+        run: make build-linux
       - name: run acceptance tests
         run: sudo pip install virtualenv && make acceptance
       - name: Prepare
@@ -80,14 +82,15 @@ jobs:
         uses: sigstore/cosign-installer@main
         with:
           cosign-version: 'v2.2.4'
-      - name: Release artifacts (includes SBOM and signatures)
-        id: release-artifacts
-        env:
-          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          COSIGN_EXPERIMENTAL: "true"
-        run: |
-          SKIP_BUILD=true VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh
+#      This releases to Azure - from upstream
+#      - name: Release artifacts (includes SBOM and signatures)
+#        id: release-artifacts
+#        env:
+#          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+#          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+#          COSIGN_EXPERIMENTAL: "true"
+#        run: |
+#          SKIP_BUILD=true VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh
       - name: Sign the published images (via GitHub OIDC token)
         env:
           COSIGN_EXPERIMENTAL: "true"
