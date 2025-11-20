@@ -472,7 +472,7 @@ docker run --rm -it \
   -e STORAGE=local \
   -e STORAGE_LOCAL_ROOTDIR=/charts \
   -v $(pwd)/charts:/charts \
-  ghcr.io/helm/chartmuseum:latest 
+  ghcr.io/helm/chartmuseum:latest
 ```
 
 Example usage (S3):
