@@ -485,7 +485,7 @@ docker run --rm -it \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/home/chartmuseum/.aws:ro \
-  ghcr.io/helm/chartmuseum:latest 
+  ghcr.io/helm/chartmuseum:latest
 ```
 
 ### Helm Chart
