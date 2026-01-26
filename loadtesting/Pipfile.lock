@@ -729,11 +729,12 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:48e7fafa40319d358848e1bc6809b208340fafe2096f1725d05d67443d0483d1",
-                "sha256:bee28b5e56addb8226c96f7f13ac28cb4c301dd5ea8a6ca179c0b9835e032825"
+                "sha256:c90f7a39f716c572c4e3e58509581ebd83f9b59cced005b7db7ad2d22b0db99f",
+                "sha256:cb9bcef5a4b345d5da5d145dc3e30834f58e8018828cbc724d30b4cb7d4d49f1"
             ],
-            "markers": "python_version >= '3.7'",
-            "version": "==2.0.3"
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==2.6.0"
         },
         "werkzeug": {
             "hashes": [
