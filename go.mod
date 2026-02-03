@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
-	github.com/chartmuseum/auth v0.5.0
+	github.com/chartmuseum/auth v0.6.0
 	github.com/chartmuseum/storage v0.16.0
 	github.com/gin-contrib/size v0.0.0-20230212012657-e14a14094dc4
 	github.com/gin-gonic/gin v1.10.0
@@ -76,7 +76,6 @@ require (
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
