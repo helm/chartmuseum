@@ -1,5 +1,5 @@
 # TODO(cbuto): Pull from git tag to avoid needing to bump this prior to releasing
-VERSION ?= 0.16.3
+VERSION ?= 0.16.4
 REVISION := $(shell git rev-parse --short HEAD;)
 
 BINDIR      := $(CURDIR)/bin
