@@ -15,7 +15,7 @@ require (
 	github.com/prometheus/client_golang v1.22.0
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.11.1
-	github.com/urfave/cli v1.22.15
+	github.com/urfave/cli v1.22.17
 	go.uber.org/zap v1.27.0
 	helm.sh/helm/v3 v3.18.6
 	sigs.k8s.io/yaml v1.5.0
@@ -55,7 +55,7 @@ require (
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch v5.9.11+incompatible // indirect
