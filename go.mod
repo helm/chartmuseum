@@ -14,7 +14,7 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli v1.22.15
-	go.uber.org/zap v1.27.1
+	go.uber.org/zap v1.28.0
 	helm.sh/helm/v3 v3.20.2
 	sigs.k8s.io/yaml v1.6.0
 )
