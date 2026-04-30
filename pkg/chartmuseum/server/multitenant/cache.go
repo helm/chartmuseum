@@ -198,7 +198,12 @@ func (server *MultiTenantServer) fetchChartsInStorage(log cm_logger.LoggingFn, r
 	log(cm_logger.DebugLevel, "Fetching chart list from storage",
 		"repo", repo,
 	)
-	allObjects, err := server.StorageBackend.ListObjects(repo)
+	// Ensure proper prefix for tenant repos by adding trailing slash
+	prefix := repo
+	if repo != "" {
+		prefix = repo + "/"
+	}
+	allObjects, err := server.StorageBackend.ListObjects(prefix)
 	if err != nil {
 		return []cm_storage.Object{}, err
 	}
