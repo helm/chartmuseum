@@ -1,6 +1,6 @@
 module helm.sh/chartmuseum
 
-go 1.25.8
+go 1.25.9
 
 require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
