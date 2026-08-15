@@ -18,6 +18,7 @@ package multitenant
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -38,6 +39,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"sigs.k8s.io/yaml"
 )
+
+var TenantPrefixFixTestError = errors.New("tenant prefix test error")
 
 var maxUploadSize = 1024 * 1024 * 20
 
@@ -1358,4 +1361,127 @@ func (suite *MultiTenantServerTestSuite) getBodyWithMultipartFormFiles(fields []
 
 func TestMultiTenantServerTestSuite(t *testing.T) {
 	suite.Run(t, new(MultiTenantServerTestSuite))
+}
+
+var depthPrefixes = map[int]string{
+	0: "",                    // depth 0: charts in root
+	1: "org1",               // depth 1: org/charts
+	2: "org1/team1",         // depth 2: org/team/charts  
+	3: "org1/team1/repo1",   // depth 3: org/team/repo/charts
+}
+
+// TenantPrefixTestSuite tests that tenant prefixes are properly isolated
+// across different depth configurations. It uses real chart files and local
+// storage to validate the prefix-handling behavior.
+type TenantPrefixTestSuite struct {
+	suite.Suite
+	StorageBackend storage.Backend
+	Logger         *cm_logger.Logger
+	TempDirectory  string
+}
+
+func (suite *TenantPrefixTestSuite) SetupSuite() {
+	// Create test logger
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{
+		Debug: true,
+	})
+	suite.Nil(err, "no error creating logger")
+	suite.Logger = logger
+
+	// Create temporary directory
+	timestamp := time.Now().Format("20060102150405")
+	suite.TempDirectory = fmt.Sprintf("../../../../.test/chartmuseum-tenant-prefix/%s", timestamp)
+	err = os.MkdirAll(suite.TempDirectory, os.ModePerm)
+	suite.Nil(err, "no error creating temp directory")
+
+	// Create test directories for each depth
+	for depth, path := range depthPrefixes {
+		if path != "" {
+			err = os.MkdirAll(pathutil.Join(suite.TempDirectory, path), os.ModePerm)
+			suite.Nil(err, fmt.Sprintf("no error creating directory for depth %d", depth))
+		}
+
+		// Copy test charts into each directory
+		testFiles := []struct {
+			src  string
+			dest string
+		}{
+			{testTarballPath, pathutil.Join(suite.TempDirectory, path, "mychart-0.1.0.tgz")},
+			{testTarballPath, pathutil.Join(suite.TempDirectory, path, "mychart-0.2.0.tgz")},
+		}
+
+		for _, tf := range testFiles {
+			srcFile, err := os.Open(tf.src)
+			suite.Nil(err, fmt.Sprintf("no error opening %s", tf.src))
+			defer srcFile.Close()
+
+			destFile, err := os.Create(tf.dest)
+			suite.Nil(err, fmt.Sprintf("no error creating %s", tf.dest))
+			defer destFile.Close()
+
+			_, err = io.Copy(destFile, srcFile)
+			suite.Nil(err, fmt.Sprintf("no error copying %s to %s", tf.src, tf.dest))
+		}
+	}
+
+	// Create storage backend pointing to temp directory
+	suite.StorageBackend = storage.NewLocalFilesystemBackend(suite.TempDirectory)
+}
+
+func (suite *TenantPrefixTestSuite) TearDownSuite() {
+	os.RemoveAll(suite.TempDirectory)
+}
+
+// TestTenantPrefixSeparation tests that tenant prefixes are properly isolated
+// across different depth configurations (0-3)
+func (suite *TenantPrefixTestSuite) TestTenantPrefixSeparation() {
+	for _, depth := range []int{0, 1, 2, 3} {
+		suite.Run(fmt.Sprintf("depth%d", depth), func() {
+			log := suite.Logger.ContextLoggingFn(&gin.Context{})
+
+			router := cm_router.NewRouter(cm_router.RouterOptions{
+				Logger: suite.Logger,
+				Depth:  depth,
+			})
+
+			server, err := NewMultiTenantServer(MultiTenantServerOptions{
+				Logger:                 suite.Logger,
+				Router:                 router,
+				StorageBackend:         suite.StorageBackend,
+				TimestampTolerance:     time.Second * 0,
+				EnableAPI:              true,
+				ChartPostFormFieldName: "chart",
+				ProvPostFormFieldName:  "prov",
+				CacheInterval:          time.Second * 0,
+			})
+			suite.Nil(err, "no error creating server")
+
+			// Test fetchChartsInStorage which handles prefix isolation
+			prefix := depthPrefixes[depth]
+			objects, err := server.fetchChartsInStorage(log, prefix)
+			suite.Nil(err, "no error fetching charts")
+
+			// Should find exactly 2 objects
+			suite.Equal(2, len(objects), fmt.Sprintf("should find exactly 2 objects for depth %d", depth))
+
+			// Verify the paths of the returned objects
+			foundPaths := map[string]bool{}
+			for _, obj := range objects {
+				foundPaths[obj.Path] = true
+			}
+
+			// Storage backend strips the prefix, so we always expect bare filenames
+			expectedPath1 := "mychart-0.1.0.tgz"
+			expectedPath2 := "mychart-0.2.0.tgz"
+
+			suite.True(foundPaths[expectedPath1], 
+				fmt.Sprintf("should include %s", expectedPath1))
+			suite.True(foundPaths[expectedPath2], 
+				fmt.Sprintf("should include %s", expectedPath2))
+		})
+	}
+}
+
+func TestTenantPrefixTestSuite(t *testing.T) {
+	suite.Run(t, new(TenantPrefixTestSuite))
 }
