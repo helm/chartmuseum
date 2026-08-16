@@ -18,7 +18,6 @@ package multitenant
 
 import (
 	cm_auth "github.com/chartmuseum/auth"
-
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
 )
 
@@ -49,6 +48,7 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 		{Method: "GET", Path: "/api/:repo/charts/:name/:version", Handler: s.getChartVersionRequestHandler, Action: cm_auth.PullAction},
 		{Method: "GET", Path: "/api/:repo/charts/:name/:version/templates", Handler: s.getStorageObjectTemplateRequestHandler, Action: cm_auth.PullAction},
 		{Method: "GET", Path: "/api/:repo/charts/:name/:version/values", Handler: s.getStorageObjectValuesRequestHandler, Action: cm_auth.PullAction},
+		{Method: "GET", Path: "/api/:repo/charts/:name/:version/raw", Handler: s.getStorageObjectRawRequestHandler, Action: cm_auth.PullAction},
 		{Method: "POST", Path: "/api/:repo/charts", Handler: s.postRequestHandler, Action: cm_auth.PushAction},
 		{Method: "POST", Path: "/api/:repo/prov", Handler: s.postProvenanceFileRequestHandler, Action: cm_auth.PushAction},
 	}
