@@ -98,6 +98,27 @@ func (server *MultiTenantServer) deleteChartVersion(log cm_logger.LoggingFn, rep
 	return nil
 }
 
+func (server *MultiTenantServer) deleteChart(log cm_logger.LoggingFn, repo string, name string) *HTTPError {
+	log(cm_logger.DebugLevel, "Deleting chart from storage",
+		"chart", name,
+	)
+
+	packages, err := server.StorageBackend.ListObjects(repo)
+	if err != nil {
+		return &HTTPError{http.StatusNotFound, err.Error()}
+	}
+	for _, obj := range packages {
+		if strings.HasPrefix(obj.Path, fmt.Sprintf("%s-", name)) {
+			err = server.StorageBackend.DeleteObject(obj.Path)
+			if err != nil {
+				return &HTTPError{http.StatusNotFound, err.Error()}
+			}
+		}
+	}
+
+	return nil
+}
+
 func (server *MultiTenantServer) getChartFileName(log cm_logger.LoggingFn, repo string, name string, version string) (string, *HTTPError) {
 	chartVersion, err := server.getChartVersion(log, repo, name, version)
 	if err != nil {

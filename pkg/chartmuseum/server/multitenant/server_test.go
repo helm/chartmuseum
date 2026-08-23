@@ -1231,6 +1231,10 @@ func (suite *MultiTenantServerTestSuite) testAllRoutes(repo string, depth int) {
 	res = suite.doRequest(stype, "DELETE", fmt.Sprintf("%s/charts/mychart/0.1.0", apiPrefix), nil, "")
 	suite.Equal(200, res.Status(), fmt.Sprintf("200 DELETE %s/charts/mychart/0.1.0", apiPrefix))
 
+	// DELETE /api/:repo/charts/:name/*
+	res = suite.doRequest(stype, "DELETE", fmt.Sprintf("%s/charts/mychart/*", apiPrefix), nil, "")
+	suite.Equal(200, res.Status(), fmt.Sprintf("200 DELETE %s/charts/mychart/*", apiPrefix))
+
 	res = suite.doRequest(stype, "DELETE", fmt.Sprintf("%s/charts/mychart/0.1.0", apiPrefix), nil, "")
 	suite.Equal(404, res.Status(), fmt.Sprintf("200 DELETE %s/charts/mychart/0.1.0", apiPrefix))
 

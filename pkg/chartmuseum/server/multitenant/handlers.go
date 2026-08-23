@@ -327,6 +327,24 @@ func (server *MultiTenantServer) deleteChartVersionRequestHandler(c *gin.Context
 	c.JSON(200, objectDeletedResponse)
 }
 
+func (server *MultiTenantServer) deleteChartRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	name := c.Param("name")
+	log := server.Logger.ContextLoggingFn(c)
+	err := server.deleteChart(log, repo, name)
+	if err != nil {
+		c.JSON(err.Status, gin.H{"error": err.Message})
+		return
+	}
+
+	server.emitEvent(c, repo, deleteAllChart, &helm_repo.ChartVersion{
+		Metadata: &chart.Metadata{
+			Name: name,
+		},
+	})
+	c.JSON(200, objectDeletedResponse)
+}
+
 func (server *MultiTenantServer) postRequestHandler(c *gin.Context) {
 	if c.ContentType() == "multipart/form-data" {
 		server.postPackageAndProvenanceRequestHandler(c) // new route handling form-based chart and/or prov files
