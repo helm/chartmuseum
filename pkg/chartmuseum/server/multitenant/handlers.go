@@ -146,17 +146,31 @@ func (server *MultiTenantServer) getArtifactHubFileRequestHandler(c *gin.Context
 	c.Data(200, artifactHubFileContentType, artifactHubFile)
 }
 
-func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) {
+func (server *MultiTenantServer) getStorageObjectRequestImpl(c *gin.Context) (*StorageObject, *HTTPError) {
 	repo := c.Param("repo")
 	filename := c.Param("filename")
 	log := server.Logger.ContextLoggingFn(c)
-	storageObject, err := server.getStorageObject(log, repo, filename)
+	return server.getStorageObject(log, repo, filename)
+}
+
+func (server *MultiTenantServer) getStorageObjectRequestHandler(c *gin.Context) {
+	storageObject, err := server.getStorageObjectRequestImpl(c)
 	if err != nil {
 		c.JSON(err.Status, gin.H{"error": err.Message})
 		return
 	}
 	c.Data(200, storageObject.ContentType, storageObject.Content)
 }
+
+func (server *MultiTenantServer) headStorageObjectRequestHandler(c *gin.Context) {
+	_, err := server.getStorageObjectRequestImpl(c)
+	if err != nil {
+		c.Status(err.Status)
+		return
+	}
+	c.Status(200)
+}
+
 func (server *MultiTenantServer) getStorageObjectTemplateRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	name := c.Param("name")
