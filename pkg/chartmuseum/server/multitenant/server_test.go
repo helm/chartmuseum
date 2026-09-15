@@ -1067,6 +1067,21 @@ func (suite *MultiTenantServerTestSuite) TestCacheInterval() {
 	suite.Equal(200, res.Status(), "200 GET /api/charts/mychart-0.1.0")
 }
 
+func (suite *MultiTenantServerTestSuite) TestCacheRefreshEndpoint() {
+	// depth1: on-demand cache refresh for a single tenant
+	res := suite.doRequest("depth1", "POST", "/api/a/cache/refresh", nil, "")
+	suite.Equal(200, res.Status(), "200 POST /api/a/cache/refresh")
+
+	// depth0: on-demand cache refresh in single-tenant mode
+	res = suite.doRequest("depth0", "POST", "/api/cache/refresh", nil, "")
+	suite.Equal(200, res.Status(), "200 POST /api/cache/refresh")
+
+	// depth1: refreshing an unknown tenant lazily creates an empty entry,
+	// consistent with GET semantics for tenants without charts yet
+	res = suite.doRequest("depth1", "POST", "/api/nosuchtenant/cache/refresh", nil, "")
+	suite.Equal(200, res.Status(), "200 POST /api/nosuchtenant/cache/refresh")
+}
+
 func (suite *MultiTenantServerTestSuite) TestArtifactHubRepoID() {
 	buffer := bytes.NewBufferString("")
 	res := suite.doRequest("artifacthub", "GET", "/artifacthub-repo.yml", nil, "", buffer)

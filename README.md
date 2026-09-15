@@ -563,6 +563,24 @@ For example, to only check storage every 5 minutes, you can use `--cache-interva
 
 For valid values to use for this setting, please see [here](https://godoc.org/time#ParseDuration).
 
+### Manual Cache Refresh
+
+To refresh a tenant's cached index on demand (for example, right after an external
+process uploads charts directly to storage), make an authenticated `POST` request to
+the tenant's cache refresh endpoint:
+
+```
+POST /api/:repo/cache/refresh
+```
+
+The refresh runs synchronously and the response indicates completion:
+
+```json
+{"refreshed": true}
+```
+
+This requires the same authorization as chart pushes (`PushAction`).
+
 ### Using Redis
 
 Example of using Redis as an external cache store:
