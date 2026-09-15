@@ -51,6 +51,7 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 		{Method: "GET", Path: "/api/:repo/charts/:name/:version/values", Handler: s.getStorageObjectValuesRequestHandler, Action: cm_auth.PullAction},
 		{Method: "POST", Path: "/api/:repo/charts", Handler: s.postRequestHandler, Action: cm_auth.PushAction},
 		{Method: "POST", Path: "/api/:repo/prov", Handler: s.postProvenanceFileRequestHandler, Action: cm_auth.PushAction},
+		{Method: "POST", Path: "/api/:repo/cache/refresh", Handler: s.postCacheRefreshRequestHandler, Action: cm_auth.PushAction},
 	}
 
 	routes = append(routes, serverInfoRoutes...)

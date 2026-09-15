@@ -117,6 +117,16 @@ func (server *MultiTenantServer) getHealthCheckHandler(c *gin.Context) {
 	c.JSON(200, healthCheckResponse)
 }
 
+func (server *MultiTenantServer) postCacheRefreshRequestHandler(c *gin.Context) {
+	repo := c.Param("repo")
+	log := server.Logger.ContextLoggingFn(c)
+	if err := server.refreshRepoCache(log, repo); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"refreshed": true})
+}
+
 func (server *MultiTenantServer) getIndexFileRequestHandler(c *gin.Context) {
 	repo := c.Param("repo")
 	log := server.Logger.ContextLoggingFn(c)
