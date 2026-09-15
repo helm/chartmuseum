@@ -197,7 +197,12 @@ func (server *MultiTenantServer) uploadProvenanceFile(log cm_logger.LoggingFn, r
 
 func (server *MultiTenantServer) checkStorageLimit(repo string, filename string, force bool) (bool, error) {
 	if server.MaxStorageObjects > 0 {
-		allObjects, err := server.StorageBackend.ListObjects(repo)
+		// Ensure proper prefix for tenant repos by adding trailing slash
+		prefix := repo
+		if repo != "" {
+			prefix = repo + "/"
+		}
+		allObjects, err := server.StorageBackend.ListObjects(prefix)
 		if err != nil {
 			return false, err
 		}
@@ -246,7 +251,12 @@ func (server *MultiTenantServer) PutWithLimit(ctx *gin.Context, log cm_logger.Lo
 	defer server.ChartLimits.Unlock()
 	// clean the oldest chart(both index and storage)
 	// storage cache first
-	objs, err := server.StorageBackend.ListObjects(repo)
+	// Ensure proper prefix for tenant repos by adding trailing slash
+	prefix := repo
+	if repo != "" {
+		prefix = repo + "/"
+	}
+	objs, err := server.StorageBackend.ListObjects(prefix)
 	if err != nil {
 		return err
 	}
