@@ -38,6 +38,7 @@ Powered by some great Go technology:
 - `GET /api/charts/<name>/<version>` - describe a chart version
 - `GET /api/charts/<name>/<version>/templates` - get chart template
 - `GET /api/charts/<name>/<version>/values` - get chart values
+- `GET /api/charts/<name>/<version>/raw` - get all the files of chart
 - `HEAD /api/charts/<name>` - check if chart exists (any versions)
 - `HEAD /api/charts/<name>/<version>` - check if chart version exists
 
