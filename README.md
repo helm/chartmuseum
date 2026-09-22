@@ -60,7 +60,7 @@ Upload `mychart-0.1.0.tgz`:
 curl --data-binary "@mychart-0.1.0.tgz" http://localhost:8080/api/charts
 ```
 
-If you've signed your package and generated a [provenance file](https://github.com/helm/helm-www/blob/master/content/en/docs/topics/provenance.md), upload it with:
+If you've signed your package and generated a [provenance file](https://helm.sh/docs/topics/provenance/), upload it with:
 ```bash
 curl --data-binary "@mychart-0.1.0.tgz.prov" http://localhost:8080/api/prov
 ```
