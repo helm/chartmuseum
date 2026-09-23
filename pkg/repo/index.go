@@ -106,6 +106,13 @@ func (index *Index) RemoveEntry(chartVersion *helm_repo.ChartVersion) {
 	}
 }
 
+// RemoveAllEntry removes all versions of a chart from index
+func (index *Index) RemoveAllEntry(chartVersion *helm_repo.ChartVersion) {
+	if _, ok := index.Entries[chartVersion.Name]; ok {
+		delete(index.Entries, chartVersion.Name)
+	}
+}
+
 // AddEntry adds a chart version to index
 func (index *Index) AddEntry(chartVersion *helm_repo.ChartVersion) {
 	if _, ok := index.Entries[chartVersion.Name]; !ok {
