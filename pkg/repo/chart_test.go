@@ -170,6 +170,39 @@ func (suite *ChartTestSuite) TestChartVersionFromStorageObject() {
 	suite.Nil(err)
 	suite.Equal("mychart-1x", chartVersion.Name, "chart name as expected")
 	suite.Equal("1.0.4-rc1-SNAPSHOT", chartVersion.Version, "chart version as expected")
+
+	numericPrereleaseObject := storage.Object{
+		Path:         "mychart-1.2.3-1234-abcdef.tgz",
+		Content:      []byte{},
+		LastModified: time.Now(),
+	}
+	chartVersion, err = ChartVersionFromStorageObject(numericPrereleaseObject)
+	suite.Nil(err)
+	suite.Equal("mychart", chartVersion.Name, "chart name as expected")
+	suite.Equal("1.2.3-1234-abcdef", chartVersion.Version, "chart version as expected")
+}
+
+func (suite *ChartTestSuite) TestGetExactChartNameVersion() {
+	tests := []struct {
+		path    string
+		name    string
+		version string
+	}{
+		{"mychart-1.0.4", "mychart", "1.0.4"},
+		{"mychart-1.0.4-1", "mychart", "1.0.4-1"},
+		{"mychart-0.1.0-20231010.1", "mychart", "0.1.0-20231010.1"},
+		{"mychart-1.2.3-1234-abcdef", "mychart", "1.2.3-1234-abcdef"},
+		{"my-hyphenated-chart-1.2.3-1234-abcdef", "my-hyphenated-chart", "1.2.3-1234-abcdef"},
+		{"mychart-1x-1.0.4-1", "mychart-1x", "1.0.4-1"},
+		{"mychart-1.0.4-1.tgz", "mychart", "1.0.4-1.tgz"},
+		{"mychart-1.0.4-SNAPSHOT", "mychart", "1.0.4-SNAPSHOT"},
+		{"mychart-crapversion", "mychart", "crapversion"},
+	}
+	for _, tt := range tests {
+		name, version := GetExactChartNameVersion(tt.path)
+		suite.Equal(tt.name, name, "chart name as expected for %s", tt.path)
+		suite.Equal(tt.version, version, "chart version as expected for %s", tt.path)
+	}
 }
 
 func (suite *ChartTestSuite) TestStorageObjectFromChartVersion() {

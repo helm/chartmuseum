@@ -3,6 +3,7 @@ module helm.sh/chartmuseum
 go 1.27.0
 
 require (
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/chartmuseum/auth v0.6.0
 	github.com/chartmuseum/storage v0.17.0
@@ -40,7 +41,6 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.53.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.53.0 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
-	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.4+incompatible // indirect
 	github.com/aws/aws-sdk-go v1.47.11 // indirect
