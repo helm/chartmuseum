@@ -32,7 +32,7 @@ jobs:
       - name: build binaries
         run: make build-cross
       - name: run acceptance tests
-        run: sudo pip install virtualenv && make acceptance
+        run: sudo pip install --ignore-installed virtualenv && make acceptance
       - name: Prepare
         id: prepare
         run: |
