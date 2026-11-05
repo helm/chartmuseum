@@ -589,18 +589,23 @@ func (server *MultiTenantServer) rebuildIndex() {
 func (server *MultiTenantServer) rebuildIndexForTenant(repo string) {
 	log := server.Logger.ContextLoggingFn(&gin.Context{})
 	log(cm_logger.InfoLevel, "Rebuilding index for tenant", zap.String("repo", repo))
-	entry, err := server.initCacheEntry(log, repo)
-	if err != nil {
-		errStr := err.Error()
-		log(cm_logger.ErrorLevel, errStr,
-			"repo", repo,
-		)
-		return
+	if err := server.refreshRepoCache(log, repo); err != nil {
+		log(cm_logger.ErrorLevel, err.Error(), zap.String("repo", repo))
 	}
-	server.refreshCacheEntry(log, repo, entry)
 }
 
-func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo string, entry *cacheEntry) {
+// refreshRepoCache synchronously brings a tenant's cached index in line with
+// what is currently in storage. It is the shared implementation behind both the
+// periodic --cache-interval rebuild and the on-demand cache refresh endpoint.
+func (server *MultiTenantServer) refreshRepoCache(log cm_logger.LoggingFn, repo string) error {
+	entry, err := server.initCacheEntry(log, repo)
+	if err != nil {
+		return err
+	}
+	return server.refreshCacheEntry(log, repo, entry)
+}
+
+func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo string, entry *cacheEntry) error {
 	fo := <-server.getChartList(log, repo)
 
 	if fo.err != nil {
@@ -608,7 +613,7 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 		log(cm_logger.ErrorLevel, errStr,
 			"repo", repo,
 		)
-		return
+		return fo.err
 	}
 	objects := server.getRepoObjectSliceWithLock(entry)
 	diff := cm_storage.GetObjectSliceDiff(objects, fo.objects, server.TimestampTolerance)
@@ -618,7 +623,7 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 		log(cm_logger.DebugLevel, "No change detected between cache and storage",
 			"repo", repo,
 		)
-		return
+		return nil
 	}
 
 	log(cm_logger.DebugLevel, "Change detected between cache and storage",
@@ -634,7 +639,7 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 		log(cm_logger.ErrorLevel, errStr,
 			"repo", repo,
 		)
-		return
+		return ir.err
 	}
 	entry.RepoIndex = ir.index
 	if server.UseStatefiles {
@@ -642,6 +647,7 @@ func (server *MultiTenantServer) refreshCacheEntry(log cm_logger.LoggingFn, repo
 		// It is not crucial if this does not succeed, we will just log any errors
 		go server.saveStatefile(log, repo, ir.index.Raw)
 	}
+	return nil
 }
 
 func (m *memoryCacheStore) Load(key interface{}) (*cacheEntry, bool) {
