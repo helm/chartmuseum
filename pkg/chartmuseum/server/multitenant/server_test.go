@@ -820,6 +820,66 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 	}
 }
 
+// failingPutBackend wraps a storage backend and fails the Nth PutObject call.
+type failingPutBackend struct {
+	storage.Backend
+	failOn int
+	puts   int
+}
+
+func (b *failingPutBackend) PutObject(path string, content []byte) error {
+	b.puts++
+	if b.puts == b.failOn {
+		return fmt.Errorf("simulated storage failure for %s", path)
+	}
+	return b.Backend.PutObject(path, content)
+}
+
+func (suite *MultiTenantServerTestSuite) TestFailedChartAndProvUploadIsRolledBack() {
+	// The second file of a chart and provenance upload fails to store, so the
+	// first one must not stay behind, otherwise the chart exists in storage
+	// without being served and a retry is answered with a conflict.
+	backend := &failingPutBackend{
+		Backend: storage.NewLocalFilesystemBackend(suite.TempDirectory),
+		failOn:  2,
+	}
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{Debug: true})
+	suite.Nil(err, "no error creating logger")
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         1,
+		MaxUploadSize: maxUploadSize,
+	})
+	server, err := NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		EnableAPI:              true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+		CacheInterval:          time.Second,
+	})
+	suite.Nil(err, "no error creating the failing storage server")
+
+	upload := func() int {
+		buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{otherTestTarballPath, otherTestProvfilePath})
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request, _ = http.NewRequest("POST", "/api/rollback/charts", buf)
+		c.Request.Header.Set("Content-Type", w.FormDataContentType())
+		server.Router.HandleContext(c)
+		return c.Writer.Status()
+	}
+
+	suite.Equal(500, upload(), "500 POST /api/rollback/charts when storing the second file fails")
+	for _, name := range []string{"otherchart-0.1.0.tgz", "otherchart-0.1.0.tgz.prov"} {
+		_, err = os.Stat(pathutil.Join(suite.TempDirectory, "rollback", name))
+		suite.True(os.IsNotExist(err), "%s is not left behind after the failed upload", name)
+	}
+
+	suite.Equal(201, upload(), "201 POST /api/rollback/charts when the retry succeeds")
+}
+
 func (suite *MultiTenantServerTestSuite) TestBadChartUpload() {
 	content, err := os.ReadFile(badTestTarballPath)
 	suite.Nil(err, "no error opening test tarball")
