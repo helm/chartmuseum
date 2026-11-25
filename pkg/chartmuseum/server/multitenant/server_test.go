@@ -35,6 +35,7 @@ import (
 
 	"github.com/chartmuseum/storage"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"sigs.k8s.io/yaml"
 )
@@ -733,6 +734,54 @@ generated: "2018-05-23T15:14:46-05:00"`)
 	suite.Equal("exited 0", suite.LastCrashMessage, "no error with --gen-index")
 	suite.Equal(0, suite.LastExitCode, "--gen-index flag exits 0")
 	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
+}
+
+func TestStatefileMetrics(t *testing.T) {
+	const tenant = "statefile-metrics"
+	const statefile = `apiVersion: v1
+entries:
+  app:
+  - name: app
+    version: 0.2.0
+    urls: [charts/app-0.2.0.tgz]
+  - name: app
+    version: 0.1.0
+    urls: [charts/app-0.1.0.tgz]
+  lib:
+  - name: lib
+    version: 0.1.0
+    urls: [charts/lib-0.1.0.tgz]
+generated: "2024-01-01T00:00:00Z"
+`
+	backend := storage.NewLocalFilesystemBackend(t.TempDir())
+	require.NoError(t, backend.PutObject(pathutil.Join(tenant, repo.StatefileFilename), []byte(statefile)))
+
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{})
+	require.NoError(t, err)
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         1,
+		EnableMetrics: true,
+		MaxUploadSize: maxUploadSize,
+	})
+	_, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: backend,
+		UseStatefiles:  true,
+	})
+	require.NoError(t, err)
+
+	index := httptest.NewRecorder()
+	router.ServeHTTP(index, httptest.NewRequest(http.MethodGet, "/"+tenant+"/index.yaml", nil))
+	require.Equal(t, http.StatusOK, index.Code)
+	require.Equal(t, statefile, index.Body.String())
+
+	metrics := httptest.NewRecorder()
+	router.ServeHTTP(metrics, httptest.NewRequest(http.MethodGet, "/metrics", nil))
+	require.Equal(t, http.StatusOK, metrics.Code)
+	require.Contains(t, metrics.Body.String(), `chartmuseum_charts_served_total{repo="statefile-metrics"} 2`)
+	require.Contains(t, metrics.Body.String(), `chartmuseum_chart_versions_served_total{repo="statefile-metrics"} 3`)
 }
 
 func (suite *MultiTenantServerTestSuite) TestDisabledServer() {
