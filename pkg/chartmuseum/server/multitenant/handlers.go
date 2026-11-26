@@ -449,8 +449,8 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 			storedFiles = append(storedFiles, ppf)
 		} else {
 			// Clean up what's already been saved
-			for _, ppf := range storedFiles {
-				server.StorageBackend.DeleteObject(ppf.filename)
+			for _, stored := range storedFiles {
+				server.StorageBackend.DeleteObject(pathutil.Join(repo, stored.filename))
 			}
 			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s", err)})
 			return
@@ -467,7 +467,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		Content:      chartContent,
 		LastModified: time.Now()})
 	if chartErr != nil {
-		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(err), zap.Binary("content", chartContent))
+		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(chartErr), zap.Binary("content", chartContent))
 	}
 
 	server.emitEvent(c, repo, action, chart)
