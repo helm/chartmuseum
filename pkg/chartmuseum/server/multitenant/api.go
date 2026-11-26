@@ -47,9 +47,14 @@ func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo stri
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	end := offset + limit
-	if len(keys) < end {
-		end = len(keys)
+	if offset > len(keys) {
+		offset = len(keys)
+	}
+	// a limit of -1 means no limit; compare against the remaining count so
+	// that a large limit cannot overflow when added to the offset
+	end := len(keys)
+	if limit >= 0 && limit < end-offset {
+		end = offset + limit
 	}
 	for i := offset; i < end; i++ {
 		result[keys[i]] = indexFile.Entries[keys[i]]
