@@ -176,6 +176,27 @@ func (suite *HandlerTestSuite) TestGetAllChartsPagination() {
 	}
 }
 
+func (suite *HandlerTestSuite) TestGetAllChartsRejectsNonPositiveLimit() {
+	server := suite.getServer(0)
+	index := cm_repo.NewIndex("", "", &cm_repo.ServerInfo{}, false)
+	index.AddEntry(&helm_repo.ChartVersion{
+		Metadata: &chart.Metadata{Name: "a", Version: "0.1.0"},
+		URLs:     []string{"charts/a-0.1.0.tgz"},
+	})
+	server.InternalCacheStore.Store("", &cacheEntry{RepoName: "", RepoIndex: index})
+
+	// -1 is only the internal "no limit" value used when the limit param is
+	// absent, so it is rejected like any other non-positive limit
+	for _, query := range []string{"?limit=-1", "?offset=1&limit=-1", "?limit=0"} {
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request, _ = http.NewRequest("GET", "/api/charts"+query, nil)
+		server.getAllChartsRequestHandler(c)
+		suite.Equal(400, recorder.Result().StatusCode, query)
+		suite.Contains(recorder.Body.String(), "limit is not a valid positive integer", query)
+	}
+}
+
 func TestHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))
 }
