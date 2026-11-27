@@ -258,7 +258,9 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 		err error
 	}
 
-	cvChan := make(chan cvResult)
+	// Buffered so that workers still running when an error makes this
+	// function return can finish their send and release their Limiter slot
+	cvChan := make(chan cvResult, numObjects)
 
 	// Provide a mechanism to short-circuit object downloads in case of error
 	ctx, cancel := context.WithCancel(context.Background())
