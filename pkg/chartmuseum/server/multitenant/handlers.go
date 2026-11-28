@@ -235,7 +235,7 @@ func (server *MultiTenantServer) getAllChartsRequestHandler(c *gin.Context) {
 		}
 	}
 
-	limit := -1
+	limit := noLimit
 	limitString, limitExists := c.GetQuery("limit")
 	if limitExists {
 		var convErr error
