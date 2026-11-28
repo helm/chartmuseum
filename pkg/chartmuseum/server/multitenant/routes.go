@@ -74,6 +74,7 @@ func (s *MultiTenantServer) Routes() []*cm_router.Route {
 	}
 
 	if s.APIEnabled && !s.DisableDelete {
+		routes = append(routes, &cm_router.Route{Method: "DELETE", Path: "/api/:repo/charts/:name/*", Handler: s.deleteChartRequestHandler, Action: cm_auth.PushAction})
 		routes = append(routes, &cm_router.Route{Method: "DELETE", Path: "/api/:repo/charts/:name/:version", Handler: s.deleteChartVersionRequestHandler, Action: cm_auth.PushAction})
 	}
 
