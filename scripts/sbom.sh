@@ -2,6 +2,7 @@
 
 set -euo pipefail
 : ${VERSION:?"VERSION environment variable is not set"}
+IMAGE_REF=${IMAGE_REF:-ghcr.io/helm/chartmuseum:${VERSION}}
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR/../
@@ -25,15 +26,8 @@ for file in $(ls *.{gz,zip});
     echo "    source: ${file}" >> .sbom.yaml
 done
 
-echo "Adding image ghcr.io/helm/chartmuseum:${VERSION}"
-echo "  - type: image" >> .sbom.yaml
-echo "    source: ghcr.io/helm/chartmuseum:${VERSION}" >> .sbom.yaml
-
-if [[ "${VERSION}" != "canary" ]]; then
-  echo "Adding image ghcr.io/helm/chartmuseum:latest"
-  echo "  - type: image" >> .sbom.yaml
-  echo "    source: ghcr.io/helm/chartmuseum:latest" >> .sbom.yaml
-fi
+printf 'Adding image %s\n' "$IMAGE_REF"
+printf '  - type: image\n    source: %s\n' "$IMAGE_REF" >> .sbom.yaml
 
 echo "Wrote configuration file:"
 cat .sbom.yaml

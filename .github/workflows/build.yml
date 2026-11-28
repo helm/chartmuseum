@@ -10,6 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_IMAGE: ghcr.io/helm/chartmuseum
+      DOCKER_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386
     permissions:
       contents: read
       packages: write
@@ -36,21 +39,11 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
-          DOCKER_IMAGE=ghcr.io/helm/chartmuseum
-          DOCKER_PLATFORMS=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386
-          VERSION=canary
-          TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
-
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-            TAGS="--tag ${DOCKER_IMAGE}:${VERSION} --tag ${DOCKER_IMAGE}:latest"
+          version=canary
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            version="${GITHUB_REF#refs/tags/}"
           fi
-
-          echo ::set-output name=docker_image::${DOCKER_IMAGE}
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
-            --build-arg revision=$(git rev-parse --short HEAD) \
-            ${TAGS} .
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         with:
@@ -69,41 +62,45 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Docker Buildx (build and push)
+        id: image
+        env:
+          VERSION: ${{ steps.prepare.outputs.version }}
         run: |
-          docker buildx build --no-cache --pull --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
+          metadata_file="$RUNNER_TEMP/chartmuseum-build-metadata.json"
+          docker buildx build --no-cache --pull --output type=image,push=true \
+            --metadata-file "$metadata_file" --platform "$DOCKER_PLATFORMS" \
+            --build-arg "revision=$(git rev-parse --short HEAD)" \
+            --tag "$DOCKER_IMAGE:$VERSION" .
+          digest=$(jq -er '."containerimage.digest" | strings | select(test("^sha256:[0-9a-f]{64}$"))' "$metadata_file")
+          printf 'ref=%s@%s\n' "$DOCKER_IMAGE" "$digest" >> "$GITHUB_OUTPUT"
       - name: Docker Check Manifest
-        run: |
-          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+        env:
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+        run: docker buildx imagetools inspect "$IMAGE_REF"
       - name: Install Kubernetes SBOM Tool
         uses: puerco/bom-installer@aa0837e37b6965b5fc50adfad0683ec3c0a2c2c4
       - name: Install sigstore cosign
         uses: sigstore/cosign-installer@v3.10.1
-        with:
-          cosign-version: 'v2.2.4'
       - name: Release artifacts (includes SBOM and signatures)
         id: release-artifacts
         env:
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
           COSIGN_EXPERIMENTAL: "true"
-        run: |
-          SKIP_BUILD=true VERSION="${{ steps.prepare.outputs.version }}" ./scripts/release-artifacts.sh
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          VERSION: ${{ steps.prepare.outputs.version }}
+        run: SKIP_BUILD=true ./scripts/release-artifacts.sh
       - name: Sign the published images (via GitHub OIDC token)
         env:
           COSIGN_EXPERIMENTAL: "true"
-        run: |
-          for TAG in ${{ steps.prepare.outputs.version }} latest; do
-            [[ $TAG == latest && ${{ steps.prepare.outputs.version }} == "canary" ]] && continue
-            cosign sign --yes ${{ steps.prepare.outputs.docker_image }}:${TAG}
-          done
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+        run: cosign sign --yes "$IMAGE_REF"
       - name: Attach SBOM to published images
         env:
           COSIGN_EXPERIMENTAL: "true"
-        run: |
-          for TAG in ${{ steps.prepare.outputs.version }} latest; do
-            [[ $TAG == latest && ${{ steps.prepare.outputs.version }} == "canary" ]] && continue
-            cosign attach sbom --sbom _dist/chartmuseum-${{ steps.prepare.outputs.version }}.spdx ${{ steps.prepare.outputs.docker_image }}:${TAG}
-          done
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          VERSION: ${{ steps.prepare.outputs.version }}
+        run: cosign attach sbom --sbom "_dist/chartmuseum-${VERSION}.spdx" "$IMAGE_REF"
       - name: Clear
         if: always()
         run: |
