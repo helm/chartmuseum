@@ -258,33 +258,37 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 		err error
 	}
 
+	// Unbuffered, so a worker keeps its Limiter slot until the reader takes
+	// its result and concurrency stays bounded by the index limit
 	cvChan := make(chan cvResult)
 
-	// Provide a mechanism to short-circuit object downloads in case of error
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// Stop the workers once the reader gives up, carrying the fatal error
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
 
 	for _, object := range objects {
 		go func(o cm_storage.Object) {
 			if server.IndexLimit != 0 {
 				// Limit parallelism to the index-limit parameter value
 				// if there are more than IndexLimit concurrent fetches, this send will block
-				server.Limiter <- struct{}{}
+				select {
+				case server.Limiter <- struct{}{}:
+				case <-ctx.Done():
+					return
+				}
 				// once work is over, read one Limiter channel item to allow other workers to continue
 				defer func() { <-server.Limiter }()
 			}
-			select {
-			case <-ctx.Done():
+			if ctx.Err() != nil {
 				return
-			default:
-				chartVersion, err := server.getObjectChartVersion(repo, o, true)
-				if err != nil {
-					err = server.checkInvalidChartPackageError(log, repo, o, err, "added")
-					if err != nil {
-						cancel()
-					}
-				}
-				cvChan <- cvResult{chartVersion, err}
+			}
+			chartVersion, err := server.getObjectChartVersion(repo, o, true)
+			if err != nil {
+				err = server.checkInvalidChartPackageError(log, repo, o, err, "added")
+			}
+			select {
+			case cvChan <- cvResult{chartVersion, err}:
+			case <-ctx.Done():
 			}
 		}(object)
 	}
@@ -292,7 +296,8 @@ func (server *MultiTenantServer) addIndexObjectsAsync(log cm_logger.LoggingFn, r
 	for validCount := 0; validCount < numObjects; validCount++ {
 		cvRes := <-cvChan
 		if cvRes.err != nil {
-			return cvRes.err
+			cancel(cvRes.err)
+			return context.Cause(ctx)
 		}
 		if cvRes.cv == nil {
 			continue
