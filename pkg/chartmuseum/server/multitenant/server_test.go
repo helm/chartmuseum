@@ -1468,3 +1468,49 @@ func (suite *MultiTenantServerTestSuite) getBodyWithMultipartFormFiles(fields []
 func TestMultiTenantServerTestSuite(t *testing.T) {
 	suite.Run(t, new(MultiTenantServerTestSuite))
 }
+
+func (suite *MultiTenantServerTestSuite) TestUnreadableChartArchiveError() {
+	dir := suite.T().TempDir()
+	content, err := os.ReadFile(testTarballPath)
+	suite.Nil(err, "no error opening test tarball")
+	chartPath := pathutil.Join(dir, "mychart-0.1.0.tgz")
+	suite.Nil(os.WriteFile(chartPath, content, 0o644), "no error writing test tarball")
+
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{Debug: true})
+	suite.Nil(err, "no error creating logger")
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         0,
+		MaxUploadSize: maxUploadSize,
+	})
+	server, err := NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         storage.NewLocalFilesystemBackend(dir),
+		TimestampTolerance:     time.Duration(0),
+		EnableAPI:              true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+	})
+	suite.Nil(err, "no error creating new multitenant server")
+
+	get := func(path string) (int, string) {
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request, _ = http.NewRequest("GET", path, nil)
+		server.Router.HandleContext(c)
+		return recorder.Code, recorder.Body.String()
+	}
+
+	// load the index while the archive is still valid
+	status, _ := get("/api/charts/mychart/0.1.0/templates")
+	suite.Equal(200, status, "200 GET /api/charts/mychart/0.1.0/templates")
+
+	suite.Nil(os.WriteFile(chartPath, []byte("not a chart archive"), 0o644), "no error corrupting tarball")
+
+	for _, endpoint := range []string{"templates", "values"} {
+		status, body := get("/api/charts/mychart/0.1.0/" + endpoint)
+		suite.Equal(500, status, "500 GET "+endpoint+" of unreadable archive")
+		suite.Contains(body, `"error":"`, "error message is a string in "+endpoint+" response")
+	}
+}

@@ -177,7 +177,7 @@ func (server *MultiTenantServer) getStorageObjectTemplateRequestHandler(c *gin.C
 	}
 	chrt, err1 := loader.LoadArchive(bytes.NewReader(storageObject.Content))
 	if err1 != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err1})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err1.Error()})
 		return
 	}
 	c.JSON(200, map[string]interface{}{
@@ -206,7 +206,7 @@ func (server *MultiTenantServer) getStorageObjectValuesRequestHandler(c *gin.Con
 	}
 	chrt, err1 := loader.LoadArchive(bytes.NewReader(storageObject.Content))
 	if err1 != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err1})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err1.Error()})
 		return
 	}
 	var data []byte
