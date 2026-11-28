@@ -471,7 +471,7 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 		"repo", repo,
 	)
 
-	return &cm_repo.Index{
+	index := &cm_repo.Index{
 		IndexFile:  indexFile,
 		RepoName:   repo,
 		Raw:        object.Content,
@@ -479,6 +479,8 @@ func (server *MultiTenantServer) newRepositoryIndex(log cm_logger.LoggingFn, rep
 		IndexLock:  sync.RWMutex{},
 		OutputJSON: server.JSONIndex,
 	}
+	index.UpdateMetrics()
+	return index
 }
 
 func (server *MultiTenantServer) initCacheTimer() {

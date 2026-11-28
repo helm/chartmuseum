@@ -367,7 +367,7 @@ var configVars = map[string]configVar{
 	"storage.amazon.forcepathstyle": {
 		Type:    boolType,
 		Default: true,
-		CLIFlag: cli.StringFlag{
+		CLIFlag: cli.BoolFlag{
 			Name:   "storage-amazon-force-path-style",
 			Usage:  "whether to force path style for amazon storage backend",
 			EnvVar: "STORAGE_AMAZON_FORCE_PATH_STYLE",

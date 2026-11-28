@@ -35,6 +35,7 @@ import (
 
 	"github.com/chartmuseum/storage"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"sigs.k8s.io/yaml"
 )
@@ -735,6 +736,54 @@ generated: "2018-05-23T15:14:46-05:00"`)
 	suite.Contains(suite.LastPrinted, "apiVersion:", "--gen-index prints yaml")
 }
 
+func TestStatefileMetrics(t *testing.T) {
+	const tenant = "statefile-metrics"
+	const statefile = `apiVersion: v1
+entries:
+  app:
+  - name: app
+    version: 0.2.0
+    urls: [charts/app-0.2.0.tgz]
+  - name: app
+    version: 0.1.0
+    urls: [charts/app-0.1.0.tgz]
+  lib:
+  - name: lib
+    version: 0.1.0
+    urls: [charts/lib-0.1.0.tgz]
+generated: "2024-01-01T00:00:00Z"
+`
+	backend := storage.NewLocalFilesystemBackend(t.TempDir())
+	require.NoError(t, backend.PutObject(pathutil.Join(tenant, repo.StatefileFilename), []byte(statefile)))
+
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{})
+	require.NoError(t, err)
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         1,
+		EnableMetrics: true,
+		MaxUploadSize: maxUploadSize,
+	})
+	_, err = NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:         logger,
+		Router:         router,
+		StorageBackend: backend,
+		UseStatefiles:  true,
+	})
+	require.NoError(t, err)
+
+	index := httptest.NewRecorder()
+	router.ServeHTTP(index, httptest.NewRequest(http.MethodGet, "/"+tenant+"/index.yaml", nil))
+	require.Equal(t, http.StatusOK, index.Code)
+	require.Equal(t, statefile, index.Body.String())
+
+	metrics := httptest.NewRecorder()
+	router.ServeHTTP(metrics, httptest.NewRequest(http.MethodGet, "/metrics", nil))
+	require.Equal(t, http.StatusOK, metrics.Code)
+	require.Contains(t, metrics.Body.String(), `chartmuseum_charts_served_total{repo="statefile-metrics"} 2`)
+	require.Contains(t, metrics.Body.String(), `chartmuseum_chart_versions_served_total{repo="statefile-metrics"} 3`)
+}
+
 func (suite *MultiTenantServerTestSuite) TestDisabledServer() {
 	// Test that all /api routes disabled if EnableAPI=false
 	res := suite.doRequest("disabled", "GET", "/api/charts", nil, "")
@@ -818,6 +867,66 @@ func (suite *MultiTenantServerTestSuite) TestOverwriteServer() {
 		suite.Equal(1, len(e.RepoIndex.Entries), "overwrite entries validation")
 		e.RepoLock.RUnlock()
 	}
+}
+
+// failingPutBackend wraps a storage backend and fails the Nth PutObject call.
+type failingPutBackend struct {
+	storage.Backend
+	failOn int
+	puts   int
+}
+
+func (b *failingPutBackend) PutObject(path string, content []byte) error {
+	b.puts++
+	if b.puts == b.failOn {
+		return fmt.Errorf("simulated storage failure for %s", path)
+	}
+	return b.Backend.PutObject(path, content)
+}
+
+func (suite *MultiTenantServerTestSuite) TestFailedChartAndProvUploadIsRolledBack() {
+	// The second file of a chart and provenance upload fails to store, so the
+	// first one must not stay behind, otherwise the chart exists in storage
+	// without being served and a retry is answered with a conflict.
+	backend := &failingPutBackend{
+		Backend: storage.NewLocalFilesystemBackend(suite.TempDirectory),
+		failOn:  2,
+	}
+	logger, err := cm_logger.NewLogger(cm_logger.LoggerOptions{Debug: true})
+	suite.Nil(err, "no error creating logger")
+	router := cm_router.NewRouter(cm_router.RouterOptions{
+		Logger:        logger,
+		Depth:         1,
+		MaxUploadSize: maxUploadSize,
+	})
+	server, err := NewMultiTenantServer(MultiTenantServerOptions{
+		Logger:                 logger,
+		Router:                 router,
+		StorageBackend:         backend,
+		EnableAPI:              true,
+		ChartPostFormFieldName: "chart",
+		ProvPostFormFieldName:  "prov",
+		CacheInterval:          time.Second,
+	})
+	suite.Nil(err, "no error creating the failing storage server")
+
+	upload := func() int {
+		buf, w := suite.getBodyWithMultipartFormFiles([]string{"chart", "prov"}, []string{otherTestTarballPath, otherTestProvfilePath})
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request, _ = http.NewRequest("POST", "/api/rollback/charts", buf)
+		c.Request.Header.Set("Content-Type", w.FormDataContentType())
+		server.Router.HandleContext(c)
+		return c.Writer.Status()
+	}
+
+	suite.Equal(500, upload(), "500 POST /api/rollback/charts when storing the second file fails")
+	for _, name := range []string{"otherchart-0.1.0.tgz", "otherchart-0.1.0.tgz.prov"} {
+		_, err = os.Stat(pathutil.Join(suite.TempDirectory, "rollback", name))
+		suite.True(os.IsNotExist(err), "%s is not left behind after the failed upload", name)
+	}
+
+	suite.Equal(201, upload(), "201 POST /api/rollback/charts when the retry succeeds")
 }
 
 func (suite *MultiTenantServerTestSuite) TestBadChartUpload() {

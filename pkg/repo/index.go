@@ -86,7 +86,7 @@ func (index *Index) Regenerate() (err error) {
 	index.IndexLock.Lock()
 	defer index.IndexLock.Unlock()
 	index.Raw = raw
-	index.updateMetrics()
+	index.UpdateMetrics()
 	return nil
 }
 
@@ -157,8 +157,9 @@ func (index *Index) setChartURL(chartVersion *helm_repo.ChartVersion) {
 	}
 }
 
-// UpdateMetrics updates chart index-related Prometheus metrics
-func (index *Index) updateMetrics() {
+// UpdateMetrics sets the Prometheus gauges from the index entries.
+// Callers must synchronize access to the entries if the index is shared.
+func (index *Index) UpdateMetrics() {
 	nChartVersions := 0
 	for _, chartVersions := range index.Entries {
 		nChartVersions += len(chartVersions)

@@ -60,7 +60,7 @@ Upload `mychart-0.1.0.tgz`:
 curl --data-binary "@mychart-0.1.0.tgz" http://localhost:8080/api/charts
 ```
 
-If you've signed your package and generated a [provenance file](https://github.com/helm/helm-www/blob/master/content/en/docs/topics/provenance.md), upload it with:
+If you've signed your package and generated a [provenance file](https://helm.sh/docs/topics/provenance/), upload it with:
 ```bash
 curl --data-binary "@mychart-0.1.0.tgz.prov" http://localhost:8080/api/prov
 ```
@@ -416,7 +416,7 @@ In order to gain access to a specific resource, the JWT token must contain an `a
 The `type` is always "artifact-repository", the `name` is the namespace/tenant (just use the string "repo" if using single-tenant server), and `actions` is an array of actions the user can perform ("pull" and/or "push).
 
 If your JWT token structure is different, you can configure a [JMESPath string](https://jmespath.org/). So you can define the way to find the allowed actions yourself.
-For the `type` and the the `name` you can use following placeholder
+For the `type` and the `name` you can use following placeholder
 * name: `$NAMESPACE`
 * type: `$ACCESS_ENTRY_TYPE`
 
@@ -472,7 +472,7 @@ docker run --rm -it \
   -e STORAGE=local \
   -e STORAGE_LOCAL_ROOTDIR=/charts \
   -v $(pwd)/charts:/charts \
-  ghcr.io/helm/chartmuseum:latest
+  ghcr.io/helm/chartmuseum:v0.16.6
 ```
 
 Example usage (S3):
@@ -485,7 +485,7 @@ docker run --rm -it \
   -e STORAGE_AMAZON_PREFIX="" \
   -e STORAGE_AMAZON_REGION="us-east-1" \
   -v ~/.aws:/home/chartmuseum/.aws:ro \
-  ghcr.io/helm/chartmuseum:latest
+  ghcr.io/helm/chartmuseum:v0.16.6
 ```
 
 ### Helm Chart

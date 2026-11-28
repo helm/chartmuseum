@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/chartmuseum/storage"
 
 	helm_chart "helm.sh/helm/v3/pkg/chart"
@@ -125,6 +126,15 @@ func GetExactChartNameVersion(path string) (string, string) {
 	lastIndex := len(parts) - 1
 	chartName := parts[0]
 	chartVersion := ""
+
+	// prefer the leftmost split whose remainder is a valid semantic version,
+	// so that hyphenated pre-release versions (e.g. 1.2.3-1234-abcdef) stay intact
+	for idx := 1; idx <= lastIndex; idx++ {
+		v := strings.Join(parts[idx:], "-")
+		if _, err := semver.StrictNewVersion(v); err == nil {
+			return strings.Join(parts[:idx], "-"), v
+		}
+	}
 
 	for idx := lastIndex; idx >= 1; idx-- {
 		if _, err := strconv.Atoi(string(parts[idx][0])); err == nil { // see if this part looks like a version (starts w int)

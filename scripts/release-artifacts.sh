@@ -22,11 +22,15 @@ set -euo pipefail
 SKIP_BUILD=${SKIP_BUILD:-false}
 
 echo "Installing Azure CLI"
-echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ stretch main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
-curl -L https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add
-sudo apt install apt-transport-https
-sudo apt update
-sudo apt install azure-cli
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl apt-transport-https lsb-release gnupg
+sudo mkdir -p /etc/apt/keyrings
+curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
+AZ_DIST=$(lsb_release -cs)
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ ${AZ_DIST} main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
+sudo apt-get update
+sudo apt-get install -y azure-cli
 
 if ! ${SKIP_BUILD}
 then
