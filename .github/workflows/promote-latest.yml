@@ -1,0 +1,104 @@
+name: Promote latest image
+
+on:
+  release:
+    types: [published]
+  workflow_run:
+    workflows: [build]
+    types: [completed]
+
+jobs:
+  promote:
+    if: >-
+      github.repository == 'helm/chartmuseum' &&
+      ((github.event_name == 'release' && github.event.release.prerelease == false) ||
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    concurrency:
+      group: chartmuseum-latest-image
+      cancel-in-progress: false
+    steps:
+      - name: Install sigstore cosign
+        uses: sigstore/cosign-installer@v3.10.1
+      - name: Promote the current stable image
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ghcr.io/helm/chartmuseum
+        run: |
+          latest_stable_tag() {
+            gh api "repos/$GITHUB_REPOSITORY/releases/latest" |
+              jq -r 'select(.draft == false and .prerelease == false) | .tag_name'
+          }
+
+          tag_commit() {
+            gh api "repos/$GITHUB_REPOSITORY/commits/refs/tags/$1" --jq '.sha'
+          }
+
+          image_digest() {
+            docker buildx imagetools inspect --format '{{.Manifest.Digest}}' "$1"
+          }
+
+          tag=$(latest_stable_tag)
+          if [[ ! "$tag" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "GitHub's latest release has no stable version tag."
+            exit 0
+          fi
+
+          commit=$(tag_commit "$tag")
+          successful_runs=$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/build.yml/runs" \
+            -f event=push -f status=success -f branch="$tag" -f head_sha="$commit" -F per_page=1 \
+            --jq '.total_count')
+          if [[ ! "$successful_runs" =~ ^[1-9][0-9]*$ ]]; then
+            echo "The build for $tag has not succeeded yet."
+            exit 0
+          fi
+
+          printf '%s\n' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          manifest=$(docker buildx imagetools inspect --format '{{json .Manifest}}' "$IMAGE:$tag")
+          digest=$(jq -er '
+            select(.mediaType == "application/vnd.oci.image.index.v1+json" or
+                   .mediaType == "application/vnd.docker.distribution.manifest.list.v2+json") |
+            .digest | select(test("^sha256:[0-9a-f]{64}$"))
+          ' <<< "$manifest")
+          image_ref="$IMAGE@$digest"
+
+          if [[ "$(image_digest "$IMAGE:latest" 2>/dev/null)" == "$digest" ]]; then
+            echo "Latest already points to $tag ($digest)."
+            exit 0
+          fi
+
+          cosign verify \
+            --certificate-identity "https://github.com/$GITHUB_REPOSITORY/.github/workflows/build.yml@refs/tags/$tag" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-github-workflow-sha "$commit" \
+            "$image_ref" > /dev/null
+          sbom="$RUNNER_TEMP/chartmuseum-verified.spdx"
+          cosign download sbom "$image_ref" > "$sbom"
+          test -s "$sbom"
+
+          current_tag=$(latest_stable_tag)
+          if [[ "$current_tag" != "$tag" ]]; then
+            echo "GitHub's latest release changed during verification."
+            exit 0
+          fi
+          current_commit=$(tag_commit "$tag")
+          if [[ "$current_commit" != "$commit" ]]; then
+            echo "The tag for $tag changed during verification."
+            exit 0
+          fi
+
+          docker buildx imagetools create --tag "$IMAGE:latest" "$image_ref"
+          published_digest=$(image_digest "$IMAGE:latest")
+          if [[ "$published_digest" != "$digest" ]]; then
+            echo "::error::Latest resolved to $published_digest instead of $digest."
+            exit 1
+          fi
+          echo "Promoted $tag ($digest) to latest."
