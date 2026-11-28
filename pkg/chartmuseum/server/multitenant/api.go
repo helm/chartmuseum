@@ -33,12 +33,18 @@ import (
 	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
+// noLimit is the internal value for "no limit". The HTTP handler passes it
+// when the limit query parameter is absent (a client-supplied limit must be
+// positive), and getChart uses it to read the whole index. With an offset it
+// returns every chart after that offset.
+const noLimit = -1
+
 func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo string, offset int, limit int) (map[string]helm_repo.ChartVersions, *HTTPError) {
 	indexFile, err := server.getIndexFile(log, repo)
 	if err != nil {
 		return nil, &HTTPError{http.StatusInternalServerError, err.Message}
 	}
-	if offset == 0 && limit == -1 {
+	if offset == 0 && limit == noLimit {
 		return indexFile.Entries, nil
 	}
 	result := map[string]helm_repo.ChartVersions{}
@@ -47,9 +53,14 @@ func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo stri
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	end := offset + limit
-	if len(keys) < end {
-		end = len(keys)
+	if offset > len(keys) {
+		offset = len(keys)
+	}
+	// compare the limit against the remaining count rather than adding it to
+	// the offset, so that a very large limit cannot overflow
+	end := len(keys)
+	if limit != noLimit && limit < end-offset {
+		end = offset + limit
 	}
 	for i := offset; i < end; i++ {
 		result[keys[i]] = indexFile.Entries[keys[i]]
@@ -58,7 +69,7 @@ func (server *MultiTenantServer) getAllCharts(log cm_logger.LoggingFn, repo stri
 }
 
 func (server *MultiTenantServer) getChart(log cm_logger.LoggingFn, repo string, name string) (helm_repo.ChartVersions, *HTTPError) {
-	allCharts, err := server.getAllCharts(log, repo, 0, -1)
+	allCharts, err := server.getAllCharts(log, repo, 0, noLimit)
 	if err != nil {
 		return nil, err
 	}

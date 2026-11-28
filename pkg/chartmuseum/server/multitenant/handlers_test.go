@@ -1,7 +1,9 @@
 package multitenant
 
 import (
+	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -14,6 +16,10 @@ import (
 
 	cm_logger "helm.sh/chartmuseum/pkg/chartmuseum/logger"
 	cm_router "helm.sh/chartmuseum/pkg/chartmuseum/router"
+	cm_repo "helm.sh/chartmuseum/pkg/repo"
+
+	"helm.sh/helm/v3/pkg/chart"
+	helm_repo "helm.sh/helm/v3/pkg/repo"
 )
 
 type HandlerTestSuite struct {
@@ -125,6 +131,70 @@ func (suite *HandlerTestSuite) TestMissingTemplatesWelcomePage() {
 	suite.Equal(200, recorder.Result().StatusCode)
 	suite.Equal("text/html", recorder.Header().Get("Content-Type"))
 	suite.Equal(string(data), recorder.Body.String())
+}
+
+func (suite *HandlerTestSuite) TestGetAllChartsPagination() {
+	server := suite.getServer(0)
+	index := cm_repo.NewIndex("", "", &cm_repo.ServerInfo{}, false)
+	for _, name := range []string{"a", "b", "c", "d", "e"} {
+		index.AddEntry(&helm_repo.ChartVersion{
+			Metadata: &chart.Metadata{Name: name, Version: "0.1.0"},
+			URLs:     []string{fmt.Sprintf("charts/%s-0.1.0.tgz", name)},
+		})
+	}
+	server.InternalCacheStore.Store("", &cacheEntry{RepoName: "", RepoIndex: index})
+
+	tests := []struct {
+		query string
+		want  []string
+	}{
+		{"", []string{"a", "b", "c", "d", "e"}},
+		{"?limit=2", []string{"a", "b"}},
+		{"?offset=1&limit=2", []string{"b", "c"}},
+		{"?offset=2", []string{"c", "d", "e"}},
+		{"?offset=4", []string{"e"}},
+		{"?offset=5", []string{}},
+		{"?offset=9&limit=2", []string{}},
+		{"?offset=3&limit=10", []string{"d", "e"}},
+		{fmt.Sprintf("?offset=1&limit=%d", math.MaxInt), []string{"b", "c", "d", "e"}},
+	}
+
+	for _, tt := range tests {
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request, _ = http.NewRequest("GET", "/api/charts"+tt.query, nil)
+		server.getAllChartsRequestHandler(c)
+		suite.Equal(200, recorder.Result().StatusCode, tt.query)
+
+		var got map[string]helm_repo.ChartVersions
+		suite.NoError(json.Unmarshal(recorder.Body.Bytes(), &got), tt.query)
+		names := []string{}
+		for name := range got {
+			names = append(names, name)
+		}
+		suite.ElementsMatch(tt.want, names, "GET /api/charts%s", tt.query)
+	}
+}
+
+func (suite *HandlerTestSuite) TestGetAllChartsRejectsNonPositiveLimit() {
+	server := suite.getServer(0)
+	index := cm_repo.NewIndex("", "", &cm_repo.ServerInfo{}, false)
+	index.AddEntry(&helm_repo.ChartVersion{
+		Metadata: &chart.Metadata{Name: "a", Version: "0.1.0"},
+		URLs:     []string{"charts/a-0.1.0.tgz"},
+	})
+	server.InternalCacheStore.Store("", &cacheEntry{RepoName: "", RepoIndex: index})
+
+	// -1 is only the internal "no limit" value used when the limit param is
+	// absent, so it is rejected like any other non-positive limit
+	for _, query := range []string{"?limit=-1", "?offset=1&limit=-1", "?limit=0"} {
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request, _ = http.NewRequest("GET", "/api/charts"+query, nil)
+		server.getAllChartsRequestHandler(c)
+		suite.Equal(400, recorder.Result().StatusCode, query)
+		suite.Contains(recorder.Body.String(), "limit is not a valid positive integer", query)
+	}
 }
 
 func TestHandlerTestSuite(t *testing.T) {
